@@ -133,6 +133,8 @@ Se envían ejecuciones, fallos, paradas, resumen UTC e informes registrados. Tel
 
 `deploy/botpoly.service` está preparado para esta ruta y usuario. Necesita `.runtime/node24/bin/node`, `.env`, `dashboard/dist`, `.runtime` y `reports`. Tiene directorios de escritura acotados, permisos privados y arranque después de la red.
 
+En esta máquina ya está instalado, habilitado y activo en modo paper. Consulta `docs/VALIDATION.md` para el resultado verificado.
+
 ```bash
 ./deploy/install.sh
 systemctl status botpoly.service

@@ -14,6 +14,8 @@ Entorno: Node 24.20.0, pnpm 10.32.1; instalación con scripts desactivados. **No
 | Chromium + axe, WCAG 2 A/AA y 2.1 AA | Sin infracciones detectadas en 1440, 1024, 768 y 320 px ni en las cinco vistas |
 | Controles del dashboard | Sesión, conexión WebSocket, edición de capital, pausa, cancelación, reanudación y foco por teclado verificados |
 | `pnpm audit` | 0 críticos/altos/moderados; 1 bajo pendiente en elliptic, sin parche publicado |
+| `botpoly.service` | Instalado, habilitado y activo; cero reinicios automáticos durante la verificación |
+| Acceso al servicio instalado | `/health` correcto, API privada sin sesión devuelve 401, escucha solo en 127.0.0.1:3001 |
 
 La integración corrigió la paginación del cliente público: la primera página no debe invocar `from(undefined)`. Los otros ocho fallos procedían del RPC Polygon antiguo; se verificó un RPC público alternativo y quedó configurable con `POLYGON_TEST_RPC`. Las pruebas no se convirtieron en éxitos mediante captura silenciosa de errores.
 
@@ -59,6 +61,8 @@ Después sustituye el nombre del archivo de argumentos por `fixtures/pmxt-excerp
 
 ## Estado y límites
 
-La configuración operativa es **paper**, capital US$50 y acceso privado en `127.0.0.1:3001`. La unidad systemd y su instalador están en `deploy/`. Telegram permanece desactivado hasta recibir token y chat privados. La contraseña local está en `.dashboard-password`, con permisos 0600; no se publica.
+La configuración operativa es **paper**, capital US$50 y acceso privado en `127.0.0.1:3001`. La unidad systemd y su instalador están en `deploy/`. El servicio del sistema quedó instalado y habilitado el 2026-09-05 a las 06:04 UTC. Se repitió la comprobación del dashboard contra ese servicio: las cuatro anchuras, las cinco vistas y los controles pasaron; la simulación quedó reanudada con US$50. El arranque del equipo completo no se probó.
+
+Telegram permanece desactivado hasta recibir token y chat privados. La contraseña local está en `.dashboard-password`, con permisos 0600; no se publica.
 
 **Live permanece bloqueado.** La evidencia entregada es insuficiente y el adaptador solo tiene pruebas de frontera simuladas. Deben revisarse de forma independiente firmas, recibos, comisiones efectivas, heartbeat y estimación previa de gas. Esta última puede fallar sin posiciones existentes y bloquear entradas. Más detalle en [seguridad e investigación](SECURITY-AND-RESEARCH.md).
