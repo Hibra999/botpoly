@@ -10,14 +10,14 @@ export const escapeHtml = (value: unknown) =>
       ]!,
   );
 const usd = (n: number) => `US$${n.toFixed(4)}`;
-const csvCell = (v: unknown) =>
+export const csvCell = (v: unknown) =>
   '"' +
   (typeof v === "string"
     ? v.replace(/^(\s*[=+\-@]|[\t\r])/, "'$&")
     : String(v)
   ).replace(/"/g, '""') +
   '"';
-function chart(values: number[], title: string): string {
+export function chart(values: number[], title: string): string {
   const min = Math.min(...values),
     max = Math.max(...values),
     span = Math.max(max - min, 0.01);

@@ -9,6 +9,9 @@ import { passwordHash, Sessions } from "./auth.js";
 import { Controller } from "./control.js";
 import { createDashboard } from "../dashboard/server.js";
 import { Telegram } from "./telegram.js";
+import { mkdtempSync, mkdirSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
 const password = "test-only-password-123456";
 const cleanups: (() => Promise<void> | void)[] = [];
@@ -22,11 +25,12 @@ function context() {
     engine = new Engine(l, new PaperExecutor("paper", async () => undefined));
   return { store, l, controller: new Controller(engine) };
 }
-async function server() {
+async function server(reports?: string) {
   const ctx = context(),
     app = createDashboard(ctx.controller, {
       passwordHash: passwordHash(password),
       port: 0,
+      reports,
     });
   await app.start();
   cleanups.push(() => app.close());
@@ -39,6 +43,29 @@ async function server() {
   };
 }
 describe("autenticación y comandos", () => {
+  it("abre informes HTML autenticados en sandbox sin permitir scripts", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "botpoly-report-"));
+    mkdirSync(join(dir, "paper"));
+    writeFileSync(join(dir, "paper/report.html"), "<h1>Paper</h1>");
+    const s = await server(dir);
+    expect((await fetch(s.origin + "/reports/paper/report.html")).status).toBe(
+      401,
+    );
+    const login = await fetch(s.origin + "/api/login", {
+      method: "POST",
+      headers: s.headers,
+      body: JSON.stringify({ password }),
+    });
+    const report = await fetch(s.origin + "/reports/paper/report.html", {
+      headers: { Cookie: login.headers.get("set-cookie")! },
+    });
+    expect(report.status).toBe(200);
+    expect(report.headers.get("content-disposition")).toContain("inline");
+    expect(report.headers.get("content-security-policy")).toContain("sandbox");
+    expect(report.headers.get("content-security-policy")).toContain(
+      "default-src 'none'",
+    );
+  });
   it("protege HTTP, valida origen y no serializa secretos", async () => {
     const s = await server();
     expect((await fetch(s.origin + "/api/status")).status).toBe(401);

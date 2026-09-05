@@ -16,6 +16,7 @@ const terminal = (o: Order) =>
   ["filled", "rejected", "cancelled"].includes(o.status);
 export class Engine {
   private queue: Promise<void> = Promise.resolve();
+  private rejections = new Map<string, number>();
   constructor(
     readonly ledger: Ledger,
     readonly executor: Executor,
@@ -36,7 +37,14 @@ export class Engine {
     });
   }
   private rejection(reason: string, frame: Frame): null {
-    this.ledger.event("rejected", reason, frame.marketId);
+    this.ledger.count("rejected:" + reason);
+    const key = `${frame.marketId}:${reason}`;
+    // ponytail: retain one detailed rejection/minute/market; exact totals remain in daily counters.
+    if (this.ledger.now() - (this.rejections.get(key) ?? -Infinity) >= 60000) {
+      this.ledger.event("rejected", reason, frame.marketId);
+      if (this.rejections.size >= 2000) this.rejections.clear();
+      this.rejections.set(key, this.ledger.now());
+    }
     return null;
   }
   reserve(frame: Frame): Order[] | null {
@@ -44,6 +52,7 @@ export class Engine {
     const l = this.ledger,
       s = l.store;
     return s.transaction(() => {
+      l.count("evaluated");
       l.mark(frame);
       const a = l.account,
         c = l.config,
@@ -60,7 +69,10 @@ export class Engine {
       if (!frame.binary || frame.negRisk)
         return reject("Solo mercados binarios complementarios estándar");
       if (!frame.depth) return reject("Sin profundidad ejecutable");
-      if (!frame.feeVerified || !frame.gasVerified)
+      if (
+        !frame.feeVerified ||
+        (!frame.gasVerified && !(l.mode !== "live" && frame.paperGas))
+      )
         return reject("Costes sin verificar");
       if (
         [frame.timestamp, frame.yes.timestamp, frame.no.timestamp].some(
@@ -181,6 +193,7 @@ export class Engine {
       );
       return orders;
     });
+    l.count("accepted");
   }
   private apply(order: Order, result: Execution): Order {
     const l = this.ledger;
@@ -439,6 +452,11 @@ export class Engine {
   recordEquity(): void {
     const m = this.ledger.metrics(),
       timestamp = this.ledger.now();
-    this.ledger.store.put("equity", String(timestamp), { timestamp, ...m });
+    this.ledger.store.put("equity", String(timestamp), {
+      timestamp,
+      ...m,
+      fees: this.ledger.account.fees,
+      gas: this.ledger.account.gas,
+    });
   }
 }

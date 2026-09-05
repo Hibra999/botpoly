@@ -1,6 +1,8 @@
 import { DatabaseSync } from "node:sqlite";
 import { chmodSync, mkdirSync } from "node:fs";
 import { dirname } from "node:path";
+import { gzipSync } from "node:zlib";
+import type { Frame } from "./model.js";
 
 const tables = [
   "meta",
@@ -14,6 +16,7 @@ const tables = [
   "reports",
   "equity",
   "outbox",
+  "statistics",
 ] as const;
 export type Table = (typeof tables)[number];
 /** Synchronous transactions deliberately never span an await. WAL + BEGIN IMMEDIATE
@@ -32,6 +35,12 @@ export class Store {
       this.db.exec(
         `CREATE TABLE IF NOT EXISTS ${table} (id TEXT PRIMARY KEY, data TEXT NOT NULL CHECK(json_valid(data)))`,
       );
+    this.db.exec(
+      "CREATE TABLE IF NOT EXISTS recorded_books (id TEXT PRIMARY KEY, timestamp INTEGER NOT NULL, market TEXT NOT NULL, data BLOB NOT NULL); CREATE INDEX IF NOT EXISTS recorded_books_time ON recorded_books(timestamp)",
+    );
+    this.db.exec(
+      "CREATE INDEX IF NOT EXISTS equity_time ON equity(CAST(json_extract(data,'$.timestamp') AS INTEGER))",
+    );
     const version = this.get<number>("meta", "schema");
     if (version !== undefined && version !== 1)
       throw new Error("Versión de base de datos incompatible");
@@ -75,6 +84,18 @@ export class Store {
   }
   delete(table: Table, id: string): void {
     this.db.prepare(`DELETE FROM ${table} WHERE id=?`).run(id);
+  }
+  recordBook(frame: Frame): void {
+    this.db
+      .prepare(
+        "INSERT OR IGNORE INTO recorded_books(id,timestamp,market,data) VALUES (?,?,?,?)",
+      )
+      .run(
+        frame.id,
+        frame.timestamp,
+        frame.marketId,
+        gzipSync(JSON.stringify(frame), { level: 1 }),
+      );
   }
   transaction<T>(fn: () => T): T {
     this.db.exec("BEGIN IMMEDIATE");

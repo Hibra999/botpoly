@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { defaults, validateConfig, type Mode } from "../engine/model.js";
 import { checksum } from "../research/dataset.js";
+import { PaperGas } from "../research/paper-gas.js";
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env) {
   const mode = env.BOT_MODE ?? "paper";
@@ -37,6 +38,9 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env) {
     throw new Error("Puerto o intervalo inválido");
   if (!env.DASHBOARD_PASSWORD_HASH)
     throw new Error("Configura acceso con pnpm auth:setup");
+  const gasUnits = Number(env.PAPER_GAS_UNITS ?? 300000),
+    gasMultiplier = Number(env.PAPER_GAS_MULTIPLIER ?? 1.5);
+  if (mode === "paper") new PaperGas(gasUnits, gasMultiplier);
   return {
     mode: mode as Mode,
     risk,
@@ -49,6 +53,8 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env) {
     reports: resolve("reports"),
     telegramToken: env.TELEGRAM_BOT_TOKEN ?? "",
     telegramChat: env.TELEGRAM_CHAT_ID ?? "",
+    gasUnits,
+    gasMultiplier,
   };
 }
 export function authorizeLive(env: NodeJS.ProcessEnv = process.env): {

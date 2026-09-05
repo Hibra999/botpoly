@@ -1,0 +1,24 @@
+<!doctype html><html lang="es"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'"><title>Botpoly · Seguimiento paper</title><style>body{background:#101018;color:#eee;font:16px/1.6 system-ui;margin:0}main{max-width:1050px;margin:auto;padding:24px}table{border-collapse:collapse;width:100%}td,th{padding:8px;border-bottom:1px solid #454552;text-align:left}h1,h2,strong{color:#b9a9ff}svg{width:100%;height:auto}figure{margin:20px 0}.notice{padding:16px;background:#252132}pre{white-space:pre-wrap;overflow-wrap:anywhere}</style><main><h1>Seguimiento paper · YES / NO</h1><p class="notice">Resultados simulados sobre mercados observados. Gas modelado; no prueba rentabilidad real.</p><p>Informe generado: 2026-09-05T06:58:26.536Z. Actividad desde 2026-09-01T00:00:00.000Z.</p><p>Inicio de las observaciones incluidas: 2026-09-05T06:42:23.983Z.</p><p><strong>PnL acumulado: US$0.0000</strong> · Capital: US$1000.0000 · Comisiones: US$0.0000 · Gas: US$0.0000</p><p>Libros evaluados: 3580 · Pares autorizados: 0 · Fills del periodo: 0 · Libros archivados: 1244</p><p>Estado: activo</p><figure><figcaption>Capital (USD) · mínimo 1000.00 / máximo 1000.00</figcaption><svg viewBox="0 0 960 180" role="img" aria-label="Capital (USD)"><path d="M20 160H940" stroke="#657080"/><polyline fill="none" stroke="#83b7ff" stroke-width="3" points="20,160 326.66666666666663,160 633.3333333333333,160 940,160"/></svg></figure><figure><figcaption>Drawdown (%) · mínimo 0.00 / máximo 0.00</figcaption><svg viewBox="0 0 960 180" role="img" aria-label="Drawdown (%)"><path d="M20 160H940" stroke="#657080"/><polyline fill="none" stroke="#83b7ff" stroke-width="3" points="20,160 326.66666666666663,160 633.3333333333333,160 940,160"/></svg></figure><h2>Motivos de rechazo</h2><table><thead><tr><th>Motivo</th><th>Cantidad</th></tr></thead><tbody><tr><td>Datos obsoletos o futuros</td><td>1581</td></tr><tr><td>Ventaja neta insuficiente después de costes</td><td>1885</td></tr><tr><td>Mínimo del mercado excede saldo, profundidad o límites</td><td>111</td></tr><tr><td>Proceso detenido; requiere reanudación autorizada</td><td>3</td></tr></tbody></table><h2>Coste de gas bajo estrés</h2><p>Con gas ×3 y las mismas ejecuciones, el PnL acumulado sería US$0.0000. Es un ajuste de costes; no vuelve a simular la selección de operaciones.</p><h2>Supuestos y límites</h2><ul><li>Evaluación prospectiva paper. Los fills son simulados sobre profundidad observada; no se enviaron órdenes reales.</li><li>Gas: unidades supuestas × precio fast de Polygon Gas Station × POL/USD × margen. No es eth_estimateGas ni una confirmación on-chain.</li><li>Se consultan hasta 20 mercados binarios estándar por ciclo, renovados cada 15 minutos; no se cubre todo Polymarket ni todos los cambios entre consultas.</li><li>Se usan los mejores 20 niveles por lado. Se archivan libros comprimidos cada 10 segundos por mercado y los libros usados en ejecuciones.</li><li>El PnL y los costes mostrados son acumulados de esta cuenta. Las observaciones, fills y motivos de rechazo corresponden a los días UTC seleccionados.</li><li>Cero operaciones es un resultado posible; no se relajan los límites para fabricar actividad. No demuestra rentabilidad live.</li></ul><details><summary>Configuración y observación</summary><pre>{
+  &quot;config&quot;: {
+    &quot;capitalUsd&quot;: 1000,
+    &quot;dailyLossPct&quot;: 0.02,
+    &quot;maxDrawdownPct&quot;: 0.1,
+    &quot;eventExposurePct&quot;: 0.1,
+    &quot;totalExposurePct&quot;: 0.3,
+    &quot;unhedgedLossPct&quot;: 0.01,
+    &quot;minNetProfitUsd&quot;: 0.02,
+    &quot;maxSlippageBps&quot;: 50,
+    &quot;maxDataAgeMs&quot;: 5000,
+    &quot;maxErrors&quot;: 3,
+    &quot;maxCostUsd&quot;: 1
+  },
+  &quot;observation&quot;: {
+    &quot;markets&quot;: 20,
+    &quot;refreshedAt&quot;: 1788591199059,
+    &quot;recorded&quot;: 1244,
+    &quot;gasUnits&quot;: 300000,
+    &quot;gasMultiplier&quot;: 1.5,
+    &quot;gasUsd&quot;: 0.020551,
+    &quot;gasAt&quot;: 1788591501846
+  }
+}</pre></details></main></html>

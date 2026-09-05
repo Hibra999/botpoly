@@ -6,7 +6,10 @@ import {
   type Settlement,
   quote,
   money,
+  validateFrame,
 } from "./model.js";
+import type { Store } from "./store.js";
+type Consumed = { hash: string; quantities: Record<string, number> };
 
 export interface SimulationConfig {
   latencyMs: number;
@@ -30,14 +33,28 @@ export const simulationDefaults: SimulationConfig = {
 export class PaperExecutor implements Executor {
   private results = new Map<string, Execution>();
   private count = 0;
+  private consumed = new Map<string, Consumed>();
   constructor(
     readonly mode: "paper" | "backtest",
     private at: (market: string, time: number) => Promise<Frame | undefined>,
     readonly now: () => number = Date.now,
     readonly config: SimulationConfig = simulationDefaults,
+    readonly maxDataAgeMs = 5000,
+    private store?: Store,
   ) {}
+  private saved(id: string): Execution | undefined {
+    return (
+      this.store?.get<Execution>("meta", `paper:execution:${id}`) ??
+      this.results.get(id)
+    );
+  }
+  private remember(id: string, result: Execution): void {
+    if (this.store) this.store.put("meta", `paper:execution:${id}`, result);
+    else this.results.set(id, result);
+  }
   async execute(order: Order): Promise<Execution> {
-    if (this.results.has(order.id)) return this.results.get(order.id)!;
+    const saved = this.saved(order.id);
+    if (saved) return saved;
     const reject: Execution = { status: "rejected", fills: [] };
     const count = ++this.count;
     const frame = await this.at(
@@ -52,13 +69,37 @@ export class PaperExecutor implements Executor {
         this.config.failNoEvery > 0 &&
         count % this.config.failNoEvery === 0)
     ) {
-      this.results.set(order.id, reject);
+      this.remember(order.id, reject);
+      return reject;
+    }
+    try {
+      validateFrame(frame);
+    } catch {
+      this.remember(order.id, reject);
       return reject;
     }
     const book = order.outcome === "YES" ? frame.yes : frame.no;
+    if (
+      book.timestamp > this.now() ||
+      this.now() - book.timestamp > this.maxDataAgeMs
+    ) {
+      this.remember(order.id, reject);
+      return reject;
+    }
+    const key = `paper:liquidity:${book.tokenId}:${order.side}`;
+    const previous =
+      this.store?.get<Consumed>("meta", key) ?? this.consumed.get(key);
+    const consumed: Consumed =
+      previous && book.hash && previous.hash === book.hash
+        ? previous
+        : { hash: book.hash ?? frame.id, quantities: {} };
     const levels = (order.side === "BUY" ? book.asks : book.bids).map((l) => ({
       ...l,
-      size: l.size * this.config.depthMultiplier,
+      size: Math.max(
+        0,
+        l.size * this.config.depthMultiplier -
+          (consumed.quantities[String(l.price)] ?? 0),
+      ),
     }));
     // FOK is all-or-nothing under normal simulation. Partial fills are injected
     // only as an explicit abnormal-execution stress scenario.
@@ -68,7 +109,7 @@ export class PaperExecutor implements Executor {
         : order.quantity;
     const fill = quote(levels, q, frame.feeRate, order.side, order.limit);
     if (!fill) {
-      this.results.set(order.id, reject);
+      this.remember(order.id, reject);
       return reject;
     }
     // Consume this snapshot's liquidity; subsequent orders cannot reuse it.
@@ -86,9 +127,16 @@ export class PaperExecutor implements Executor {
         continue;
       const take = Math.min(
         remaining,
-        level.size * this.config.depthMultiplier,
+        Math.max(
+          0,
+          level.size * this.config.depthMultiplier -
+            (consumed.quantities[String(level.price)] ?? 0),
+        ),
       );
-      level.size -= take / this.config.depthMultiplier;
+      if (book.hash)
+        consumed.quantities[String(level.price)] =
+          (consumed.quantities[String(level.price)] ?? 0) + take;
+      else level.size -= take / this.config.depthMultiplier;
       remaining -= take;
       if (remaining < 1e-7) break;
     }
@@ -107,11 +155,19 @@ export class PaperExecutor implements Executor {
         },
       ],
     };
-    this.results.set(order.id, result);
+    if (this.store)
+      this.store.transaction(() => {
+        if (book.hash) this.store!.put("meta", key, consumed);
+        this.remember(order.id, result);
+      });
+    else {
+      if (book.hash) this.consumed.set(key, consumed);
+      this.remember(order.id, result);
+    }
     return result;
   }
   async reconcile(order: Order): Promise<Execution> {
-    return this.results.get(order.id) ?? { status: "not_found", fills: [] };
+    return this.saved(order.id) ?? { status: "not_found", fills: [] };
   }
   async cancel(order: Order): Promise<Execution> {
     return this.reconcile(order);

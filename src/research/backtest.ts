@@ -134,6 +134,8 @@ async function trial(
     },
     () => time,
     simulation,
+    config.maxDataAgeMs,
+    store,
   );
   const engine = new Engine(ledger, paper);
   engine.health(true);

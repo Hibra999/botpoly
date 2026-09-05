@@ -36,8 +36,51 @@ function Empty({ children }: { children: React.ReactNode }) {
 export function Overview({ data }: { data: Snapshot }) {
   const m = data.metrics,
     a = data.account;
+  const counts: Record<string, number> = {};
+  for (const day of data.statistics ?? [])
+    for (const [key, n] of Object.entries(day.counts))
+      counts[key] = (counts[key] ?? 0) + n;
   return (
     <>
+      {data.mode === "paper" && data.observation && (
+        <section className="panel" aria-label="Seguimiento de simulación">
+          <h2>Seguimiento paper</h2>
+          <p>
+            {data.observation.markets} mercados compatibles ·{" "}
+            {counts.evaluated ?? 0} libros evaluados · {counts.accepted ?? 0}{" "}
+            pares autorizados · {data.observation.recorded} libros archivados.
+          </p>
+          <p className="muted">
+            Gas modelado: {data.observation.gasUnits.toLocaleString("es")}{" "}
+            unidades supuestas × precios actuales ×{" "}
+            {data.observation.gasMultiplier}.{" "}
+            {data.observation.gasUsd !== undefined
+              ? `Última estimación: US$${data.observation.gasUsd.toFixed(4)} por fusión.`
+              : "Esperando precios verificables del gas."}{" "}
+            Resultados simulados; no son ejecuciones reales.
+          </p>
+          {Object.entries(counts).filter(([key]) => key.startsWith("rejected:"))
+            .length > 0 && (
+            <ul>
+              {Object.entries(counts)
+                .filter(([key]) => key.startsWith("rejected:"))
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 5)
+                .map(([key, n]) => (
+                  <li key={key}>
+                    {key.slice(9)}: {n}
+                  </li>
+                ))}
+            </ul>
+          )}
+          <p>
+            <a href="/reports/paper-actual/report.html">
+              Abrir informe de seguimiento
+            </a>{" "}
+            · se actualiza cada 5 minutos.
+          </p>
+        </section>
+      )}
       <section className="capital-strip" aria-label="Capital">
         <div className="capital-main">
           <span>Capital neto</span>
@@ -441,8 +484,11 @@ export function Backtests({ data }: { data: Snapshot }) {
               <div>
                 <h3>{r.label}</h3>
                 <p>
-                  {date(r.timestamp)} · {r.status} · PnL de evaluación:{" "}
-                  {usd(r.netPnl)}
+                  {date(r.timestamp)} · {r.status} ·{" "}
+                  {r.label === "Seguimiento paper"
+                    ? "PnL acumulado"
+                    : "PnL de evaluación"}
+                  : {usd(r.netPnl)}
                 </p>
               </div>
               <div className="actions">

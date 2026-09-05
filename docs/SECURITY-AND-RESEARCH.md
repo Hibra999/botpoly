@@ -1,6 +1,6 @@
 # Seguridad, investigación y límites de la implementación
 
-Revisión: **2026-09-05**. No se enviaron órdenes reales, transacciones, aprobaciones ni mensajes de Telegram. No se recibieron credenciales de Telegram. El servicio operativo usa `paper`.
+Revisión: **2026-09-05**. No se enviaron órdenes reales, transacciones ni aprobaciones financieras. La revisión inicial precedió a la entrega de credenciales de Telegram; posteriormente el usuario las configuró y autorizó el arranque con alertas e informes. El servicio operativo usa `paper`.
 
 ## Hallazgos corregidos
 
@@ -35,6 +35,8 @@ No ejecutar material histórico siguiendo el README original sin revisar contrat
 
 ## Límites operativos que siguen vigentes
 
+Actualización de seguimiento paper (2026-09-05): se corrigió el selector que tomaba la primera página sin filtrar y se añadió un modelo de gas exclusivo de simulación. Usa precios públicos actuales de [Polygon Gas Station](https://docs.polygon.technology/tools/gas/polygon-gas-station) y POL/USD, con unidades y margen declarados como supuestos. `gasVerified` permanece falso; la excepción del motor solo admite ese modelo validado en paper/backtest y lo rechaza en live. Se guardan libros comprimidos, contadores diarios e informes periódicos. Los informes históricos siguientes conservan sus resultados originales; no se han recalculado para aparentar beneficios.
+
 - **Rentabilidad no demostrada.** El fixture sintético produce fills inventados por el simulador y solo sirve para validar el programa. Las capturas oficiales y PMXT entregadas terminan sin operaciones por metadatos/costes insuficientes. Se conserva `paper`.
 - **Gas previo a la compra.** `eth_estimateGas` de una fusión puede revertir si la cuenta aún no posee las posiciones. En ese caso el adaptador omite la entrada; no usa gas fijo. Hacen falta simulaciones de estado o un entorno de estimación revisado para resolver esa condición de forma operativa. Las rutas gasless no están habilitadas.
 - **Validación live pendiente.** Solo se probaron las fronteras con mocks. Las firmas actuales, fees efectivamente cobrados, recibos, cancelación por heartbeat y estimaciones necesitan validación integral independiente antes de aportar la aprobación de live. No se declara el bot listo para operar dinero real.
@@ -42,6 +44,7 @@ No ejecutar material histórico siguiendo el README original sin revisar contrat
 - **Incertidumbre tras envío.** Si falta el ID remoto de una orden aceptada, el sistema no puede demostrar que no existe; queda detenido para revisión. Las fusiones con hash conocido se concilian por recibo y nunca se vuelven a enviar automáticamente. Si no hay hash verificable, la parada permanece.
 - **Liquidez y concentración.** La valoración exige profundidad completa de salida o usa cero. Los subyacentes cripto reconocidos se agrupan conservadoramente; otros activos desconocidos se agrupan por evento. No existe una matriz general de correlaciones ni cobertura entre mercados distintos.
 - **Backtesting.** Snapshots REST no reconstruyen toda la microestructura. Se usa el primer libro observado después de la latencia, sin prioridad de cola. La comparación original es una aproximación de sus límites aplicada al nuevo ejecutor, no una reproducción de beneficios ficticios ni de estrategias desactivadas. Los FOK parciales solo se inyectan como estrés anómalo.
+- **Seguimiento de varios días.** El universo operativo se limita a 20 mercados compatibles, renovado cada 15 minutos. La captura conserva 20 niveles por lado, a intervalos de diez segundos por mercado y en ejecuciones; no registra todos los eventos. La cantidad de gas es un supuesto configurable y necesita calibración antes de interpretar el resultado como estimación de costes reales. El informe paper acumula PnL de la cuenta y separa ese dato de la actividad del periodo seleccionado.
 - **Dashboard.** Las métricas de riesgo son globales al modo de la base. El dashboard presenta las últimas 500 órdenes, 200 eventos y 1.000 observaciones; el historial completo permanece en SQLite. Los filtros se aplican a esas observaciones disponibles. Cada modo debe usar otra base.
 - **Telegram.** Sin token y chat privado no se puede realizar una prueba real de recepción o entrega. Se verificó con transporte simulado, incluyendo rechazos y reintentos.
 - **Operación privada.** El servicio escucha en loopback. El acceso remoto es por túnel SSH. No se preparó exposición pública ni certificados TLS de un dominio.

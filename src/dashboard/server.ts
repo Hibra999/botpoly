@@ -120,8 +120,13 @@ export function createDashboard(
           ) {
             res.setHeader(
               "Content-Disposition",
-              `attachment; filename="${relative.split("/").pop()}"`,
+              `${extname(path) === ".html" ? "inline" : "attachment"}; filename="${relative.split("/").pop()}"`,
             );
+            if (extname(path) === ".html")
+              res.setHeader(
+                "Content-Security-Policy",
+                "default-src 'none'; style-src 'unsafe-inline'; img-src data:; sandbox; frame-ancestors 'none'",
+              );
             res.setHeader(
               "Content-Type",
               extname(path) === ".html"

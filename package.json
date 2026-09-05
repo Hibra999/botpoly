@@ -29,7 +29,10 @@
     "data:import": "node --import tsx src/research/import-cli.ts",
     "backtest": "node --import tsx src/research/backtest-cli.ts",
     "backtest:demo": "node --import tsx src/research/backtest-cli.ts --input fixtures/demo.jsonl --from 2026-01-01T00:00:00Z --split 2026-01-01T00:01:00Z --to 2026-01-01T00:02:00Z --capital 1000 --markets demo-market --out reports/demo",
-    "auth:setup": "node --import tsx src/app/auth-setup.ts"
+    "auth:setup": "node --import tsx src/app/auth-setup.ts",
+    "paper:status": "node --import tsx src/app/paper-cli.ts",
+    "paper:resume": "node --import tsx src/app/paper-cli.ts --resume",
+    "paper:report": "node --import tsx src/app/paper-cli.ts --report"
   },
   "keywords": [
     "polymarket",

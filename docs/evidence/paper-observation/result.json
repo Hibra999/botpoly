@@ -1,0 +1,152 @@
+{
+  "schema": 1,
+  "kind": "paper",
+  "status": "exploratorio",
+  "from": 1788220800000,
+  "to": 1788591506536,
+  "startedAt": 1788590543983,
+  "account": {
+    "initialCapital": 1000,
+    "cash": 1000,
+    "realized": 0,
+    "fees": 0,
+    "gas": 0,
+    "deposits": 1000,
+    "withdrawals": 0,
+    "peakPnl": 0,
+    "day": "2026-09-05",
+    "dayStartPnl": 0,
+    "stop": null,
+    "errors": 0,
+    "connected": true,
+    "lastDataAt": 1788591506531
+  },
+  "config": {
+    "capitalUsd": 1000,
+    "dailyLossPct": 0.02,
+    "maxDrawdownPct": 0.1,
+    "eventExposurePct": 0.1,
+    "totalExposurePct": 0.3,
+    "unhedgedLossPct": 0.01,
+    "minNetProfitUsd": 0.02,
+    "maxSlippageBps": 50,
+    "maxDataAgeMs": 5000,
+    "maxErrors": 3,
+    "maxCostUsd": 1
+  },
+  "metrics": {
+    "equity": 1000,
+    "available": 1000,
+    "reserved": 0,
+    "exposure": 0,
+    "unrealized": 0,
+    "netPnl": 0,
+    "drawdown": 0,
+    "dailyPnl": 0,
+    "operationalCapital": 1000,
+    "sizeFactor": 1
+  },
+  "observation": {
+    "markets": 20,
+    "refreshedAt": 1788591199059,
+    "recorded": 1244,
+    "gasUnits": 300000,
+    "gasMultiplier": 1.5,
+    "gasUsd": 0.020551,
+    "gasAt": 1788591501846
+  },
+  "totals": {
+    "evaluated": 3580,
+    "rejected:Datos obsoletos o futuros": 1581,
+    "rejected:Ventaja neta insuficiente después de costes": 1885,
+    "rejected:Mínimo del mercado excede saldo, profundidad o límites": 111,
+    "rejected:Proceso detenido; requiere reanudación autorizada": 3
+  },
+  "recordedBooks": 1244,
+  "statistics": [
+    {
+      "day": "2026-09-05",
+      "firstAt": 1788590543983,
+      "lastAt": 1788591506533,
+      "counts": {
+        "evaluated": 3580,
+        "rejected:Datos obsoletos o futuros": 1581,
+        "rejected:Ventaja neta insuficiente después de costes": 1885,
+        "rejected:Mínimo del mercado excede saldo, profundidad o límites": 111,
+        "rejected:Proceso detenido; requiere reanudación autorizada": 3
+      }
+    }
+  ],
+  "curve": [
+    {
+      "timestamp": 1788590664290,
+      "equity": 1000,
+      "available": 1000,
+      "reserved": 0,
+      "exposure": 0,
+      "unrealized": 0,
+      "netPnl": 0,
+      "drawdown": 0,
+      "dailyPnl": 0,
+      "operationalCapital": 1000,
+      "sizeFactor": 1,
+      "fees": 0,
+      "gas": 0
+    },
+    {
+      "timestamp": 1788590966726,
+      "equity": 1000,
+      "available": 1000,
+      "reserved": 0,
+      "exposure": 0,
+      "unrealized": 0,
+      "netPnl": 0,
+      "drawdown": 0,
+      "dailyPnl": 0,
+      "operationalCapital": 1000,
+      "sizeFactor": 1,
+      "fees": 0,
+      "gas": 0
+    },
+    {
+      "timestamp": 1788591259442,
+      "equity": 1000,
+      "available": 1000,
+      "reserved": 0,
+      "exposure": 0,
+      "unrealized": 0,
+      "netPnl": 0,
+      "drawdown": 0,
+      "dailyPnl": 0,
+      "operationalCapital": 1000,
+      "sizeFactor": 1,
+      "fees": 0,
+      "gas": 0
+    },
+    {
+      "timestamp": 1788591499950,
+      "equity": 1000,
+      "available": 1000,
+      "reserved": 0,
+      "exposure": 0,
+      "unrealized": 0,
+      "netPnl": 0,
+      "drawdown": 0,
+      "dailyPnl": 0,
+      "operationalCapital": 1000,
+      "sizeFactor": 1,
+      "fees": 0,
+      "gas": 0
+    }
+  ],
+  "fills": [],
+  "gasStress3xNetPnl": 0,
+  "limitations": [
+    "Evaluación prospectiva paper. Los fills son simulados sobre profundidad observada; no se enviaron órdenes reales.",
+    "Gas: unidades supuestas × precio fast de Polygon Gas Station × POL/USD × margen. No es eth_estimateGas ni una confirmación on-chain.",
+    "Se consultan hasta 20 mercados binarios estándar por ciclo, renovados cada 15 minutos; no se cubre todo Polymarket ni todos los cambios entre consultas.",
+    "Se usan los mejores 20 niveles por lado. Se archivan libros comprimidos cada 10 segundos por mercado y los libros usados en ejecuciones.",
+    "El PnL y los costes mostrados son acumulados de esta cuenta. Las observaciones, fills y motivos de rechazo corresponden a los días UTC seleccionados.",
+    "Cero operaciones es un resultado posible; no se relajan los límites para fabricar actividad. No demuestra rentabilidad live."
+  ]
+}

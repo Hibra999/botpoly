@@ -68,6 +68,39 @@ La configuración inicial solo se aplica al crear una base. Después prevalece l
 
 ## Datos y backtesting
 
+### Dejar el bot paper ejecutándose durante días
+
+Desde este servidor, usando la instalación existente:
+
+```bash
+cd /home/gabo/portfolio/projects/38-hibraim/botpoly/Polymarket-bot
+export PATH="$PWD/.runtime/node24/bin:$PATH"
+sudo systemctl restart botpoly.service
+pnpm paper:resume
+```
+
+Systemd mantiene el proceso al cerrar SSH y lo inicia tras reiniciar el VPS. Una parada de riesgo persiste: no se reanuda automáticamente. Para ver el estado y generar el informe:
+
+```bash
+pnpm paper:status
+pnpm paper:report --days 5
+journalctl -u botpoly.service -f
+```
+
+`--days 5` muestra la actividad de los últimos cinco días UTC disponibles; no inventa días anteriores al arranque. El PnL y los costes del informe son acumulados de la cuenta. El informe `reports/paper-actual/report.html` se actualiza automáticamente cada cinco minutos y al detener el proceso; también hay JSON y CSV. Se abre desde Resumen o Backtests del dashboard autenticado. El archivo HTML funciona sin internet. La API de Telegram `/report` también permite obtener informes registrados.
+
+El selector inspecciona hasta 1.000 mercados por volumen reciente y conserva hasta 20 que sean binarios YES/NO estándar, abiertos y con órdenes habilitadas. Renueva la selección cada 15 minutos y conserva los mercados con posiciones pendientes. No cubre toda la plataforma.
+
+**Costes en paper:** las comisiones se leen del mercado. El gas se modela con `PAPER_GAS_UNITS=300000` unidades **supuestas**, precio `fast` de Polygon Gas Station, POL/USD de Coinbase y `PAPER_GAS_MULTIPLIER=1.5`. Los precios caducan y su ausencia bloquea entradas. Las unidades no proceden de `eth_estimateGas`; el modelo queda marcado en los libros, dashboard e informe, y no puede autorizar live. El informe incluye el efecto de triplicar el gas manteniendo las mismas ejecuciones, como sensibilidad de costes.
+
+El simulador vuelve a consultar los libros después de la latencia y exige profundidad y frescura para los fills. Se conservan los mejores 20 niveles por lado, contadores exactos diarios y rechazos detallados muestreados por minuto. SQLite archiva libros comprimidos cada diez segundos por mercado y los usados para ejecutar; no acumula todos los libros en RAM. Comprueba disco y detiene entradas y captura si quedan menos de 512 MiB. No borra automáticamente el historial. Haz copias de seguridad y revisa espacio al dejarlo periodos largos.
+
+Los fills paper y la liquidez consumida de cada hash de libro se persisten: volver a consultar el mismo libro o reiniciar no permite llenar de nuevo esa profundidad. Un hash nuevo se interpreta como un nuevo estado observado; la reconstrucción exacta entre consultas sigue siendo una limitación. Los informes HTML se abren autenticados en el navegador con scripts deshabilitados y sandbox; JSON y CSV se descargan.
+
+La ejecución preparada el 2026-09-05 usa `.runtime/paper-observation.sqlite` con US$1.000 simulados; `.runtime/paper.sqlite` conserva la prueba anterior de US$50. Esta separación es explícita para el nuevo experimento, no se repite al reiniciar ni borra sus futuras pérdidas. Las claves privadas no se utilizan en paper.
+
+### Backtest sobre archivos
+
 ```bash
 pnpm data:collect --seconds 60 --interval 1000 --out data/libros.jsonl
 # Opcional: --markets ID_GAMMA,ID_GAMMA
@@ -113,7 +146,7 @@ TELEGRAM_BOT_TOKEN=
 TELEGRAM_CHAT_ID=
 ```
 
-Los dos campos están vacíos. Hasta proporcionarlos, la integración está desactivada y no envía mensajes. Solo se aceptan mensajes de un chat **privado** cuyo ID coincide tanto con el chat como con el remitente autorizado.
+Los dos campos de `.env.example` están vacíos. En este servidor el usuario ya los configuró en `.env` privado y la integración está activa. Solo se aceptan mensajes de un chat **privado** cuyo ID coincide tanto con el chat como con el remitente autorizado.
 
 Comandos: `/status`, `/pnl`, `/positions`, `/risk`, `/pause`, `/resume`, `/cancel_orders`, `/report`. Los comandos que cambian estado caducan a los dos minutos. SQLite conserva offsets, IDs de comandos y cola de salidas. Respeta `retry_after` al enviar y aplica espera exponencial. Los errores no imprimen la URL de Telegram porque contiene el token.
 

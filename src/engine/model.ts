@@ -6,6 +6,7 @@ export interface Level {
 }
 export interface Book {
   tokenId: string;
+  hash?: string;
   timestamp: number;
   bids: Level[];
   asks: Level[];
@@ -28,6 +29,14 @@ export interface Frame {
   mergeGasUsd: number;
   recoveryGasUsd: number;
   gasVerified: boolean;
+  paperGas?: {
+    units: number;
+    gwei: number;
+    polUsd: number;
+    multiplier: number;
+    timestamp: number;
+    source: string;
+  };
   source: string;
   depth: boolean;
 }
@@ -160,6 +169,30 @@ export function validateFrame(input: unknown): Frame {
     if (!Number.isFinite(f[key]) || f[key] < 0)
       throw new Error(`Dato inválido: ${key}`);
   if (f.feeRate > 1) throw new Error("Comisión inválida");
+  if (f.paperGas) {
+    const g = f.paperGas;
+    if (
+      ![g.units, g.gwei, g.polUsd, g.multiplier, g.timestamp].every(
+        (n) => Number.isFinite(n) && n > 0,
+      ) ||
+      !Number.isInteger(g.units) ||
+      g.units < 21000 ||
+      g.units > 5000000 ||
+      g.multiplier < 1 ||
+      g.multiplier > 10 ||
+      g.timestamp > f.timestamp ||
+      f.timestamp - g.timestamp > 60000 ||
+      typeof g.source !== "string" ||
+      !g.source ||
+      g.source.length > 500 ||
+      f.gasVerified ||
+      Math.abs(
+        f.mergeGasUsd -
+          money(g.units * g.gwei * 1e-9 * g.polUsd * g.multiplier),
+      ) > 1e-6
+    )
+      throw new Error("Modelo de gas paper inválido");
+  }
   for (const key of [
     "binary",
     "negRisk",
@@ -169,6 +202,11 @@ export function validateFrame(input: unknown): Frame {
   ] as const)
     if (typeof f[key] !== "boolean") throw new Error(`Dato inválido: ${key}`);
   for (const book of [f.yes, f.no]) {
+    if (
+      book?.hash !== undefined &&
+      (typeof book.hash !== "string" || !book.hash || book.hash.length > 256)
+    )
+      throw new Error("Hash de libro inválido");
     if (
       !book ||
       typeof book.tokenId !== "string" ||

@@ -14,6 +14,12 @@ import {
   quote,
 } from "./model.js";
 import { Store } from "./store.js";
+export interface DailyStatistics {
+  day: string;
+  firstAt: number;
+  lastAt: number;
+  counts: Record<string, number>;
+}
 
 export class Ledger {
   constructor(
@@ -142,6 +148,19 @@ export class Ledger {
       strategy: "yes-no",
       marketId,
     } satisfies AuditEvent);
+  }
+  count(name: string): void {
+    const now = this.now(),
+      day = new Date(now).toISOString().slice(0, 10);
+    const row = this.store.get<DailyStatistics>("statistics", day) ?? {
+      day,
+      firstAt: now,
+      lastAt: now,
+      counts: {},
+    };
+    row.lastAt = now;
+    row.counts[name] = (row.counts[name] ?? 0) + 1;
+    this.store.put("statistics", day, row);
   }
   stop(reason: string): void {
     const a = this.account;
@@ -298,6 +317,16 @@ export class Ledger {
   }
   snapshot() {
     return {
+      statistics: this.store.all<DailyStatistics>("statistics"),
+      observation: this.store.get<{
+        markets: number;
+        refreshedAt: number;
+        recorded: number;
+        gasUnits: number;
+        gasMultiplier: number;
+        gasUsd?: number;
+        gasAt?: number;
+      }>("meta", "paper:observation"),
       mode: this.mode,
       strategy: "yes-no",
       config: this.config,
