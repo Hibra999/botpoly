@@ -32,3 +32,8 @@ coverage/
 .cache/
 *.tsbuildinfo
 .mcp.json
+.runtime/
+data/
+reports/
+*.sqlite*
+.browser-check/
