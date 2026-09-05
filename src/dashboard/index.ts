@@ -2,7 +2,7 @@
  * Dashboard Module Exports
  */
 
-export { startDashboard, stopDashboard, dashboardEmitter } from './server.js';
+export { startDashboard, stopDashboard } from './server.js';
 export { DashboardEmitter } from './state-emitter.js';
 export type {
   BotState,
@@ -12,3 +12,5 @@ export type {
   DashboardData,
   WebSocketMessage,
 } from './types.js';
+
+export { dashboardEmitter } from './state-emitter.js';

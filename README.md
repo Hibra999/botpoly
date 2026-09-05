@@ -1,3 +1,5 @@
+> **Botpoly actualizado:** el arranque operativo es `pnpm start` en modo `paper`, con dashboard privado y contabilidad persistente. Consulta [INIT.md](INIT.md), [validación](docs/VALIDATION.md) y [seguridad](docs/SECURITY-AND-RESEARCH.md). Las mutaciones de los servicios de trading antiguos están desactivadas; las instrucciones del SDK original que siguen son material de referencia, no el procedimiento de operación actual.
+
 # 🤖 Polymarket Trading Bot v3.1 - Enhanced Risk Management
 
 **The Ultimate Open-Source Automated Trading Bot for Polymarket**

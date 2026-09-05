@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "source": "Botpoly: fixture sintético, sin operaciones ni datos reales",
+  "license": "MIT (datos sintéticos de este repositorio)",
+  "collectedAt": "2026-01-01T00:02:00Z",
+  "sha256": "e479b33468764b45cece522755e2bea888cb9c5a16f489af8ca5bea8a8fb3ee3",
+  "kind": "synthetic",
+  "coverage": {
+    "from": "2026-01-01T00:00:00Z",
+    "to": "2026-01-01T00:02:00Z",
+    "markets": [
+      "demo-market"
+    ],
+    "frames": 121,
+    "maxGapMs": 1000
+  },
+  "limitations": [
+    "Datos inventados para verificar el programa; no constituyen evidencia de rentabilidad.",
+    "Las comisiones y el gas son hipótesis explícitas del escenario sintético."
+  ]
+}

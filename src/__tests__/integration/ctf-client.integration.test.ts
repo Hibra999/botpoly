@@ -25,7 +25,7 @@ import {
 } from '../../clients/ctf-client.js';
 
 // Public RPC for read-only tests
-const POLYGON_RPC = 'https://polygon-rpc.com';
+const POLYGON_RPC = process.env.POLYGON_TEST_RPC || 'https://polygon-bor-rpc.publicnode.com';
 
 // Known addresses and markets for testing
 const KNOWN_WHALE_ADDRESS = '0x82a1b239c1ff9bc60a4c86caf5b6bdbd9fddfe20'; // Top trader

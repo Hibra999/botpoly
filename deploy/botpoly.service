@@ -1,0 +1,32 @@
+[Unit]
+Description=Botpoly - riesgo persistente y simulacion privada
+After=network-online.target
+Wants=network-online.target
+StartLimitIntervalSec=120
+StartLimitBurst=5
+
+[Service]
+Type=simple
+User=gabo
+Group=gabo
+WorkingDirectory=/home/gabo/portfolio/projects/38-hibraim/botpoly/Polymarket-bot
+ExecStart=/home/gabo/portfolio/projects/38-hibraim/botpoly/Polymarket-bot/.runtime/node24/bin/node --import tsx bot-with-dashboard.ts
+Restart=on-failure
+RestartSec=10
+TimeoutStopSec=60
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/home/gabo/portfolio/projects/38-hibraim/botpoly/Polymarket-bot/.runtime /home/gabo/portfolio/projects/38-hibraim/botpoly/Polymarket-bot/reports
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+LockPersonality=true
+RestrictSUIDSGID=true
+# .env is loaded privately by dotenv; it is never echoed in ExecStart.
+
+[Install]
+WantedBy=multi-user.target

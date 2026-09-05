@@ -1,11 +1,13 @@
 {
-  "name": "@catalyst-team/poly-sdk",
-  "version": "0.4.3",
+  "name": "botpoly",
+  "version": "1.0.0",
   "private": true,
   "packageManager": "pnpm@10.32.1",
-  "engines": { "node": ">=24 <25" },
+  "engines": {
+    "node": ">=24 <25"
+  },
   "license": "MIT",
-  "description": "TypeScript SDK for Polymarket - prediction markets trading, smart money analysis, and market data",
+  "description": "Botpoly: arbitraje con riesgo persistente, paper trading y backtests verificables",
   "type": "module",
   "main": "./dist/src/index.js",
   "types": "./dist/src/index.d.ts",
@@ -16,25 +18,18 @@
     }
   },
   "scripts": {
-    "build": "tsc",
-    "prepublishOnly": "pnpm run build",
-    "dev": "tsc --watch",
+    "start": "node --import tsx bot-with-dashboard.ts",
+    "dev": "tsx watch bot-with-dashboard.ts",
+    "build": "tsc && pnpm --dir dashboard build",
+    "typecheck": "tsc --noEmit && pnpm --dir dashboard typecheck",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:integration": "vitest run --config vitest.integration.config.ts",
-    "example:basic": "tsx examples/01-basic-usage.ts",
-    "example:smart-money": "tsx examples/02-smart-money.ts",
-    "example:market-analysis": "tsx examples/03-market-analysis.ts",
-    "example:kline": "tsx examples/04-kline-aggregation.ts",
-    "example:follow-wallet": "tsx examples/05-follow-wallet-strategy.ts",
-    "example:services": "tsx examples/06-services-demo.ts",
-    "example:realtime": "tsx examples/07-realtime-websocket.ts",
-    "example:trading": "tsx examples/08-trading-orders.ts",
-    "example:rewards": "tsx examples/09-rewards-tracking.ts",
-    "example:ctf": "tsx examples/10-ctf-operations.ts",
-    "example:live-arb": "tsx examples/11-live-arbitrage-scan.ts",
-    "example:trending-arb": "tsx examples/12-trending-arb-monitor.ts",
-    "example:arb-service": "tsx examples/13-arbitrage-service.ts"
+    "data:collect": "node --import tsx src/research/collect-cli.ts",
+    "data:import": "node --import tsx src/research/import-cli.ts",
+    "backtest": "node --import tsx src/research/backtest-cli.ts",
+    "backtest:demo": "node --import tsx src/research/backtest-cli.ts --input fixtures/demo.jsonl --from 2026-01-01T00:00:00Z --split 2026-01-01T00:01:00Z --to 2026-01-01T00:02:00Z --capital 1000 --markets demo-market --out reports/demo",
+    "auth:setup": "node --import tsx src/app/auth-setup.ts"
   },
   "keywords": [
     "polymarket",
@@ -50,23 +45,31 @@
     "README.md",
     "LICENSE"
   ],
-  "publishConfig": {
-    "access": "public"
-  },
   "dependencies": {
     "@catalyst-team/cache": "^0.2.0",
-    "@polymarket/clob-client": "^5.1.3",
     "@polymarket/real-time-data-client": "^1.4.0",
     "@types/ws": "^8.18.1",
     "bottleneck": "^2.19.5",
     "dotenv": "^17.2.3",
-    "ethers": "5",
+    "ethers": "5.8.0",
     "isomorphic-ws": "^5.0.0",
-    "ws": "^8.18.3"
+    "ws": "8.21.0",
+    "@polymarket/client": "0.9.0"
   },
   "devDependencies": {
-    "tsx": "^4.7.0",
-    "typescript": "^5.7.2",
-    "vitest": "^2.1.8"
+    "tsx": "^4.20.0",
+    "typescript": "~5.9.3",
+    "vitest": "^3.2.0",
+    "@types/node": "^24.0.0"
+  },
+  "pnpm": {
+    "overrides": {
+      "ws@8": "8.21.3",
+      "bn.js@4": "4.12.3",
+      "bn.js@5": "5.2.3",
+      "rollup@4": "^4.59.0",
+      "postcss@8": "^8.5.23",
+      "nanoid@3": "^3.3.18"
+    }
   }
 }

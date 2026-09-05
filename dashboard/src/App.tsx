@@ -1,209 +1,196 @@
-import { useState } from 'react';
-import { useWebSocket } from './hooks/useWebSocket';
+import { useState } from "react";
+import { useBot } from "./hooks/useBot";
+import { Login } from "./views/Login";
 import {
-  Header,
-  BalanceCards,
-  PnLPanel,
-  TrendIndicators,
-  StrategyGrid,
-  OnChainStats,
-  ActivityLog,
-  ConfigPanel,
-  ConnectionStatus,
-  DipArbPanel,
-  ArbitragePanel,
-  SmartMoneyPanel,
-  QuickStats,
-  SessionSummary,
-  HistoryPage,
-  PositionsPage,
-  StrategyControls,
-} from './components';
+  Overview,
+  Orders,
+  Positions,
+  Risk,
+  Backtests,
+} from "./views/Workspace";
 
-type Page = 'dashboard' | 'history' | 'positions';
-
-function App() {
-  const [currentPage, setCurrentPage] = useState<Page>('dashboard');
-  const { state, config, logs, connected, error, sendCommand } = useWebSocket();
-  const isDryRun = config?.dryRun ?? true;
-
-  const handleClosePosition = (tokenId: string, size: number) => {
-    sendCommand('closePosition', { tokenId, size });
-  };
-
-  const handleToggleStrategy = (strategy: string, enabled: boolean) => {
-    sendCommand('toggleStrategy', { strategy, enabled });
-  };
-
-  const handleRedeemPosition = (conditionId: string) => {
-    sendCommand('redeemPosition', { conditionId });
-  };
-
-  const handleToggleDryRun = () => {
-    if (!isDryRun) {
-      // Safety check when switching to DRY RUN? No, usually switching TO live needs check.
-      // Switching TO Live:
-      const confirm = window.confirm('⚠️ WARNING: You are switching to LIVE trading mode.\n\nReal funds will be used. Ensure you have loaded your Private Key and understand the risks.\n\nContinue?');
-      if (!confirm) return;
-    }
-    sendCommand('toggleDryRun', { enabled: !isDryRun }); // Payload expects target state? No, backend logic was `if (CONFIG.dryRun === !enable)` and `enable` was from `cmd.payload.enabled`. 
-    // Backend logic: `const enable = cmd.payload.enabled;` then `CONFIG.dryRun = !!enable;` 
-    // So if we want to enable LIVE (disable dryrun), we send enabled=false? 
-    // My backend logic says: `if (CONFIG.dryRun === !enable)` -> `CONFIG.dryRun = !enable` -> `CONFIG.dryRun = !!enable`.
-    // Wait. 
-    // If backend: `const enable = cmd.payload.enabled`. 
-    // If I send `enabled: true` (meaning "Enable Live"? or "Enable Dry Run"?). 
-    // Let's re-read backend.
-    // `const enable = cmd.payload.enabled;`
-    // `if (CONFIG.dryRun === !enable)` (Meaning dryRun matches 'enable'?? No, checking equality to inverse?)
-    // `CONFIG.dryRun = !enable`.
-    // If I send `enabled: true`. Then `!enable` is false. 
-    // If `CONFIG.dryRun` is `true`. `true === false` is false. No change.
-    // If `CONFIG.dryRun` is `false`. `false === false` is true. Enter block. `CONFIG.dryRun = false`.
-    // So `enabled: true` means "Set Dry Run = False" (Enable Live??).
-    // Let's look at `CONFIG.dryRun = !!enable` later in the block.
-    // Use clear key: `isLive`.
-    // Backend expects `enabled`. 
-    // Let's assume `enabled` means "Is Live Enabled".
-    // If I am Dry Run (dryRun=true). I want to go Live.
-    // I send `enabled: true`.
-    // Backend: `enable = true`. `!enable` = false.
-    // `CONFIG.dryRun` (true) === false? No.
-    // Block skipped.
-
-    // ERROR IN BACKEND LOGIC DETECTED.
-    // Backend: `if (CONFIG.dryRun === !enable)`
-    // If `dryRun` is true. `!enable` must be true. `enable` must be false.
-    // So `enable=false`.
-    // Then `CONFIG.dryRun = !enable` -> `true`. NO CHANGE.
-
-    // Let's fix Frontend to send what works, or fix backend.
-    // I can't fix backend easily now without re-doing it.
-    // Let's re-read backend carefully.
-
-    /* 
-    if (CONFIG.dryRun === !enable) { // If dryRun is TRUE, and enable is FALSE. (Match!)
-        // LOGIC:
-        CONFIG.dryRun = !!enable; // dryRun becomes FALSE (Live).
-    }
-    */
-
-    // So if current `dryRun` is true. I want to set it to false.
-    // I must send `enable` such that `!enable` == `dryRun`.
-    // `!enable` == true -> `enable` == false.
-    // If I send `false`.
-    // `CONFIG.dryRun` = `!!false` = false. CORRECT.
-
-    // So `enabled` in payload means "Enable Dry Run?".
-    // If I want to enable Dry Run (go to dry run). I send `true`.
-    // If I want to disable Dry Run (go to live). I send `false`.
-    // Backend variable name `enable` is confusing but `CONFIG.dryRun = !!enable` confirms it sets dryRun status.
-
-    // Frontend Logic:
-    // Toggle: New state is `!isDryRun`.
-    // Send `enabled: !isDryRun`.
-    // e.g. If isDryRun=true. New is false. Send false.
-    // Backend: `enable`=false. `dryRun`(true) === `!false`(true). Match.
-    // `CONFIG.dryRun` = false. Live. Correct.
-
-    sendCommand('toggleDryRun', { enabled: !isDryRun });
-  };
-
-  // History page
-  if (currentPage === 'history') {
-    return <HistoryPage onBack={() => setCurrentPage('dashboard')} />;
-  }
-
-  // Positions page
-  if (currentPage === 'positions') {
+type Page = "Resumen" | "Órdenes" | "Posiciones" | "Riesgo" | "Backtests";
+const pages: Page[] = [
+  "Resumen",
+  "Órdenes",
+  "Posiciones",
+  "Riesgo",
+  "Backtests",
+];
+export default function App() {
+  const bot = useBot();
+  const [page, setPage] = useState<Page>("Resumen");
+  const [period, setPeriod] = useState("all");
+  const [mode, setMode] = useState("all");
+  const [strategy, setStrategy] = useState("all");
+  if (bot.auth === "login") return <Login onLogin={bot.login} />;
+  if (!bot.data)
     return (
-      <PositionsPage
-        onBack={() => setCurrentPage('dashboard')}
-        state={state}
-        onClosePosition={handleClosePosition}
-        onRedeemPosition={handleRedeemPosition}
-      />
-    );
-  }
-
-  // Main dashboard - Compact trading-focused layout
-  return (
-    <div className={`min-h-screen bg-poly-dark text-white ${isDryRun ? 'dry-run-breathing' : 'live-mode-breathing'}`}>
-      {/* Mode Banner - Compact */}
-      <div className={`${isDryRun ? 'bg-red-500/20 border-red-500/30' : 'bg-green-500/20 border-green-500/30'} border-b px-4 py-1.5 text-center`}>
-        <span className={`${isDryRun ? 'text-red-400' : 'text-green-400'} font-medium text-xs flex items-center justify-center gap-2`}>
-          <span className={`w-1.5 h-1.5 rounded-full ${isDryRun ? 'bg-red-400' : 'bg-green-400'} animate-pulse`} />
-          {isDryRun ? 'DRY RUN — No real trades' : 'LIVE — Real money trading'}
-        </span>
-      </div>
-
-      {/* Connection Status */}
-      <ConnectionStatus connected={connected} error={error} />
-
-      {/* Header */}
-      <Header
-        state={state}
-        config={config}
-        connected={connected}
-        onHistoryClick={() => setCurrentPage('history')}
-        onPositionsClick={() => setCurrentPage('positions')}
-        onToggleDryRun={handleToggleDryRun}
-      />
-
-      <main className="p-4 space-y-4 max-w-[1800px] mx-auto">
-        {/* Row 1: Quick Stats + Balances side by side */}
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-          <QuickStats state={state} config={config} />
-          <BalanceCards state={state} />
-        </div>
-
-        {/* Row 2: Main Trading Grid - 4 columns */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-          <DipArbPanel state={state} />
-          <ArbitragePanel state={state} />
-          <PnLPanel state={state} config={config} />
-          <SessionSummary state={state} />
-        </div>
-
-        {/* Row 3: Smart Money (main) + Side Panel (Trends + Strategies + OnChain) */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <div className="lg:col-span-2">
-            <SmartMoneyPanel state={state} />
-          </div>
-          <div className="space-y-3">
-            <StrategyControls config={config} onToggle={handleToggleStrategy} />
-            <TrendIndicators state={state} />
-            <StrategyGrid state={state} config={config} />
-            <OnChainStats state={state} />
-          </div>
-        </div>
-
-        {/* Row 4: Activity Log - Full Width at bottom */}
-        <ActivityLog logs={logs} />
-
-        {/* Config - Collapsible at bottom */}
-        <details className="group">
-          <summary className="cursor-pointer text-gray-500 text-sm hover:text-gray-400 flex items-center gap-2 py-2">
-            <span className="transition-transform group-open:rotate-90">▶</span>
-            Advanced Configuration
-          </summary>
-          <div className="mt-2">
-            <ConfigPanel config={config} />
-          </div>
-        </details>
+      <main className="loading" aria-busy="true">
+        <span className="brand">BOTPOLY</span>
+        <h1>Conectando con tu bot</h1>
+        <p role="status">{bot.message || "Cargando el estado de la sesión…"}</p>
+        <button onClick={bot.retry}>Reintentar</button>
       </main>
-
-      {/* Minimal Footer */}
-      <footer className="text-center py-3 border-t border-white/5 text-gray-600 text-xs">
-        <div className="flex flex-col gap-1">
-          <div>Polymarket Bot v3.0 • {connected ? '🟢 Connected' : '🔴 Disconnected'}</div>
-          <div>
-            Created by <a href="https://x.com/Mr_CryptoYT" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300 transition-colors">@Mr_CryptoYT</a>
-          </div>
+    );
+  const data = bot.data;
+  const since =
+    period === "day"
+      ? Date.now() - 86400000
+      : period === "week"
+        ? Date.now() - 7 * 86400000
+        : 0;
+  const visible = (row: {
+    timestamp: number;
+    mode?: string;
+    strategy?: string;
+  }) =>
+    row.timestamp >= since &&
+    (mode === "all" || row.mode === mode) &&
+    (strategy === "all" || row.strategy === strategy);
+  const filtered = {
+    ...data,
+    orders: data.orders.filter(visible),
+    events: data.events.filter(visible),
+    equity: data.equity.filter((e) => e.timestamp >= since),
+  };
+  return (
+    <div className="workspace">
+      <aside className="sidebar">
+        <a className="brand" href="#main">
+          BOTPOLY<span>Control de operaciones</span>
+        </a>
+        <nav aria-label="Secciones">
+          {pages.map((p) => (
+            <button
+              key={p}
+              aria-current={page === p ? "page" : undefined}
+              onClick={() => setPage(p)}
+            >
+              {p}
+            </button>
+          ))}
+        </nav>
+        <div className="sidebar-note">
+          <span className="mode-tag">
+            {data.mode === "paper" ? "SIMULACIÓN" : data.mode.toUpperCase()}
+          </span>
+          <p>
+            Arbitraje YES / NO
+            <br />
+            Perfil moderado
+          </p>
         </div>
-      </footer>
+        <button className="logout" onClick={bot.logout}>
+          Cerrar sesión
+        </button>
+      </aside>
+      <main id="main" className="main-content">
+        <header className="page-header">
+          <div>
+            <p className="eyebrow">CENTRO DE CONTROL</p>
+            <h1>{page}</h1>
+          </div>
+          <div className="connection">
+            <span
+              className={bot.connected ? "status-dot good" : "status-dot"}
+            />
+            {bot.connected ? "Dashboard conectado" : "Reconectando…"}
+            <small>
+              Mercado: {data.account.connected ? "conectado" : "sin conexión"}
+            </small>
+          </div>
+        </header>
+        <section
+          className={"state-banner " + (data.account.stop ? "warning" : "")}
+          aria-label="Estado del bot"
+        >
+          <div>
+            <strong>
+              {data.account.stop ? "Entradas pausadas" : "Bot en observación"}
+            </strong>
+            <p>
+              {data.account.stop ??
+                "Cada entrada debe superar los controles de riesgo, liquidez y costes."}
+            </p>
+          </div>
+          <div className="actions">
+            <button
+              disabled={!bot.connected || bot.busy}
+              onClick={() => bot.command("pause")}
+            >
+              Pausar
+            </button>
+            <button
+              disabled={!bot.connected || bot.busy || !data.account.stop}
+              onClick={() => bot.command("resume")}
+            >
+              Reanudar
+            </button>
+            <button
+              className="quiet"
+              disabled={!bot.connected || bot.busy}
+              onClick={() => bot.command("cancel_orders")}
+            >
+              Cancelar órdenes
+            </button>
+          </div>
+        </section>
+        <p
+          role="status"
+          className={"command-result " + (bot.failed ? "error-text" : "")}
+        >
+          {bot.busy ? "Aplicando comando…" : bot.message}
+        </p>
+        <div className="filters" aria-label="Filtros de actividad">
+          <label>
+            Periodo
+            <select value={period} onChange={(e) => setPeriod(e.target.value)}>
+              <option value="all">Todo el periodo disponible</option>
+              <option value="day">Últimas 24 horas</option>
+              <option value="week">Últimos 7 días</option>
+            </select>
+          </label>
+          <label>
+            Modo
+            <select value={mode} onChange={(e) => setMode(e.target.value)}>
+              <option value="all">Todos</option>
+              <option value="paper">Simulación</option>
+              <option value="backtest">Backtest</option>
+              <option value="live">Live</option>
+            </select>
+          </label>
+          <label>
+            Estrategia
+            <select
+              value={strategy}
+              onChange={(e) => setStrategy(e.target.value)}
+            >
+              <option value="all">Todas</option>
+              <option value="yes-no">Arbitraje YES / NO</option>
+            </select>
+          </label>
+        </div>
+        {page === "Resumen" && <Overview data={filtered} />}
+        {page === "Órdenes" && <Orders data={filtered} />}
+        {page === "Posiciones" && <Positions data={data} />}
+        {page === "Riesgo" && (
+          <Risk
+            data={data}
+            busy={bot.busy || !bot.connected}
+            onSave={(payload) => bot.command("set_config", payload)}
+          />
+        )}
+        {page === "Backtests" && <Backtests data={data} />}
+        <footer className="page-footer">
+          {data.mode === "paper"
+            ? "Simulación sin fondos reales."
+            : "Consulta el modo activo antes de operar."}{" "}
+          Las métricas de capital y riesgo abarcan toda la sesión; los filtros
+          se aplican a las últimas 500 órdenes, 200 eventos y 1.000
+          observaciones.
+        </footer>
+      </main>
     </div>
   );
 }
-
-export default App;

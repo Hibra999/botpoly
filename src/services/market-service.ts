@@ -15,8 +15,8 @@ import {
   Chain,
   PriceHistoryInterval,
   type OrderBookSummary,
-} from '@polymarket/clob-client';
-import { Wallet } from 'ethers';
+} from '../clients/public-clob.js';
+
 import { DataApiClient, Trade } from '../clients/data-api.js';
 import { GammaApiClient, GammaMarket } from '../clients/gamma-api.js';
 import type { UnifiedCache } from '../core/unified-cache.js';
@@ -208,14 +208,7 @@ export class MarketService {
     if (!this.initialized || !this.clobClient) {
       const chainId = (this.config?.chainId || POLYGON_MAINNET) as Chain;
 
-      if (this.config?.privateKey) {
-        // Authenticated client
-        const wallet = new Wallet(this.config.privateKey);
-        this.clobClient = new ClobClient(CLOB_HOST, chainId, wallet);
-      } else {
-        // Read-only client (no auth needed for market data)
-        this.clobClient = new ClobClient(CLOB_HOST, chainId);
-      }
+      this.clobClient = new ClobClient(CLOB_HOST, chainId);
       this.initialized = true;
     }
     return this.clobClient!;

@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "source": "https://r2v2.pmxt.dev/polymarket_orderbook_2026-08-10T00.parquet (primer grupo, un mercado; extracto limitado)",
+  "markets": {
+    "0x001c35e901b141c30575e61852f85c9695a78954ad9d53dc05f09fbe4ae3e8e9": {
+      "yesTokenId": "18031968367931781040765723287557014263557584991203263730637809472364881832999",
+      "noTokenId": "70143005573109605182903832184242890784124055807904810815985169656589993141144",
+      "eventId": "0x001c35e901b141c30575e61852f85c9695a78954ad9d53dc05f09fbe4ae3e8e9",
+      "underlying": "0x001c35e901b141c30575e61852f85c9695a78954ad9d53dc05f09fbe4ae3e8e9",
+      "title": "Extracto PMXT: etiquetas y metadatos hist\u00f3ricos sin verificar",
+      "knownAt": 0,
+      "binaryVerified": false,
+      "negRisk": true,
+      "minSize": 5,
+      "tickSize": 0.01,
+      "fees": [],
+      "gas": []
+    }
+  }
+}

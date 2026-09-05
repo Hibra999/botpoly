@@ -1,0 +1,18 @@
+[
+  "--input",
+  "data/pmxt-excerpt.jsonl",
+  "--from",
+  "2026-08-10T00:03:07.180000+00:00",
+  "--split",
+  "2026-08-10T00:03:11.297500+00:00",
+  "--to",
+  "2026-08-10T00:03:15.415000+00:00",
+  "--capital",
+  "1000",
+  "--markets",
+  "0x001c35e901b141c30575e61852f85c9695a78954ad9d53dc05f09fbe4ae3e8e9",
+  "--out",
+  "reports/pmxt-excerpt-final",
+  "--register",
+  ".runtime/paper.sqlite"
+]

@@ -37,3 +37,7 @@ data/
 reports/
 *.sqlite*
 .browser-check/
+.dashboard-password
+.playwright-cli/
+__pycache__/
+*.pyc
