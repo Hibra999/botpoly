@@ -1,6 +1,6 @@
 # Botpoly: instalación y operación
 
-Bot con dashboard privado, arbitraje YES/NO, contabilidad SQLite y simulación. Arranca en **paper**, con capital mínimo configurable de **US$50**. No hay evidencia suficiente para activar operaciones reales. Ver [seguridad y limitaciones](docs/SECURITY-AND-RESEARCH.md) y [validación](docs/VALIDATION.md).
+Bot con dashboard privado, arbitraje YES/NO y fútbol automático Poisson, contabilidad SQLite y simulación. Arranca en **paper**, con capital mínimo configurable de **US$50**; esta instalación conserva la cuenta de **US$1.000 simulados** del 2026-09-05. No hay evidencia suficiente para activar operaciones reales. Ver [fútbol y evidencia](docs/FOOTBALL.md), [seguridad y limitaciones](docs/SECURITY-AND-RESEARCH.md) y [validación](docs/VALIDATION.md).
 
 ## Entorno y dependencias
 
@@ -89,11 +89,13 @@ journalctl -u botpoly.service -f
 
 `--days 5` muestra la actividad de los últimos cinco días UTC disponibles; no inventa días anteriores al arranque. El PnL y los costes del informe son acumulados de la cuenta. El informe `reports/paper-actual/report.html` se actualiza automáticamente cada cinco minutos y al detener el proceso; también hay JSON y CSV. Se abre desde Resumen o Backtests del dashboard autenticado. El archivo HTML funciona sin internet. La API de Telegram `/report` también permite obtener informes registrados.
 
-El selector inspecciona hasta 1.000 mercados por volumen reciente y conserva hasta 20 que sean binarios YES/NO estándar, abiertos y con órdenes habilitadas. Renueva la selección cada 15 minutos y conserva los mercados con posiciones pendientes. No cubre toda la plataforma.
+El selector pagina hasta 5.000 mercados generales y consulta eventos de las seis ligas verificadas. Observa hasta 200 mercados: hasta 100 plazas para fútbol, con las libres disponibles para selección general diversificada por evento, liquidez y proximidad al cierre. Renueva cada cinco minutos. Reconstruye mercados con posiciones/reservas desde SQLite y los conserva fuera de ese cupo cuando sea necesario. El dashboard distingue inspeccionados, seleccionados, libros sincronizados y pronósticos disponibles. No cubre toda la plataforma.
 
 **Costes en paper:** las comisiones se leen del mercado. El gas se modela con `PAPER_GAS_UNITS=300000` unidades **supuestas**, precio `fast` de Polygon Gas Station, POL/USD de Coinbase y `PAPER_GAS_MULTIPLIER=1.5`. Los precios caducan y su ausencia bloquea entradas. Las unidades no proceden de `eth_estimateGas`; el modelo queda marcado en los libros, dashboard e informe, y no puede autorizar live. El informe incluye el efecto de triplicar el gas manteniendo las mismas ejecuciones, como sensibilidad de costes.
 
-El simulador vuelve a consultar los libros después de la latencia y exige profundidad y frescura para los fills. Se conservan los mejores 20 niveles por lado, contadores exactos diarios y rechazos detallados muestreados por minuto. SQLite archiva libros comprimidos cada diez segundos por mercado y los usados para ejecutar; no acumula todos los libros en RAM. Comprueba disco y detiene entradas y captura si quedan menos de 512 MiB. No borra automáticamente el historial. Haz copias de seguridad y revisa espacio al dejarlo periodos largos.
+El SDK público 0.9.0 proporciona snapshots completos por lotes y cambios WebSocket de profundidad. Un nivel de tamaño cero se elimina; mensajes de mejor precio no rejuvenecen libros. Se separan tiempo de origen, recepción y verificación de snapshot completo. Reconectar invalida los libros y exige resincronización. La memoria conserva el último libro completo por token, con cambios agrupados y límites de profundidad; no una cola ilimitada de ticks. Si un lote omite un token, se invalida su condición y se conservan los vecinos válidos.
+
+El simulador vuelve a consultar estado, costes y libros después de la latencia de simulación y el retraso deportivo indicado por el mercado; exige profundidad y frescura para los fills. Los contadores diarios/horarios son exactos y los rechazos detallados se muestrean por minuto. SQLite archiva libros comprimidos cada diez segundos por mercado y los usados para ejecutar: son muestras, no eventos completos. Comprueba disco y detiene entradas y captura si quedan menos de 512 MiB. No borra automáticamente el historial. Haz copias consistentes y revisa espacio al dejarlo periodos largos.
 
 Los fills paper y la liquidez consumida de cada hash de libro se persisten: volver a consultar el mismo libro o reiniciar no permite llenar de nuevo esa profundidad. Un hash nuevo se interpreta como un nuevo estado observado; la reconstrucción exacta entre consultas sigue siendo una limitación. Los informes HTML se abren autenticados en el navegador con scripts deshabilitados y sandbox; JSON y CSV se descargan.
 
@@ -146,27 +148,29 @@ TELEGRAM_BOT_TOKEN=
 TELEGRAM_CHAT_ID=
 ```
 
-Los dos campos de `.env.example` están vacíos. En este servidor el usuario ya los configuró en `.env` privado y la integración está activa. Solo se aceptan mensajes de un chat **privado** cuyo ID coincide tanto con el chat como con el remitente autorizado.
+Los dos campos de `.env.example` están vacíos. En este servidor el usuario ya los configuró en `.env` privado y los envíos reales están comprobados; requieren que el proceso esté funcionando. Solo se aceptan mensajes de un chat **privado** cuyo ID coincide tanto con el chat como con el remitente autorizado.
 
 Comandos: `/status`, `/pnl`, `/positions`, `/risk`, `/pause`, `/resume`, `/cancel_orders`, `/report`. Los comandos que cambian estado caducan a los dos minutos. SQLite conserva offsets, IDs de comandos y cola de salidas. Respeta `retry_after` al enviar y aplica espera exponencial. Los errores no imprimen la URL de Telegram porque contiene el token.
 
-Se envían ejecuciones, fallos, paradas, resumen UTC e informes registrados. Telegram no ofrece idempotencia en `sendMessage`: un timeout después de que el servidor aceptó una alerta puede duplicar **la alerta** al reintentar; los comandos internos no se repiten.
+Se envían señales nuevas deduplicadas, reservas, fills confirmados, liquidaciones, fallos y paradas. Cada hora UTC envía estado y PNG: capital, PnL acumulado, drawdown y actividad horaria. A las 00 UTC añade el informe completo; `/report` lo encola con gráfica mientras sigue recibiendo comandos. También envía seguimientos a las 24 y 72 horas desde la primera observación persistida de la cuenta, no desde cada reinicio. Requiere `/usr/bin/rsvg-convert`, ya instalado, para PNG.
+
+Los identificadores horarios persisten; no se repite la hora tras reiniciar ni se reproducen horas antiguas acumuladas. Un fallo de gráfica se informa como fallo. Las rutas se confinan a `reports/` y se conservan hashes de los archivos. Telegram no ofrece idempotencia en `sendMessage`: un timeout después de que el servidor aceptó una alerta puede duplicar **la alerta** al reintentar; los comandos internos no se repiten.
 
 ## Recuperación y paradas
 
 - Las órdenes y reservas se escriben antes de enviarlas. Un timeout se concilia; nunca se presupone rechazo ni se reenvía sin identidad externa comprobable.
 - Al arrancar y reconectar se concilian órdenes. Una reserva incierta permanece comprometida. El reinicio no borra pérdidas ni paradas.
-- **Reanudar** exige conexión y datos frescos, cero errores pendientes, conciliación completa, ausencia de exposición sin resolver y límites satisfechos. Una pérdida diaria no se resetea dentro del día UTC. Un drawdown no se resetea por reinicio ni por subir presupuesto.
+- **Reanudar** exige conexión y datos frescos, cero errores pendientes, conciliación completa y límites satisfechos. Admite posiciones direccionales de fútbol sanas, con reservas y valoraciones vigentes; sigue rechazando órdenes/canjes inciertos y patas YES/NO pendientes. Una pérdida diaria no se resetea dentro del día UTC. Un drawdown no se resetea por reinicio ni por subir presupuesto.
 - **Pausar** bloquea nuevas entradas. **Cancelar órdenes** pausa y concilia, conservando los fills que hayan ocurrido. La recuperación acotada de riesgo sigue funcionando durante una pausa cuando vuelve la liquidez.
 - Una fusión incierta queda bloqueada hasta revisar el recibo on-chain. No borrar la intención registrada ni reenviar automáticamente.
-- Para copia de seguridad consistente usa `VACUUM INTO` mediante una conexión SQLite o detén el servicio y copia la base junto con sus archivos WAL/SHM. No copiar solo el `.sqlite` mientras otro proceso escribe.
+- Para copia de seguridad consistente usa la API SQLite `Connection.backup` o `VACUUM INTO` mediante una conexión; verifica `integrity_check`. No copiar solo el `.sqlite` mientras otro proceso escribe. No borrar, sustituir ni renombrar la base activa para resolver una parada.
 - El servicio se detiene de forma ordenada con SIGTERM, persiste la parada y cancela/concilia. Tras reiniciarlo, usa Reanudar después de revisar el estado.
 
 ## Servicio permanente
 
 `deploy/botpoly.service` está preparado para esta ruta y usuario. Necesita `.runtime/node24/bin/node`, `.env`, `dashboard/dist`, `.runtime` y `reports`. Tiene directorios de escritura acotados, permisos privados y arranque después de la red.
 
-En esta máquina ya está instalado, habilitado y activo en modo paper. Consulta `docs/VALIDATION.md` para el resultado verificado.
+En esta máquina está instalado y habilitado. El 2026-09-06 el inicio del servicio está bloqueado por permisos del sistema: `sudo -n systemctl start botpoly.service` requiere contraseña. Los permisos amplios del cliente no la proporcionan. La validación utilizó `pnpm start` en primer plano, identificado como temporal, y terminó ordenadamente a las 04:27 UTC: servicio inactivo y puerto libre. Consulta [VALIDATION.md](docs/VALIDATION.md) para cifras e instrucciones de intervención. No iniciar otra instancia mientras el puerto esté ocupado.
 
 ```bash
 ./deploy/install.sh
@@ -181,9 +185,11 @@ El script valida la unidad y usa `sudo -n` para instalarla. Si cambias de máqui
 
 El SDK antiguo CLOB V1 fue retirado. La frontera nueva usa `@polymarket/client` **0.9.0**, firmas actuales, identificadores de activos, rutas de fusión y contratos resueltos por el SDK. El adaptador solo se importa al pasar la autorización live. Se limita a EOA explícita para impedir despliegues implícitos de wallets. No se han enviado operaciones reales durante la implementación.
 
-Para un futuro live se exige `BOT_MODE=live`, otra base (`BOT_DATABASE=.runtime/live.sqlite`), RPC Polygon, clave privada, `LIVE_ACK=ACTIVAR_LIVE_CON_RIESGO_REAL` y `LIVE_EVIDENCE_FILE`. Ese archivo de revisión debe contener `schema:1`, `approvedBy`, `outOfSampleReviewed:true`, `executionAndCostsReviewed:true`, `securityReviewed:true`, `reportPath` y SHA-256 exacto `reportSha256`. Además se comprueba captura de eventos, cobertura, fills de evaluación y resultado neto/intervalo positivos. Un fixture sintético o el dataset público breve entregado no satisface esos requisitos.
+Para un futuro live se exige `BOT_MODE=live`, otra base (`BOT_DATABASE=.runtime/live.sqlite`), RPC Polygon, clave privada, `LIVE_ACK=ACTIVAR_LIVE_CON_RIESGO_REAL` y `LIVE_EVIDENCE_FILE`. Ese archivo de revisión debe contener `schema:1`, `approvedBy`, `outOfSampleReviewed:true`, `executionAndCostsReviewed:true`, `securityReviewed:true`, `reportPath` y SHA-256 exacto `reportSha256`. Además se comprueba captura de eventos, cobertura, fills de evaluación y resultado neto/intervalo positivos. Los campos ausentes, números no finitos, conteos no enteros, arrays/intervalos inválidos y fills inválidos o duplicados se rechazan incluso con un checksum correcto. Un fixture sintético o el dataset público breve entregado no satisface esos requisitos.
 
-Antes de entrar, saldo, posiciones y órdenes remotas deben conciliar con la contabilidad. El heartbeat mantiene la cancelación por pérdida de proceso. Se guarda la orden firmada antes del envío y se confirma por trades/recibos, no por la respuesta de aceptación. El gas proviene de `eth_estimateGas` del calldata de fusión, precio de gas y POL/USD; si la estimación revierte por falta de posiciones u otra causa, se omite la operación. No hay un fallback de gas fijo. Las rutas de wallets gasless no se activan.
+La revisión y el resultado deben incluir `strategies` con identificador, versión y checksum de configuración exactos de YES/NO y fútbol, obtenidos por `strategyBinding`. Fútbol exige además `footballProspectiveReviewed:true` y su propia evidencia `prospective-paper`, al menos 100 fills confirmados, liquidaciones oficiales y PnL/intervalo positivos después de costes. Cambiar configuración invalida el vínculo. Una aprobación YES/NO no habilita fútbol. El informe predictivo retrospectivo no cumple estos requisitos.
+
+Antes de entrar, saldo, posiciones y órdenes remotas deben conciliar con la contabilidad. El heartbeat mantiene la cancelación por pérdida de proceso. Se guarda la orden firmada antes del envío y se confirma por trades/recibos, no por la respuesta de aceptación. Fusión y canje guardan intención/identidad de transacción antes de esperar el recibo; un timeout se concilia sin repetir el envío. El gas proviene de `eth_estimateGas` del calldata de fusión o canje, precio de gas y POL/USD; si la estimación revierte por falta de posiciones u otra causa, se omite la operación. No hay un fallback de gas fijo. Las rutas de wallets gasless no se activan.
 
 **El adaptador live tiene pruebas de frontera simuladas, no validación integral con fondos.** Completar una revisión operativa independiente de firmas, recibos, comisiones, estimación previa de gas y continuidad del feed antes de una activación real. Los scripts antiguos de rescate/aprobación siguen siendo manuales; no forman parte de este circuito.
 

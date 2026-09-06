@@ -1,0 +1,762 @@
+{
+  "schema": 1,
+  "kind": "football-predictive-evaluation",
+  "status": "exploratorio",
+  "policy": {
+    "version": "poisson-clubs-v1",
+    "minEdge": 0.05,
+    "kelly": 0.25,
+    "matchExposure": 0.01,
+    "totalExposure": 0.1,
+    "takeProfit": 0.1,
+    "minMatches": 10,
+    "shrinkMatches": 5,
+    "historyDays": 730
+  },
+  "periods": {
+    "development": {
+      "from": 1688169600000,
+      "to": 1751328000000
+    },
+    "evaluation": {
+      "from": 1751328000000,
+      "to": 1782864000000
+    }
+  },
+  "trials": [
+    {
+      "id": "poisson-clubs-v1",
+      "parameters": {
+        "version": "poisson-clubs-v1",
+        "minEdge": 0.05,
+        "kelly": 0.25,
+        "matchExposure": 0.01,
+        "totalExposure": 0.1,
+        "takeProfit": 0.1,
+        "minMatches": 10,
+        "shrinkMatches": 5,
+        "historyDays": 730
+      },
+      "selection": "Un único modelo predefinido; sin seleccionar parámetros con evaluación"
+    }
+  ],
+  "coverage": {
+    "mex": {
+      "eligible": 1016,
+      "predicted": 1016,
+      "insufficient": 0
+    },
+    "fl1": {
+      "eligible": 918,
+      "predicted": 788,
+      "insufficient": 130
+    },
+    "epl": {
+      "eligible": 1140,
+      "predicted": 993,
+      "insufficient": 147
+    },
+    "sea": {
+      "eligible": 1140,
+      "predicted": 991,
+      "insufficient": 149
+    },
+    "bun": {
+      "eligible": 918,
+      "predicted": 798,
+      "insufficient": 120
+    },
+    "lal": {
+      "eligible": 1140,
+      "predicted": 984,
+      "insufficient": 156
+    }
+  },
+  "summary": {
+    "development": {
+      "model": {
+        "n": 3569,
+        "brier": 0.5912427795312087,
+        "logLoss": 0.9904028743632336
+      },
+      "historicalReference": {
+        "n": 3569,
+        "brier": 0.6513281054765174,
+        "logLoss": 1.0761479127449263
+      },
+      "modelWithClosing": {
+        "n": 3569,
+        "brier": 0.5912427795312087,
+        "logLoss": 0.9904028743632336
+      },
+      "closingReference": {
+        "n": 3569,
+        "brier": 0.57301933372405,
+        "logLoss": 0.9639650460270577
+      },
+      "calibration": [
+        {
+          "outcome": 0,
+          "from": 0,
+          "to": 0.1,
+          "n": 39,
+          "forecast": 0.07485117599187675,
+          "observed": 0.05128205128205128
+        },
+        {
+          "outcome": 0,
+          "from": 0.1,
+          "to": 0.2,
+          "n": 259,
+          "forecast": 0.1636838024218741,
+          "observed": 0.1274131274131274
+        },
+        {
+          "outcome": 0,
+          "from": 0.2,
+          "to": 0.3,
+          "n": 531,
+          "forecast": 0.2535263722048909,
+          "observed": 0.24670433145009416
+        },
+        {
+          "outcome": 0,
+          "from": 0.3,
+          "to": 0.4,
+          "n": 676,
+          "forecast": 0.3533454168895741,
+          "observed": 0.3328402366863905
+        },
+        {
+          "outcome": 0,
+          "from": 0.4,
+          "to": 0.5,
+          "n": 773,
+          "forecast": 0.44940768713372464,
+          "observed": 0.44372574385511
+        },
+        {
+          "outcome": 0,
+          "from": 0.5,
+          "to": 0.6,
+          "n": 566,
+          "forecast": 0.5467835480802155,
+          "observed": 0.5600706713780919
+        },
+        {
+          "outcome": 0,
+          "from": 0.6,
+          "to": 0.7,
+          "n": 431,
+          "forecast": 0.6470372576117627,
+          "observed": 0.6334106728538283
+        },
+        {
+          "outcome": 0,
+          "from": 0.7,
+          "to": 0.8,
+          "n": 206,
+          "forecast": 0.7444211059692704,
+          "observed": 0.7135922330097088
+        },
+        {
+          "outcome": 0,
+          "from": 0.8,
+          "to": 0.9,
+          "n": 81,
+          "forecast": 0.8377266718266907,
+          "observed": 0.8024691358024691
+        },
+        {
+          "outcome": 0,
+          "from": 0.9,
+          "to": 1,
+          "n": 7,
+          "forecast": 0.9087227556413326,
+          "observed": 0.8571428571428571
+        },
+        {
+          "outcome": 1,
+          "from": 0,
+          "to": 0.1,
+          "n": 35,
+          "forecast": 0.08410747129928257,
+          "observed": 0.14285714285714285
+        },
+        {
+          "outcome": 1,
+          "from": 0.1,
+          "to": 0.2,
+          "n": 669,
+          "forecast": 0.168388368307976,
+          "observed": 0.2062780269058296
+        },
+        {
+          "outcome": 1,
+          "from": 0.2,
+          "to": 0.3,
+          "n": 2717,
+          "forecast": 0.245543423494886,
+          "observed": 0.26205373573794627
+        },
+        {
+          "outcome": 1,
+          "from": 0.3,
+          "to": 0.4,
+          "n": 148,
+          "forecast": 0.315399100742171,
+          "observed": 0.3581081081081081
+        },
+        {
+          "outcome": 1,
+          "from": 0.4,
+          "to": 0.5,
+          "n": 0,
+          "forecast": null,
+          "observed": null
+        },
+        {
+          "outcome": 1,
+          "from": 0.5,
+          "to": 0.6,
+          "n": 0,
+          "forecast": null,
+          "observed": null
+        },
+        {
+          "outcome": 1,
+          "from": 0.6,
+          "to": 0.7,
+          "n": 0,
+          "forecast": null,
+          "observed": null
+        },
+        {
+          "outcome": 1,
+          "from": 0.7,
+          "to": 0.8,
+          "n": 0,
+          "forecast": null,
+          "observed": null
+        },
+        {
+          "outcome": 1,
+          "from": 0.8,
+          "to": 0.9,
+          "n": 0,
+          "forecast": null,
+          "observed": null
+        },
+        {
+          "outcome": 1,
+          "from": 0.9,
+          "to": 1,
+          "n": 0,
+          "forecast": null,
+          "observed": null
+        },
+        {
+          "outcome": 2,
+          "from": 0,
+          "to": 0.1,
+          "n": 195,
+          "forecast": 0.07027966715569994,
+          "observed": 0.06666666666666667
+        },
+        {
+          "outcome": 2,
+          "from": 0.1,
+          "to": 0.2,
+          "n": 683,
+          "forecast": 0.1542257096765441,
+          "observed": 0.13616398243045388
+        },
+        {
+          "outcome": 2,
+          "from": 0.2,
+          "to": 0.3,
+          "n": 871,
+          "forecast": 0.2516277964225879,
+          "observed": 0.24913892078071181
+        },
+        {
+          "outcome": 2,
+          "from": 0.3,
+          "to": 0.4,
+          "n": 759,
+          "forecast": 0.3460911293880254,
+          "observed": 0.31752305665349145
+        },
+        {
+          "outcome": 2,
+          "from": 0.4,
+          "to": 0.5,
+          "n": 520,
+          "forecast": 0.4471940451848954,
+          "observed": 0.4519230769230769
+        },
+        {
+          "outcome": 2,
+          "from": 0.5,
+          "to": 0.6,
+          "n": 327,
+          "forecast": 0.5472741385618517,
+          "observed": 0.5535168195718655
+        },
+        {
+          "outcome": 2,
+          "from": 0.6,
+          "to": 0.7,
+          "n": 149,
+          "forecast": 0.6418592203317398,
+          "observed": 0.5838926174496645
+        },
+        {
+          "outcome": 2,
+          "from": 0.7,
+          "to": 0.8,
+          "n": 48,
+          "forecast": 0.7376826311648835,
+          "observed": 0.7916666666666666
+        },
+        {
+          "outcome": 2,
+          "from": 0.8,
+          "to": 0.9,
+          "n": 17,
+          "forecast": 0.825717638302337,
+          "observed": 0.8235294117647058
+        },
+        {
+          "outcome": 2,
+          "from": 0.9,
+          "to": 1,
+          "n": 0,
+          "forecast": null,
+          "observed": null
+        }
+      ]
+    },
+    "evaluation": {
+      "model": {
+        "n": 2001,
+        "brier": 0.5938611567831353,
+        "logLoss": 0.996456018889835
+      },
+      "historicalReference": {
+        "n": 2001,
+        "brier": 0.646547290473554,
+        "logLoss": 1.0697149993405501
+      },
+      "modelWithClosing": {
+        "n": 2001,
+        "brier": 0.5938611567831353,
+        "logLoss": 0.996456018889835
+      },
+      "closingReference": {
+        "n": 2001,
+        "brier": 0.5797625673308834,
+        "logLoss": 0.974478700455513
+      },
+      "calibration": [
+        {
+          "outcome": 0,
+          "from": 0,
+          "to": 0.1,
+          "n": 16,
+          "forecast": 0.08846261291090086,
+          "observed": 0
+        },
+        {
+          "outcome": 0,
+          "from": 0.1,
+          "to": 0.2,
+          "n": 154,
+          "forecast": 0.16544173849912383,
+          "observed": 0.2012987012987013
+        },
+        {
+          "outcome": 0,
+          "from": 0.2,
+          "to": 0.3,
+          "n": 285,
+          "forecast": 0.25157120744486655,
+          "observed": 0.28421052631578947
+        },
+        {
+          "outcome": 0,
+          "from": 0.3,
+          "to": 0.4,
+          "n": 440,
+          "forecast": 0.35313183226335493,
+          "observed": 0.35
+        },
+        {
+          "outcome": 0,
+          "from": 0.4,
+          "to": 0.5,
+          "n": 424,
+          "forecast": 0.4480758913716712,
+          "observed": 0.44575471698113206
+        },
+        {
+          "outcome": 0,
+          "from": 0.5,
+          "to": 0.6,
+          "n": 325,
+          "forecast": 0.5491660411048793,
+          "observed": 0.5446153846153846
+        },
+        {
+          "outcome": 0,
+          "from": 0.6,
+          "to": 0.7,
+          "n": 218,
+          "forecast": 0.6449547925494842,
+          "observed": 0.7064220183486238
+        },
+        {
+          "outcome": 0,
+          "from": 0.7,
+          "to": 0.8,
+          "n": 111,
+          "forecast": 0.7432013572291931,
+          "observed": 0.7657657657657657
+        },
+        {
+          "outcome": 0,
+          "from": 0.8,
+          "to": 0.9,
+          "n": 27,
+          "forecast": 0.8331503629195649,
+          "observed": 0.8888888888888888
+        },
+        {
+          "outcome": 0,
+          "from": 0.9,
+          "to": 1,
+          "n": 1,
+          "forecast": 0.9094051319293296,
+          "observed": 0
+        },
+        {
+          "outcome": 1,
+          "from": 0,
+          "to": 0.1,
+          "n": 9,
+          "forecast": 0.08524472829826722,
+          "observed": 0.1111111111111111
+        },
+        {
+          "outcome": 1,
+          "from": 0.1,
+          "to": 0.2,
+          "n": 304,
+          "forecast": 0.16977947372427857,
+          "observed": 0.16447368421052633
+        },
+        {
+          "outcome": 1,
+          "from": 0.2,
+          "to": 0.3,
+          "n": 1624,
+          "forecast": 0.24526995464728701,
+          "observed": 0.26785714285714285
+        },
+        {
+          "outcome": 1,
+          "from": 0.3,
+          "to": 0.4,
+          "n": 64,
+          "forecast": 0.3150408198279429,
+          "observed": 0.234375
+        },
+        {
+          "outcome": 1,
+          "from": 0.4,
+          "to": 0.5,
+          "n": 0,
+          "forecast": null,
+          "observed": null
+        },
+        {
+          "outcome": 1,
+          "from": 0.5,
+          "to": 0.6,
+          "n": 0,
+          "forecast": null,
+          "observed": null
+        },
+        {
+          "outcome": 1,
+          "from": 0.6,
+          "to": 0.7,
+          "n": 0,
+          "forecast": null,
+          "observed": null
+        },
+        {
+          "outcome": 1,
+          "from": 0.7,
+          "to": 0.8,
+          "n": 0,
+          "forecast": null,
+          "observed": null
+        },
+        {
+          "outcome": 1,
+          "from": 0.8,
+          "to": 0.9,
+          "n": 0,
+          "forecast": null,
+          "observed": null
+        },
+        {
+          "outcome": 1,
+          "from": 0.9,
+          "to": 1,
+          "n": 0,
+          "forecast": null,
+          "observed": null
+        },
+        {
+          "outcome": 2,
+          "from": 0,
+          "to": 0.1,
+          "n": 87,
+          "forecast": 0.07625681882363886,
+          "observed": 0.05747126436781609
+        },
+        {
+          "outcome": 2,
+          "from": 0.1,
+          "to": 0.2,
+          "n": 359,
+          "forecast": 0.15440468785384973,
+          "observed": 0.1532033426183844
+        },
+        {
+          "outcome": 2,
+          "from": 0.2,
+          "to": 0.3,
+          "n": 488,
+          "forecast": 0.25322491938240127,
+          "observed": 0.22950819672131148
+        },
+        {
+          "outcome": 2,
+          "from": 0.3,
+          "to": 0.4,
+          "n": 458,
+          "forecast": 0.3464299708869382,
+          "observed": 0.29912663755458513
+        },
+        {
+          "outcome": 2,
+          "from": 0.4,
+          "to": 0.5,
+          "n": 299,
+          "forecast": 0.4466939337724741,
+          "observed": 0.39464882943143814
+        },
+        {
+          "outcome": 2,
+          "from": 0.5,
+          "to": 0.6,
+          "n": 202,
+          "forecast": 0.5513946786611755,
+          "observed": 0.5396039603960396
+        },
+        {
+          "outcome": 2,
+          "from": 0.6,
+          "to": 0.7,
+          "n": 80,
+          "forecast": 0.6378028463336968,
+          "observed": 0.5875
+        },
+        {
+          "outcome": 2,
+          "from": 0.7,
+          "to": 0.8,
+          "n": 27,
+          "forecast": 0.7455737182291025,
+          "observed": 0.7777777777777778
+        },
+        {
+          "outcome": 2,
+          "from": 0.8,
+          "to": 0.9,
+          "n": 1,
+          "forecast": 0.8042442157623249,
+          "observed": 1
+        },
+        {
+          "outcome": 2,
+          "from": 0.9,
+          "to": 1,
+          "n": 0,
+          "forecast": null,
+          "observed": null
+        }
+      ]
+    }
+  },
+  "capturedAt": 1788664901097,
+  "sourceStatus": {
+    "mex": "Reproducción offline verificada por checksum",
+    "fl1": "Reproducción offline verificada por checksum",
+    "epl": "Reproducción offline verificada por checksum",
+    "sea": "Reproducción offline verificada por checksum",
+    "bun": "Reproducción offline verificada por checksum",
+    "lal": "Reproducción offline verificada por checksum"
+  },
+  "sources": [
+    {
+      "league": "mex",
+      "verifiedAt": 1788664748702,
+      "checksum": "1dd33d70392aa99a41793461e2e3d6e2465e447193e7dfcfd182db012ba5f455",
+      "sources": [
+        {
+          "url": "https://football-data.co.uk/new/MEX.csv",
+          "sha256": "b7362c91682fa79572ad3c7a9edde5f9b88affa8dc388813a9f4ec573d2d81d6"
+        }
+      ]
+    },
+    {
+      "league": "fl1",
+      "verifiedAt": 1788664748912,
+      "checksum": "6ffb4bdb261c4e18639f13de2378be8cb79f8d595176a60abb787ef53f7eada7",
+      "sources": [
+        {
+          "url": "https://football-data.co.uk/mmz4281/2324/F1.csv",
+          "sha256": "ca0a4bf51d5b1ccfd0e1558ea41de6bb829df6c96c759888a87248d296d5adb7"
+        },
+        {
+          "url": "https://football-data.co.uk/mmz4281/2425/F1.csv",
+          "sha256": "f1cf48edf42cc28b9675f1aa801f60a74214d672892fc2ee3adc5ea5a5b374fa"
+        },
+        {
+          "url": "https://football-data.co.uk/mmz4281/2526/F1.csv",
+          "sha256": "806b1dd80e002707abd0c01f124c6554522af40ed4e54315f7b034a475c23217"
+        },
+        {
+          "url": "https://football-data.co.uk/mmz4281/2627/F1.csv",
+          "sha256": "7fa9ed3abda5097f4fd40d6cd4d2968bb7f8446ab583fadb1a4e470a18caf95f"
+        }
+      ]
+    },
+    {
+      "league": "epl",
+      "verifiedAt": 1788664749013,
+      "checksum": "c47f1f3498046a0a5a5229d57fb8b2eb5bce747d3a66a4f133ae3af6ad799b92",
+      "sources": [
+        {
+          "url": "https://football-data.co.uk/mmz4281/2324/E0.csv",
+          "sha256": "b2e057b0ed959f198b0f63d2391c01239f3608e6de5db68edab3f88e04d07ff3"
+        },
+        {
+          "url": "https://football-data.co.uk/mmz4281/2425/E0.csv",
+          "sha256": "a0fb4e281b6f0e0fce66ac4c6bca53e54686d2db6054b5eb49b90decf161c12f"
+        },
+        {
+          "url": "https://football-data.co.uk/mmz4281/2526/E0.csv",
+          "sha256": "25b1ecbf34c961fbe9a3a3b3bf906a6c7cf76121d4605ed11a1106cc4d15de7f"
+        },
+        {
+          "url": "https://football-data.co.uk/mmz4281/2627/E0.csv",
+          "sha256": "d785fc0dc1dcd88586103bfa1abb59723e7a1e9d4e349ae7a233e9c46f465dac"
+        }
+      ]
+    },
+    {
+      "league": "sea",
+      "verifiedAt": 1788664749024,
+      "checksum": "7b5d2ae2d18074869938b22884a5f4e284b762bead5e8779723a9e4f36edbae0",
+      "sources": [
+        {
+          "url": "https://football-data.co.uk/mmz4281/2324/I1.csv",
+          "sha256": "343a89db026fe4204ebeabd663cdfee8d02a45457828fc1cb63fa630ca170723"
+        },
+        {
+          "url": "https://football-data.co.uk/mmz4281/2425/I1.csv",
+          "sha256": "0973077b99e9f7cba60fa80b8c2ed0c1326fd4950a6243b3fa213f6b51c0c205"
+        },
+        {
+          "url": "https://football-data.co.uk/mmz4281/2526/I1.csv",
+          "sha256": "bafbf14aacd7e764bc1fd65ec382cfd4c0bf7038523b065a56dd46b4ac477d49"
+        },
+        {
+          "url": "https://football-data.co.uk/mmz4281/2627/I1.csv",
+          "sha256": "20f9e76b93602cf881b32127e18e55e11ba1ad134a52a4e8da080cd6b4ce8901"
+        }
+      ]
+    },
+    {
+      "league": "bun",
+      "verifiedAt": 1788664749374,
+      "checksum": "ba182ac9476210d6ca8e23138deaaa6a81bcb73ab9777c0c5209a3d683a9924f",
+      "sources": [
+        {
+          "url": "https://football-data.co.uk/mmz4281/2324/D1.csv",
+          "sha256": "1de8bc12a133dbbf71bc6ffda62082642f087f61b1b7c15ae9f2d320876fb07e"
+        },
+        {
+          "url": "https://football-data.co.uk/mmz4281/2425/D1.csv",
+          "sha256": "daf239ba83b6fba815a3bd5879e7111f3723e6bb1e64fa484399a20b32c4cb2e"
+        },
+        {
+          "url": "https://football-data.co.uk/mmz4281/2526/D1.csv",
+          "sha256": "db8306fcb4aa2ace9048f0423ef54271c560d58f5381e0591f2bc7b2a1882037"
+        },
+        {
+          "url": "https://football-data.co.uk/mmz4281/2627/D1.csv",
+          "sha256": "291ab012acc2954237452effe54e2776738e2ef0a6b4e3ba7509ff1e5d851590"
+        }
+      ]
+    },
+    {
+      "league": "lal",
+      "verifiedAt": 1788664749387,
+      "checksum": "af1f1493df44f8fa97ab99efa63c0cc6d0b8125273bf07706b3674f243c65488",
+      "sources": [
+        {
+          "url": "https://football-data.co.uk/mmz4281/2324/SP1.csv",
+          "sha256": "5323f596c7ed318e4bce95557a369d809d98501fa499ea5f41350cd45cf3c7d9"
+        },
+        {
+          "url": "https://football-data.co.uk/mmz4281/2425/SP1.csv",
+          "sha256": "caf6feffad03388a5d681c3210130b15f329b5e23195298428d0d0568e922364"
+        },
+        {
+          "url": "https://football-data.co.uk/mmz4281/2526/SP1.csv",
+          "sha256": "5c0e49a163785fcc62fc424942500421d77c8d7c51e7159d1c9c0cad7d1d775f"
+        },
+        {
+          "url": "https://football-data.co.uk/mmz4281/2627/SP1.csv",
+          "sha256": "72e3bfd84ae8d89a5d9766e9bb8d79da42c4fe6156941b2e2ce45119ae70c741"
+        }
+      ]
+    }
+  ],
+  "limitations": [
+    "Calidad predictiva retrospectiva; no demuestra rentabilidad ni fills ejecutables en Polymarket. No contiene operaciones simuladas ni PnL.",
+    "Resultados anteriores al día del partido. Football-Data no suministra historial de revisiones ni hora exacta de publicación; no se puede probar disponibilidad intradía histórica.",
+    "Modelo fijo con mínimo de 10 partidos y ventana de 730 días; los casos sin muestra se conservan en cobertura, incluidos ascendidos.",
+    "Brier multiclase: suma de tres errores cuadrados (0–2); log-loss natural. Calibración por resultado y decil.",
+    "Referencia histórica calculada solo con partidos anteriores. Cuotas AvgCH/AvgCD/AvgCA sin margen solo cuando las tres están completas; cuotas de otra plataforma no prueban ejecución en Polymarket.",
+    "La cuenta prospectiva paper conserva por separado profundidad, latencia, comisiones, gas, reservas, fills y resolución oficial."
+  ],
+  "attribution": [
+    {
+      "source": "https://football-data.co.uk/data.php",
+      "use": "Resultados y cuotas históricas gratuitos; sujetos a condiciones del proveedor"
+    },
+    {
+      "source": "https://github.com/memonkey01/pypro_polymarket_agent/tree/e7ed2f35bf4bf0a7fef5d3c497cd9aff62d3b0a5",
+      "use": "Ideas de Poisson, regularización y Kelly; implementación propia, sin copiar código ni dependencias; su estrategia Liga MX era draft sin ventaja demostrada"
+    }
+  ],
+  "reproduction": "pnpm football:evaluate --manifest docs/evidence/football-20260906-manifest.json --out reports/football-offline-replay",
+  "manifestFile": "football-20260906-manifest.json"
+}

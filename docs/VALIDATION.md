@@ -1,4 +1,87 @@
-# Validación — 2026-09-05
+# Validación
+
+## 2026-09-06: fútbol, evidencia y comprobación operativa
+
+**Estado al cierre, 04:27 UTC: servicio instalado y habilitado, pero inactivo; puerto 3001 libre.** La instancia temporal de `pnpm start` se detuvo ordenadamente. El despliegue persistente sigue pendiente: `sudo -n systemctl start botpoly.service` requiere contraseña y `systemctl --no-ask-password start botpoly.service` devuelve acceso denegado. Los permisos amplios del cliente no conceden privilegios del sistema. No se usaron unidades ajenas ni se creó un servicio alternativo.
+
+### Código y pruebas
+
+Se conservaron los cambios publicados del modelo, motor, feed, dashboard y evaluación. `83b128f` cierra la revisión pendiente de `authorizeLive`: se reprodujo con datos de prueba la aceptación de un informe sin cobertura y checksum correcto. Ahora se exigen presencia/tipos, números finitos, conteos enteros seguros, un único ensayo de evaluación, intervalos completos y ordenados, arrays reales y fills válidos/no duplicados. La regresión cubre fills ausentes, cadenas numéricas, desbordamiento al parsear JSON, revisión incompleta y cambio de bytes tras aprobar. No carga claves reales ni hace red; no ocurrió ninguna activación real.
+
+| Comprobación del cierre | Evidencia / resultado |
+|---|---|
+| `pnpm test` | **109 pruebas correctas en 12 archivos**, incluida la regresión de evidencia malformada |
+| `pnpm typecheck` | Backend y dashboard correctos |
+| `pnpm build` | Backend y dashboard construidos |
+| `pnpm exec vitest run src/engine/live.test.ts` | 5 pruebas de frontera correctas, con datos de prueba y ejecutores simulados |
+| Arranque paper con `.runtime/no-live-import.mjs` | Guardia `registerHooks` activa; `/health` correcto; sin importar `src/engine/live` ni `src/services/trading-service` |
+| Backtest con la misma guardia | `reports/signer-closure-synthetic-20260906/`: fixture **sintético**, exploratorio y `liveEligible=false` |
+| Evaluación offline con manifiesto versionado | `reports/football-closure-replay-20260906/`: 5.570 predicciones idénticas byte a byte al CSV anterior; 21 CSV fuente y métricas/configuración verificados |
+| Chromium, escritorio 1440 px y móvil 390 px | Secciones, teclado, foco visible y tabla desplazable; sin desbordamiento general ni errores JavaScript; axe: cero infracciones detectadas |
+| SQLite antes de arrancar | `integrity_check=ok`; copia consistente mediante `Connection.backup`, también verificada |
+
+La suite cubre reservas/límites compartidos, Kelly, una apuesta por partido/reinicio, ventana previa, salida del 10% neto, parciales, incertidumbre, resolución ganadora/perdedora/fraccionaria e idempotencia. Comprueba identidad y tiempos de libros, eliminación de niveles, reconexión y lotes que omiten tokens conservando vecinos válidos. El modelo tiene checks de CSV, aliases, muestra, exclusión del futuro y caché verificable. Se mantienen las pruebas de arbitraje, Telegram, autenticación y origen histórico del seguimiento.
+
+Logs locales: `.runtime/closure-tests-20260906.log`, `.runtime/closure-typecheck-20260906.log`, `.runtime/closure-build-20260906.log`, `.runtime/closure-football-replay-20260906.log` y `.runtime/closure-backtest-20260906.log`. La revisión visual reutilizó el script anterior mediante `/tmp/playwright-test-botpoly-closure.cjs`; se inspeccionaron `/tmp/botpoly-desktop-closure.png`, `/tmp/botpoly-mobile-closure.png` y `/tmp/botpoly-positions-mobile-closure.png`. No se capturaron contraseñas ni se instalaron dependencias. El importador PMXT no cambió; no se repitieron sus pruebas Python.
+
+La **integración heredada** de las 03:30 UTC terminó con 74/74 pruebas y 8/8 archivos correctos, pero `.runtime/integration-20260906.log` contiene el rechazo **“CLOB messages are not supported anymore”** del feed antiguo `ws-live-data.polymarket.com`. Algunas pruebas toleran no recibir datos dentro del timeout. Ese verde no demuestra compatibilidad del feed anterior; no se añadieron capturas silenciosas para ocultarlo. El runtime usa `@polymarket/client` 0.9.0 y su stream actual, comprobado en paper.
+
+### Cuenta preservada y actividad real
+
+Se comprobó la ausencia de otra instancia, la unidad y el puerto antes de iniciar. Entorno: Node **24.20.0**, pnpm **10.32.1**, modo `paper`, base **`.runtime/paper-observation.sqlite`**, capital inicial **US$1.000 simulados**. La base anterior de US$50 no se tocó. La nueva copia consistente es `.runtime/backups/paper-observation-20260906T041533Z.sqlite`; no se restauró ni se sustituyó la base activa.
+
+La instancia temporal arrancó a las **04:16:24.860 UTC**. Tras conciliación y sincronización, `pnpm paper:resume` fue aceptado por el control normal. No se editaron `stop`, `errors` o `connected` a mano. El registro de las 04:25:32 UTC (`.runtime/closure-operational-20260906.json`) mostró `stop=null`, `errors=0`, datos actuales y evaluaciones creciendo. Tras detener el proceso se confirmó que las once posiciones conservaban exactamente las cantidades anteriores, con once órdenes `filled`, sin órdenes inciertas ni nuevas apuestas de esos partidos.
+
+| Medida | Comprobación |
+|---|---:|
+| Evaluaciones acumuladas al reanudar (04:19 UTC) | 379.798 |
+| Evaluaciones acumuladas al cierre (04:27 UTC) | 397.570 |
+| Compras / fills confirmados paper | 11 / 11 |
+| Posiciones abiertas / reservas | 11 / 11 |
+| Ventas / liquidaciones | 0 / 0 |
+| Efectivo | US$901,46423 |
+| Reserva restante | US$0,203958 |
+| Capital valorado al cierre | US$990,49746 |
+| PnL neto / no realizado | **−US$9,50254** |
+| PnL realizado | US$0 |
+| Comisiones simuladas / gas contabilizado | US$2,67237 / US$0 |
+
+Son pérdidas no realizadas de la simulación, con comisiones y valoración de salida. Tras la parada esa valoración queda histórica; no equivale a una cotización fresca futura. El gas paper modela 300.000 unidades supuestas, multiplicador 1,5 y precios públicos: no es gasto real ni estimación de transacción live. Gas ×3 sobre las mismas ejecuciones mantiene aquí −US$9,50254 porque aún no hay gas contabilizado; no prueba insensibilidad de futuras liquidaciones al gas.
+
+Muestra de cobertura a las **04:25:32 UTC**: 5.000 inspeccionados, 200 seleccionados, 100 de fútbol, 76 con pronóstico, 197 con ambos libros frescos al preparar, cero mercados retenidos adicionales y cero fallos de descubrimiento/metadatos. Las seis fuentes tenían resultados verificados. Son cifras de esa muestra, no constantes ni estado actual de un proceso detenido. La implementación conserva posiciones fuera del cupo y archiva muestras de profundidad, no todos los eventos.
+
+Los contadores finales por estrategia son 39.106 evaluaciones de fútbol y 33.269 de YES/NO; se añadieron después de iniciar la cuenta y no suman el histórico completo. Se conservaron 186.205 rechazos por ventaja neta insuficiente, 33.185 por valoración obsoleta, 3.638 por historial de fútbol ausente/insuficiente/caducado y 1.983 por partido ya reservado, entre otros. No se relajaron límites para generar actividad.
+
+SIGTERM terminó ordenadamente a las **04:27:12.833 UTC**, persistiendo la parada que requiere reanudación autorizada. `pnpm start` finalizó con código 0, la unidad quedó `inactive/dead`, `MainPID=0`, y `ss` confirmó el puerto libre. Los campos persistidos de conexión pueden reflejar la última observación; la unidad, el proceso y el puerto acreditan que el bot está detenido.
+
+El informe final está en `reports/paper-actual/` (HTML, JSON, CSV y manifiesto), con procedencia, periodos, configuración, costes y limitaciones. SHA-256 de su `result.json` a este cierre: `834ec2554c3ee5938db4e49d3edac513beea773c08ec0ad3b8ca6cc911809165`. Ese directorio se actualizará al volver a ejecutar; los informes horarios y de verificación anteriores se conservan. No se publica toda `.runtime/` ni `reports/`.
+
+### Telegram y seguimiento
+
+Se verificaron los registros `telegram:sent:hourly:2026-09-06T03` y `:photo` anteriores, y sus equivalentes **T04** del nuevo arranque. `flush` solo los escribe tras HTTP correcto y `ok=true` de Telegram. A las 04:25 UTC la outbox estaba vacía. Los archivos están en `reports/paper-hourly-2026-09-06T03/` y `reports/paper-hourly-2026-09-06T04/`. Esto acredita dos horas UTC con estado/PNG aceptados por la API, **no dos horas completas de ejecución continua ni lectura humana**; la hora 04 se envió al arrancar dentro de esa hora.
+
+Permanecen las confirmaciones anteriores `verification:20260906:paper`, `:chart` y `:model`. No se fabricaron updates de usuario: `/report` concurrente tiene pruebas simuladas, pero no se afirma que llegara un `/report` real en esta comprobación. Gráficas horarias e informe diario completo permanecen programados; no se adelantó el reloj para acreditarlos.
+
+El arranque operativo comprobó `experimentStartedAt=1788590543706`, **2026-09-05T06:42:23.706Z**, derivado del historial de la cuenta. Los seguimientos corresponden al **2026-09-06 06:42:23.706 UTC (24 h)** y **2026-09-08 06:42:23.706 UTC (72 h)**. Todavía no se observaron sus envíos ni un nuevo ciclo diario a medianoche. Requieren que el proceso funcione; al cierre está detenido.
+
+### Evidencia predictiva y pendiente operativo
+
+Se publican el [resumen de fútbol](evidence/football-20260906.json) y su [manifiesto](evidence/football-20260906-manifest.json), contrastados con los originales locales y reproducidos con los mismos CSV. Desarrollo 2023-07-01–2025-07-01; evaluación 2025-07-01–2026-07-01, con límites finales exclusivos. El modelo obtuvo Brier **0,593861** y log-loss **0,996456** en 2.001 predicciones de evaluación; las cuotas de cierre sin margen obtuvieron **0,579763 / 0,974479**, mejores en ambas métricas. Se conservan calibración y casos excluidos. Calidad predictiva y ejecución paper son evidencias distintas; ninguna acredita rentabilidad live. Fuentes, parámetros, alcance V1/90 minutos y reproducción: [FOOTBALL.md](FOOTBALL.md).
+
+**Pendiente: iniciar la unidad permanente con privilegios legítimos.** La instancia temporal ya está detenida. En este servidor:
+
+```bash
+cd /home/gabo/portfolio/projects/38-hibraim/botpoly/Polymarket-bot
+export PATH="$PWD/.runtime/node24/bin:$PATH"
+sudo systemctl start botpoly.service
+pnpm paper:resume
+```
+
+Si la reanudación se deniega por frescura, esperar la sincronización y revisar el motivo; no editar SQLite ni saltarse el control. Después comprobar `systemctl is-active botpoly.service`, `pnpm paper:status`, crecimiento de evaluaciones y Telegram. No iniciar otro `pnpm start` mientras la unidad ocupe el puerto. No hace falta instalar paquetes, rotar credenciales ni activar live.
+
+Live mantiene activación explícita y evidencia revisada vinculada a ambas estrategias. La revisión operativa independiente y evidencia prospectiva suficiente siguen pendientes; las pruebas del adaptador son simuladas. **No se enviaron órdenes ni transacciones reales.** El objetivo de funcionamiento persistente no está cerrado mientras la unidad siga inactiva.
+
+## Historial de validación — 2026-09-05
 
 ## Corrección del seguimiento paper durante días
 
