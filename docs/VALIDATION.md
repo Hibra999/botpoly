@@ -1,5 +1,9 @@
 # Validación
 
+## 2026-09-06 06:10 UTC: análisis y procesamiento desplegados
+
+La unidad permanece activa, reanudada en paper tras cargar `botpoly-v4-batch-analysis` a las 06:01:32 UTC. Conserva once posiciones y once fills, sin liquidaciones. Las pruebas del dashboard se repitieron contra la API desplegada en escritorio, móvil y teclado, con cero infracciones axe. Pasaron 115 pruebas, typecheck y build. El análisis incluye desglose contable, referencia de efectivo, concentración y calidad de entrada; los treinta minutos históricos sin datos siguen identificados como ausentes. [Detalle y límites](IMPROVEMENTS.md) y [evidencia con hashes y medidas](evidence/batch-processing-20260906.json).
+
 ## 2026-09-06 04:42 UTC: servicio permanente activo
 
 El bloqueo de permisos anterior quedó resuelto mediante sudo autenticado. **`botpoly.service` está activo y habilitado**, iniciado el 2026-09-06 a las **04:39:37 UTC**, con PID 2100147 en `/system.slice/botpoly.service`, `Result=success` y cero reinicios automáticos durante esta comprobación. Es la unidad permanente instalada, con una única instancia y escucha en `127.0.0.1:3001`. `/health` devuelve 200 y la API sin sesión devuelve 401. No se probó un reinicio completo del servidor.

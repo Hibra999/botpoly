@@ -87,3 +87,36 @@ it('retiene canje incierto y lo confirma una sola vez después de reiniciar el m
  const e=new Engine(l,ex);await e.process(f);f.resolution={payouts:[.5,.5],verifiedAt:f.timestamp,source:'mock official source',evidence:'fixed block'};await e.process(f);expect(l.positions).toHaveLength(1);expect(l.account.stop).toContain('Canje');
  const restarted=new Engine(l,ex);await restarted.process(f);await restarted.process(f);expect(submissions).toBe(1);expect(l.positions).toHaveLength(0);expect(s.all('settlements')).toHaveLength(1);
 });
+
+it('compara alternativas antes de reservar y respeta costes, profundidad, frescura y una apuesta al reiniciar',async()=>{
+ for (const variant of ['best','thin','stale','unverified'] as const) {
+  const {s,l,f}=setup();
+  const better=structuredClone(f);better.id='better';better.marketId='better';better.title='B gana';better.yes.tokenId='better-yes';better.no.tokenId='better-no';better.yes.hash='better-y';better.no.hash='better-n';better.football!.result='away';better.forecast!.probability=.2;better.yes.asks=[{price:.1,size:1000}];better.yes.bids=[{price:.09,size:1000}];better.no.asks=[{price:.95,size:1000}];
+  if (variant==='thin') better.yes.asks=[{price:.4,size:1}];
+  if (variant==='stale') better.yes.timestamp-=6000;
+  if (variant==='unverified') better.feeVerified=false;
+  const lookup=new Map([[f.marketId,f],[better.marketId,better]]);
+  const executor=new PaperExecutor('paper',async id=>lookup.get(id),()=>f.timestamp,{...simulationDefaults,latencyMs:0},5000,s);
+  const engine=new Engine(l,executor);
+  await engine.processBatch([f,better]);
+  expect(s.all<Order>('orders').filter(o=>o.side==='BUY')).toHaveLength(1);
+  expect(l.positions[0].marketId).toBe(variant==='best'?'better':'m');
+  expect(l.metrics().exposure).toBeLessThanOrEqual(10.000001);
+  await new Engine(l,executor).processBatch([better,f]);expect(s.all('fills')).toHaveLength(1);
+  const selection=s.get<{candidates:{marketId:string;expectedNetUsd:number|null}[]}>('meta','football:selection:match');
+  expect(selection?.candidates[0].marketId).toBe(variant==='best'?'better':'m');
+ }
+});
+
+it('actualiza juntas las posiciones antes de evaluar otro partido y no inicia órdenes tras cancelar el lote',async()=>{
+ const {f,l,s}=setup();
+ const other=structuredClone(f);other.id='other';other.marketId='other';other.football!.matchId='other-match';other.eventId=other.underlying='other-match';other.yes.tokenId='other-y';other.no.tokenId='other-n';
+ const lookup=new Map([[f.marketId,f],[other.marketId,other]]);
+ const executor=new PaperExecutor('paper',async id=>lookup.get(id),()=>f.timestamp,{...simulationDefaults,latencyMs:0},5000,s);
+ const engine=new Engine(l,executor), abort=new AbortController();abort.abort();
+ await engine.processBatch([f],abort.signal);expect(s.all('orders')).toHaveLength(0);
+ await engine.process(f);expect(l.positions).toHaveLength(1);
+ f.timestamp+=6000;for(const frame of [f,other]) {frame.timestamp=f.timestamp;frame.yes.timestamp=frame.no.timestamp=f.timestamp;}
+ l.mark();expect(l.positions[0].stale).toBe(true);
+ await engine.processBatch([other,f]);expect(l.positions).toHaveLength(2);expect(s.all('fills')).toHaveLength(2);expect(l.account.stop).toBeNull();
+});

@@ -2,7 +2,7 @@ import {createHash} from 'node:crypto';
 import type { OrderBook, PublicClient } from '@polymarket/client';
 import type { PublicRealtimeEvent, SubscriptionHandle } from '@polymarket/client/actions';
 export type MarketEvent = Extract<PublicRealtimeEvent, {topic: 'market'}>;
-import { type Book, type Level } from '../engine/model.js';
+import { type Book, type Level, freshBook } from '../engine/model.js';
 
 function levels(values: {price: string; size: string}[], side: 'BUY' | 'SELL'): Level[] {
   const result = values.map(l=>({price:Number(l.price),size:Number(l.size)}));
@@ -14,7 +14,9 @@ export class BookStream {
   books = new Map<string, Book>();
   identities = new Map<string,string>();
   changed = new Set<string>();
-  status = {connected:false, updates:0, coalesced:0, invalid:0, reconnects:0, snapshots:0};
+  status = {connected:false, updates:0, coalesced:0, invalid:0, reconnects:0, snapshots:0, unchangedSnapshots:0};
+  readonly restVerifiedAt = new Map<string, number>();
+  maxDataAgeMs = 5000;
   private handle?: SubscriptionHandle<MarketEvent>;
   private reading?: Promise<void>;
   private generation = 0;
@@ -28,6 +30,11 @@ export class BookStream {
     if (this.changed.has(id)) this.status.coalesced++;
     this.changed.add(id); this.status.updates++;
   }
+  takeChanges(): Set<string> {
+    const result = new Set(this.changed);
+    this.changed.clear();
+    return result;
+  }
   snapshot(b: OrderBook, receivedAt=this.now()): void {
     const id=this.identities.get(b.assetId), timestamp=Number(b.timestamp);
     if (!id || id !== b.conditionId || !Number.isFinite(timestamp) || timestamp <= 0 || timestamp > receivedAt) throw new Error('Snapshot con identidad o tiempo inválido');
@@ -38,7 +45,10 @@ export class BookStream {
     if (!Number.isFinite(next.minSize) || next.minSize <= 0 || !Number.isFinite(next.tickSize) || next.tickSize <= 0 || next.tickSize > .1) throw new Error('Metadatos de snapshot inválidos');
     next.hash ||= createHash('sha256').update(JSON.stringify([next.bids,next.asks])).digest('hex');
     this.metadata.set(b.assetId,{minSize:next.minSize,tickSize:next.tickSize,timestamp:next.timestamp});
-    this.books.set(b.assetId,next); this.status.snapshots++; this.changedMarket(id);
+    const prior = this.books.get(b.assetId);
+    const unchanged = prior && freshBook(prior, receivedAt, this.maxDataAgeMs) && prior.hash === next.hash && prior.minSize === next.minSize && prior.tickSize === next.tickSize && JSON.stringify([prior.bids,prior.asks]) === JSON.stringify([next.bids,next.asks]);
+    this.books.set(b.assetId,next); this.restVerifiedAt.set(b.assetId,receivedAt); this.status.snapshots++;
+    if (unchanged) this.status.unchangedSnapshots++; else this.changedMarket(id);
   }
   ingest(event: MarketEvent): void {
     if (event.type === 'new_market') return;
@@ -68,7 +78,7 @@ export class BookStream {
         }
         for (const [token,b] of updates) {this.books.set(token,b);this.metadata.set(token,{minSize:b.minSize,tickSize:b.tickSize,timestamp:b.timestamp});}
       } else if (event.type === 'book') {
-        const p=event.payload, old=this.books.get(p.assetId), metadata=this.metadata.get(p.assetId);
+        const p=event.payload, metadata=this.metadata.get(p.assetId);
         if (this.identities.get(p.assetId) !== id || !metadata || (time < metadata.timestamp)) throw new Error();
         const next:Book={...metadata,tokenId:p.assetId,hash:p.hash ?? undefined,timestamp:time,receivedAt,bids:levels(p.bids,'BUY'),asks:levels(p.asks,'SELL')};
         next.hash ||= createHash('sha256').update(JSON.stringify([next.bids,next.asks])).digest('hex');
@@ -111,6 +121,6 @@ export class BookStream {
   async close(): Promise<void> {
     this.generation++; this.status.connected=false;
     await this.handle?.close(); await this.reading;
-    this.handle=undefined; this.reading=undefined; this.books.clear(); this.changed.clear(); this.metadata.clear();
+    this.handle=undefined; this.reading=undefined; this.books.clear(); this.changed.clear(); this.metadata.clear(); this.restVerifiedAt.clear();
   }
 }

@@ -7,6 +7,11 @@ export interface GasQuote {
   mergeGasUsd: number; recoveryGasUsd: number; timestamp: number; verified: boolean; source: string; paperGas?: Frame['paperGas'];
 }
 export type WatchedMarket = Market & {football?: FootballMarket};
+export interface ProcessingStats {at:number; prepareMs:number; evaluateMs:number; cycleMs:number; changed:number; evaluated:number; skippedUnchanged:number; framesRead:number; sourceAgeMaxMs:number; verificationAgeMaxMs:number; receiveLagMaxMs:number; backlog:number}
+export function marketsToEvaluate(markets: WatchedMarket[], changed: ReadonlySet<string>, held: ReadonlySet<string>, force: boolean): Set<string> {
+  const matches = new Set(markets.filter(m => m.football && (changed.has(m.conditionId!) || held.has(m.conditionId!))).map(m => m.football!.matchId));
+  return new Set(markets.filter(m => force || changed.has(m.conditionId!) || held.has(m.conditionId!) || (m.football && matches.has(m.football.matchId))).map(m => m.conditionId!));
+}
 export function eligibleMarket(m: Market): boolean {
   return !!m.conditionId && m.state.active === true && m.state.closed === false && !m.state.archived && m.state.negRisk === false && m.state.acceptingOrders === true && m.state.enableOrderBook === true && m.outcomes.yes?.label?.toLowerCase() === 'yes' && m.outcomes.no?.label?.toLowerCase() === 'no' && !!m.outcomes.yes.tokenId && !!m.outcomes.no.tokenId && !excludedCompetition(m);
 }
@@ -84,21 +89,29 @@ export class MarketData {
     const id=market.conditionId!;
     let cached=this.info.get(id);
     if (!cached || Date.now()-cached.at >= 60000) {
-      cached={at:Date.now(),data:await fetchMarketInfo(this.client,{conditionId:id})}; this.info.set(id,cached);
+      const next={at:Date.now(),data:await fetchMarketInfo(this.client,{conditionId:id})};
+      if (!cached || JSON.stringify(cached.data) !== JSON.stringify(next.data)) this.stream.changed.add(id);
+      cached=next; this.info.set(id,cached);
     }
     const info=cached.data;
     const yes=info.tokens.find(t=>t.outcome.toLowerCase() === 'yes'), no=info.tokens.find(t=>t.outcome.toLowerCase() === 'no');
     if (info.tokens.length !== 2 || !yes || !no || yes.assetId !== market.outcomes.yes?.tokenId || no.assetId !== market.outcomes.no?.tokenId || info.negRisk !== market.state.negRisk) throw new Error('Identidad binaria no verificada');
     return info;
   }
-  async prepare(markets: WatchedMarket[]): Promise<void> {
+  async prepare(markets: WatchedMarket[], maxDataAgeMs=5000): Promise<void> {
+    this.stream.maxDataAgeMs = maxDataAgeMs;
     const ids=new Map<string,string>();
     for (const m of markets) for (const o of [m.outcomes.yes,m.outcomes.no]) if (m.conditionId && o?.tokenId) ids.set(o.tokenId,m.conditionId);
     // Bounded metadata concurrency; refresh before snapshots so they do not age in this queue.
     for (let i=0;i<markets.length;i+=8) await Promise.all(markets.slice(i,i+8).map(m=>this.marketInfo(m).catch(()=>{this.info.delete(m.conditionId!);this.coverage.metadataFailures++;} )));
     await this.stream.connect(ids);
-    await this.stream.sync();
-    this.coverage.ready=markets.filter(m=>[m.outcomes.yes,m.outcomes.no].every(o=>{const b=o?.tokenId && this.stream.books.get(o.tokenId);return b && freshBook(b,Date.now(),5000);})).length;
+    const now = Date.now();
+    const refresh = [...ids.keys()].filter(token => {
+      const book = this.stream.books.get(token);
+      return !book || !freshBook(book,now,maxDataAgeMs/2) || now - (this.stream.restVerifiedAt.get(token) ?? 0) >= 60000;
+    });
+    await this.stream.sync(refresh);
+    this.coverage.ready=markets.filter(m=>[m.outcomes.yes,m.outcomes.no].every(o=>{const b=o?.tokenId && this.stream.books.get(o.tokenId);return b && freshBook(b,Date.now(),maxDataAgeMs);})).length;
     for (const id of this.info.keys()) if (!markets.some(m=>m.conditionId === id)) this.info.delete(id);
   }
   async frame(market: WatchedMarket, refresh=true): Promise<Frame> {

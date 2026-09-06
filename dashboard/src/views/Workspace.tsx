@@ -64,6 +64,12 @@ export function Overview({ data }: { data: Snapshot }) {
         {data.football && <details><summary>Fuentes y disponibilidad de fútbol</summary><ul>{Object.entries(data.football.leagues).map(([league,status])=><li key={league}>{groupName(league)}: {status}</li>)}</ul></details>}
         {data.footballEvidence && <p><a href={`/reports/${encodeURIComponent(data.footballEvidence.report)}/report.html`}>Evaluación cronológica del modelo de fútbol</a> · calidad predictiva, sin PnL ni prueba de ejecución.</p>}
         <p className="muted">Libros sincronizados: {coverage?.ready ?? 0} mercados · Flujo: {data.observation?.feed?.connected ? "conectados" : "pendientes de conexión"} · {data.observation?.feed?.invalid ?? 0} invalidaciones · {data.observation?.feed?.coalesced ?? 0} cambios agrupados. Se conserva el último libro completo; el archivo contiene muestras.</p>
+        {data.observation?.processing && <details><summary>Frescura y procesamiento</summary>
+          <p>Última pasada: {data.observation.processing.cycleMs.toFixed(0)} ms · datos: {data.observation.processing.prepareMs.toFixed(0)} ms · evaluación: {data.observation.processing.evaluateMs.toFixed(0)} ms.</p>
+          <p>{data.observation.processing.evaluated} condiciones evaluadas · {data.observation.processing.skippedUnchanged} sin cambios omitidas · {data.observation.processing.backlog} cambios pendientes.</p>
+          <p>Antigüedad máxima de verificación: {(data.observation.processing.verificationAgeMaxMs/1000).toFixed(1)} s · demora observada de mensajes WebSocket: {data.observation.processing.receiveLagMaxMs.toFixed(0)} ms. La última modificación del precio puede ser anterior a un snapshot completo verificado.</p>
+          <p>{data.observation.feed?.unchangedSnapshots ?? 0} snapshots idénticos evitaron disparar una nueva evaluación. Los límites de frescura se comprueban antes de reservar y ejecutar.</p>
+        </details>}
       </section>
       {data.mode === "paper" && data.observation && (
         <section className="panel" aria-label="Seguimiento de simulación">

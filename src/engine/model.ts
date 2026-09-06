@@ -2,7 +2,7 @@ import {createHash} from "node:crypto";
 export type Mode = "paper" | "backtest" | "live";
 export type Outcome = "YES" | "NO";
 export type Strategy = "yes-no" | "football-value";
-export const footballPolicy = Object.freeze({ version: "poisson-clubs-v1", minEdge: 0.05, kelly: 0.25, matchExposure: 0.01, totalExposure: 0.10, takeProfit: 0.10, minMatches: 10, shrinkMatches: 5, historyDays: 730 });
+export const footballPolicy = Object.freeze({ version: "poisson-clubs-v1", selection: "best-net-executable-v1", minEdge: 0.05, kelly: 0.25, matchExposure: 0.01, totalExposure: 0.10, takeProfit: 0.10, minMatches: 10, shrinkMatches: 5, historyDays: 730 });
 export interface FootballMarket {
   matchId: string;
   league: string;

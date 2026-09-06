@@ -140,15 +140,17 @@ async function trial(
   const engine = new Engine(ledger, paper);
   engine.health(true);
   engine.recordEquity();
-  for (const f of source) {
+  for (let i = 0; i < source.length; i++) {
+    const f = source[i], batch = [f];
+    while (source[i+1]?.timestamp === f.timestamp) batch.push(source[++i]);
     if (f.timestamp < time) continue; // Execution latency advances the simulated clock.
     time = f.timestamp;
     const a = ledger.account;
     a.lastDataAt = time;
     ledger.save(a);
-    // The strategy sees only the current snapshot; future books are private to the executor.
-    await engine.process(structuredClone(f));
-    ledger.mark(f);
+    // Compare only snapshots available at this same timestamp; future books stay private to the executor.
+    await engine.processBatch(structuredClone(batch));
+    ledger.markFrames(batch);
     engine.recordEquity();
   }
   time = to;

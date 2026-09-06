@@ -2,9 +2,9 @@ import { Store } from "../engine/store.js";
 import { Ledger } from "../engine/ledger.js";
 import { Engine } from "../engine/engine.js";
 import { PaperExecutor, simulationDefaults } from "../engine/paper.js";
-import type { Executor, Frame, Reservation } from "../engine/model.js";
+import { bookTime, freshBook, type Executor, type Frame, type Reservation } from "../engine/model.js";
 import type { LiveExecutor } from "../engine/live.js";
-import { MarketData, retainMarkets } from "../research/market-data.js";
+import { MarketData, retainMarkets, marketsToEvaluate, type ProcessingStats } from "../research/market-data.js";
 import { Controller } from "./control.js";
 import { Telegram } from "./telegram.js";
 import { loadConfig, authorizeLive } from "./config.js";
@@ -26,7 +26,7 @@ export async function main(): Promise<void> {
     ledger = new Ledger(store, config.mode, config.risk);
   const approval = config.mode === "live" ? authorizeLive(process.env, ledger.config) : undefined;
   if (approval) store.put("meta", "live:strategies", approval.strategies);
-  const runtime = ledger.startRuntime("botpoly-v3-football");
+  const runtime = ledger.startRuntime("botpoly-v4-batch-analysis");
   let live: LiveExecutor | undefined, data: MarketData, executor: Executor;
   if (approval) {
     const { LiveExecutor } = await import("../engine/live.js");
@@ -97,7 +97,9 @@ export async function main(): Promise<void> {
         }
       }, 3000)
     : undefined;
+  const shutdown = new AbortController();
   const stop = () => {
+    shutdown.abort();
     stopping = true;
     telegram?.stop();
     if (heartbeat) clearInterval(heartbeat);
@@ -110,10 +112,11 @@ export async function main(): Promise<void> {
     reportAt = 0,
     diskAt = 0,
     resolutionAt = 0;
-  let diskAvailable = true;
+  let diskAvailable = true, evaluatedState = "", fullEvaluationAt = 0;
   const recordedAt = new Map<string, number>();
   const observation = {
     markets: 0,
+    processing: undefined as ProcessingStats | undefined,
     coverage: data.coverage,
     feed: data.stream.status,
     refreshedAt: 0,
@@ -178,52 +181,56 @@ export async function main(): Promise<void> {
           }
           resolutionAt=Date.now();
         }
-        await data.prepare(markets);
-        let successful = 0;
+        const cycleAt = performance.now();
+        await data.prepare(markets, ledger.config.maxDataAgeMs);
+        const prepareMs = performance.now() - cycleAt;
+        if (!data.coverage.ready) throw new Error("Sin libros frescos verificables");
+        const reconnected = !wasConnected;
+        if (reconnected) {
+          await engine.reconcile();
+          if (live) await live.checkBalances();
+        }
+        // Drain before any await: changes received while evaluating stay queued for the next pass.
+        const changed = data.stream.takeChanges();
+        const held = new Set([...ledger.positions.map(p=>p.marketId), ...store.all<Reservation>("reservations").flatMap(r=>{
+          const original = store.get<Frame>("meta", `signal:${r.id}`);
+          return original ? [original.marketId] : [];
+        })]);
+        const m = ledger.metrics(), a = ledger.account;
+        const state = JSON.stringify([ledger.config,a.stop,a.cash,m.reserved,m.operationalCapital,m.sizeFactor,refreshedAt,new Date().toISOString().slice(0,10)]);
+        const force = reconnected || state !== evaluatedState || Date.now() - fullEvaluationAt >= 60000;
+        if (force) { fullEvaluationAt = Date.now(); evaluatedState = state; }
+        const evaluate = marketsToEvaluate(markets,changed,held,force), frames: Frame[] = [];
+        let framesRead = 0;
         for (const market of markets) {
           if (stopping) break;
+          const record = config.mode === "paper" && Date.now() - (recordedAt.get(market.conditionId!) ?? 0) >= 10000;
+          if (!evaluate.has(market.conditionId!) && !record) continue;
           let frame: Frame;
-          try {
-            frame = await data.frame(market, false);
-          } catch {
-            ledger.count("fetch_failed");
-            continue;
+          try { frame = await data.frame(market, false); }
+          catch { ledger.count("fetch_failed"); data.stream.changed.add(market.conditionId!); continue; }
+          framesRead++;
+          if (record) {
+            store.recordBook(frame); recordedAt.set(frame.marketId,Date.now()); observation.recorded++;
           }
-          if (config.mode === "paper") {
-            if (Date.now() - (recordedAt.get(frame.marketId) ?? 0) >= 10000) {
-              store.recordBook(frame);
-              recordedAt.set(frame.marketId, Date.now());
-              observation.recorded++;
-            }
-            if (frame.paperGas) {
-              observation.gasUsd = frame.mergeGasUsd;
-              observation.gasAt = frame.paperGas.timestamp;
-            }
-            store.put("meta", "paper:observation", observation);
-          }
-          if (!wasConnected) {
-            await engine.reconcile();
-            if (live) await live.checkBalances();
-          }
-          successful++;
-          wasConnected = true;
-          engine.health(true);
-          const a = ledger.account;
-          a.lastDataAt = frame.timestamp;
-          ledger.save(a);
-          await engine.process(frame);
-          runtime.lastEvaluationAt = Date.now();
-          store.put("meta", "runtime", runtime);
-          ledger.mark(frame);
-          if (Date.now() - equityAt >= 60000) {
-            engine.recordEquity();
-            equityAt = Date.now();
-          }
+          if (frame.paperGas) { observation.gasUsd=frame.mergeGasUsd; observation.gasAt=frame.paperGas.timestamp; }
+          if (evaluate.has(frame.marketId)) frames.push(frame);
         }
+        if (stopping) break;
+        if (evaluate.size && !frames.length) throw new Error("Ninguna condición del lote pudo verificarse");
+        const now = Date.now(), books = [...data.stream.books.values()];
+        const verified = books.filter(b=>freshBook(b,now,ledger.config.maxDataAgeMs));
+        if (!verified.length) throw new Error("Los libros caducaron durante la preparación");
+        engine.health(true); wasConnected = true;
+        const account = ledger.account;
+        account.lastDataAt = Math.max(...verified.map(bookTime)); ledger.save(account);
+        const evaluateAt = performance.now();
+        if (frames.length) { await engine.processBatch(frames,shutdown.signal); runtime.lastEvaluationAt=Date.now(); }
+        const evaluateMs = performance.now() - evaluateAt;
+        if (Date.now() - equityAt >= 60000) { engine.recordEquity(); equityAt=Date.now(); }
         observation.coverage=data.coverage; observation.feed=data.stream.status;
-        store.put("meta", "paper:observation", observation);
-        data.stream.changed.clear();
-        if (!successful) throw new Error();
+        observation.processing={at:now,prepareMs,evaluateMs,cycleMs:performance.now()-cycleAt,changed:changed.size,evaluated:frames.length,skippedUnchanged:markets.length-evaluate.size,framesRead,sourceAgeMaxMs:Math.max(0,...books.map(b=>now-b.timestamp)),verificationAgeMaxMs:Math.max(0,...books.map(b=>now-bookTime(b))),receiveLagMaxMs:Math.max(0,...books.filter(b=>b.verifiedAt === undefined).map(b=>(b.receivedAt ?? b.timestamp)-b.timestamp)),backlog:data.stream.changed.size};
+        store.put("meta", "paper:observation", observation); store.put("meta", "runtime", runtime);
         if (config.mode === "paper" && Date.now() - reportAt >= 300000) {
           writePaperReport(ledger, resolve(config.reports, "paper-actual"));
           reportAt = Date.now();

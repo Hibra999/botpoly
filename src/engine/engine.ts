@@ -72,20 +72,8 @@ export class Engine {
           .some((o) => o.status === "uncertain" || o.status === "submitted")
       )
         return reject("Conciliación pendiente");
-      if (frame.resolution) return reject("Mercado resuelto");
-      if (!frame.binary || (frame.negRisk && !frame.football))
-        return reject("Solo mercados binarios complementarios estándar");
-      if (!frame.depth) return reject("Sin profundidad ejecutable");
-      if (
-        !frame.feeVerified ||
-        (!frame.gasVerified && !(l.mode !== "live" && frame.paperGas))
-      )
-        return reject("Costes sin verificar");
-      if (
-        frame.timestamp > l.now() || l.now() - frame.timestamp > c.maxDataAgeMs ||
-        [frame.yes, frame.no].some((b) => !freshBook(b, l.now(), c.maxDataAgeMs))
-      )
-        return reject("Datos obsoletos o futuros");
+      const inputReason = this.inputRejection(frame);
+      if (inputReason) return reject(inputReason);
       if (m.available < -1e-6 || !Number.isFinite(m.equity)) {
         l.stop("Saldo inconsistente");
         return reject("Saldo inconsistente");
@@ -96,27 +84,7 @@ export class Engine {
         .slice(0, 32);
       if (s.get("meta", `signal:${pairId}`))
         return reject("Señal ya procesada");
-      const allReservations = s.all<Reservation>("reservations");
-      const concentration = Math.max(
-        ...[frame.eventId, frame.underlying].map(
-          (key, index) =>
-            l.positions
-              .filter((p) => (index ? p.underlying : p.eventId) === key)
-              .reduce((n, p) => n + p.cost, 0) +
-            allReservations
-              .filter((r) => (index ? r.underlying : r.eventId) === key)
-              .reduce((n, r) => n + r.remaining, 0),
-        ),
-      );
-      const budget =
-        Math.max(
-          0,
-          Math.min(
-            m.available,
-            m.operationalCapital * c.totalExposurePct - m.exposure,
-            m.operationalCapital * c.eventExposurePct - concentration,
-          ),
-        ) * m.sizeFactor;
+      const budget = this.availableBudget(frame);
       if (frame.football) return this.reserveFootball(frame, budget);
       const legBudget = m.operationalCapital * c.unhedgedLossPct * m.sizeFactor;
       const minimum = Math.max(frame.yes.minSize, frame.no.minSize);
@@ -228,16 +196,61 @@ export class Engine {
     l.count("signals");
     l.event("signal", `${message} · ${frame.title}`, frame.marketId, frame.football ? "football-value" : "yes-no");
   }
-  /** Runs inside reserve's transaction and shares all global checks and capital. */
-  private reserveFootball(frame: Frame, globalBudget: number): Order[] | null {
-    const l = this.ledger, s = l.store, m = l.metrics(), f = frame.football!, prediction = frame.forecast;
-    const reject = (reason: string) => this.rejection(reason, frame);
-    if (!prediction || l.now() - prediction.dataVerifiedAt > 7 * 86400000 || prediction.generatedAt < Date.parse(new Date(l.now()).toISOString().slice(0,10))) return reject("Fútbol: historial ausente, ambiguo, insuficiente o caducado");
+  private inputRejection(frame: Frame): string | null {
+    const l = this.ledger, c = l.config;
+    if (frame.resolution) return "Mercado resuelto";
+    if (!frame.binary || (frame.negRisk && !frame.football))
+      return "Solo mercados binarios complementarios estándar";
+    if (!frame.depth) return "Sin profundidad ejecutable";
+    if (
+      !frame.feeVerified ||
+      (!frame.gasVerified && !(l.mode !== "live" && frame.paperGas))
+    )
+      return "Costes sin verificar";
+    if (
+      frame.timestamp > l.now() || l.now() - frame.timestamp > c.maxDataAgeMs ||
+      [frame.yes, frame.no].some((b) => !freshBook(b, l.now(), c.maxDataAgeMs))
+    )
+      return "Datos obsoletos o futuros";
+    return null;
+  }
+  private availableBudget(frame: Frame): number {
+    const l = this.ledger, s = l.store, c = l.config, m = l.metrics();
+    const allReservations = s.all<Reservation>("reservations");
+    const concentration = Math.max(
+      ...[frame.eventId, frame.underlying].map(
+        (key, index) =>
+          l.positions
+            .filter((p) => (index ? p.underlying : p.eventId) === key)
+            .reduce((n, p) => n + p.cost, 0) +
+          allReservations
+            .filter((r) => (index ? r.underlying : r.eventId) === key)
+            .reduce((n, r) => n + r.remaining, 0),
+      ),
+    );
+    const budget =
+      Math.max(
+        0,
+        Math.min(
+          m.available,
+          m.operationalCapital * c.totalExposurePct - m.exposure,
+          m.operationalCapital * c.eventExposurePct - concentration,
+        ),
+      ) * m.sizeFactor;
+    return budget;
+  }
+  private footballRejection(frame: Frame): string | null {
+    const l = this.ledger, s = l.store, f = frame.football!, prediction = frame.forecast;
+    if (!prediction || l.now() - prediction.dataVerifiedAt > 7 * 86400000 || prediction.generatedAt < Date.parse(new Date(l.now()).toISOString().slice(0,10))) return "Fútbol: historial ausente, ambiguo, insuficiente o caducado";
     const until = f.startAt - l.now();
-    if (until < 3600000 || until > 7 * 86400000) return reject("Fútbol: fuera de ventana previa de 1 hora a 7 días");
+    if (until < 3600000 || until > 7 * 86400000) return "Fútbol: fuera de ventana previa de 1 hora a 7 días";
     const matchKey = `football:bet:${f.matchId}`;
-    if (s.get("meta", matchKey)) return reject("Fútbol: partido ya reservado; no aumentar posición");
-    if (l.positions.some((p) => p.marketId === frame.marketId) || s.all<Reservation>("reservations").some((r) => r.marketId === frame.marketId)) return reject("Condición ya expuesta");
+    if (s.get("meta", matchKey)) return "Fútbol: partido ya reservado; no aumentar posición";
+    if (l.positions.some((p) => p.marketId === frame.marketId) || s.all<Reservation>("reservations").some((r) => r.marketId === frame.marketId)) return "Condición ya expuesta";
+    return null;
+  }
+  private footballCandidate(frame: Frame, globalBudget: number) {
+    const l = this.ledger, s = l.store, m = l.metrics(), prediction = frame.forecast!;
     const footballExposure = l.positions.filter((p) => p.strategy === "football-value").reduce((n,p) => n+p.cost,0) + s.all<Reservation>("reservations").filter((r) => r.strategy === "football-value").reduce((n,r) => n+r.remaining,0);
     const budget = Math.max(0, Math.min(globalBudget, m.operationalCapital * footballPolicy.matchExposure * m.sizeFactor, (m.operationalCapital * footballPolicy.totalExposure - footballExposure) * m.sizeFactor));
     const gas = Math.max(frame.mergeGasUsd, frame.recoveryGasUsd);
@@ -261,6 +274,17 @@ export class Engine {
       const possible = candidate(Math.floor(lo*100)/100);
       if (possible && (!best || possible.edge*possible.q.quantity > best.edge*best.q.quantity)) best = possible;
     }
+    return best;
+  }
+  /** Runs inside reserve's transaction and shares all global checks and capital. */
+  private reserveFootball(frame: Frame, globalBudget: number): Order[] | null {
+    const l = this.ledger, s = l.store, f = frame.football!, prediction = frame.forecast!;
+    const reject = (reason: string) => this.rejection(reason, frame);
+    const reason = this.footballRejection(frame);
+    if (reason) return reject(reason);
+    const matchKey = `football:bet:${f.matchId}`;
+    const best = this.footballCandidate(frame, globalBudget);
+    const gas = Math.max(frame.mergeGasUsd, frame.recoveryGasUsd);
     if (!best) return reject("Fútbol: ventaja neta <5 pp, mínimo, profundidad, Kelly o límites");
     const pairId = createHash("sha256").update(`${l.mode}:${matchKey}`).digest("hex").slice(0,32);
     const order: Order = {
@@ -339,7 +363,39 @@ export class Engine {
     }
   }
   process(frame: Frame): Promise<void> {
-    const next = this.queue.then(() => this.processFrame(frame));
+    return this.processBatch([frame]);
+  }
+  processBatch(input: readonly Frame[], signal?: AbortSignal): Promise<void> {
+    const frames = structuredClone(input);
+    const next = this.queue.then(async () => {
+      frames.forEach(validateFrame);
+      if (new Set(frames.map(f => f.marketId)).size !== frames.length) throw new Error("Lote con condiciones duplicadas");
+      this.ledger.store.transaction(() => this.ledger.markFrames(frames));
+      const groups = new Map<string, Frame[]>();
+      for (const f of frames) {
+        const key = f.football ? `football:${f.football.matchId}` : `market:${f.marketId}`;
+        groups.set(key, [...(groups.get(key) ?? []), f]);
+      }
+      for (const group of groups.values()) {
+        if (signal?.aborted) return;
+        const ranked = group.map(frame => {
+          const candidate = frame.football && !this.inputRejection(frame) && !this.footballRejection(frame)
+            ? this.footballCandidate(frame, this.availableBudget(frame)) : undefined;
+          return {frame, candidate, score: candidate ? candidate.edge * candidate.q.quantity : -1};
+        }).sort((a,b) => b.score - a.score || a.frame.marketId.localeCompare(b.frame.marketId));
+        if (group[0].football && group.length > 1 && ranked.some(r => r.candidate)) {
+          this.ledger.store.put("meta", `football:selection:${group[0].football.matchId}`, {
+            timestamp: this.ledger.now(), rule: "Mayor valor esperado neto ejecutable; desempate por condición",
+            candidates: ranked.map(({frame,candidate,score}) => ({marketId:frame.marketId,result:frame.football?.result,outcome:candidate?.outcome,quantity:candidate?.q.quantity,netEdge:candidate?.edge,expectedNetUsd:score < 0 ? null : score})),
+          });
+        }
+        // reserve() rechecks every limit transactionally immediately before committing the one match attempt.
+        for (const {frame} of ranked) {
+          if (signal?.aborted) return;
+          await this.processFrame(frame);
+        }
+      }
+    });
     this.queue = next.catch(() => {});
     return next;
   }

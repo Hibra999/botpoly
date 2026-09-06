@@ -62,3 +62,37 @@ it('conserva vecinos válidos cuando el lote omite un token y acepta un snapshot
  b.ingest({topic:'market',type:'book',payload:{conditionId:'m',assetId:'y',timestamp:now,bids:[{price:'.4',size:'3'}],asks:[{price:'.5',size:'4'}],hash:'full'}} as unknown as MarketEvent);
  expect(b.books.get('y')?.bids[0].size).toBe(3);expect(b.books.get('y')?.verifiedAt).toBeUndefined();
 });
+
+it('omite snapshots idénticos vigentes, recupera caducados y conserva cambios recibidos después de extraer el lote',()=>{
+ let time=now;
+ const stream=new BookStream({} as PublicClient,()=>time);stream.identities.set('y','m');stream.snapshot(raw());
+ expect(stream.takeChanges()).toEqual(new Set(['m']));
+ time+=2000;stream.snapshot(raw());expect(stream.takeChanges().size).toBe(0);expect(stream.status.unchangedSnapshots).toBe(1);
+ const first=stream.takeChanges();stream.ingest(change(time,'3'));expect(first.size).toBe(0);expect(stream.takeChanges()).toEqual(new Set(['m']));
+ time+=6000;stream.snapshot(raw('y',time));expect(stream.takeChanges()).toEqual(new Set(['m']));
+ stream.maxDataAgeMs=1000;time+=1500;stream.snapshot(raw('y',time));expect(stream.takeChanges()).toEqual(new Set(['m']));
+});
+
+it('incluye todas las alternativas del partido cambiado y posiciones, y reevalúa todo al cambiar el estado', async()=>{
+ const {marketsToEvaluate}=await import('./market-data.js');
+ const first={...market('a'),football:{matchId:'match',league:'mex',home:'A',away:'B',startAt:now+864e5,result:'home' as const}};
+ const second={...market('b'),football:{...first.football,result:'draw' as const}};
+ const markets=[first,second,market('held'),market('quiet')];
+ expect(marketsToEvaluate(markets,new Set(['a']),new Set(['held']),false)).toEqual(new Set(['a','b','held']));
+ expect(marketsToEvaluate(markets,new Set(),new Set(),false).size).toBe(0);
+ expect(marketsToEvaluate(markets,new Set(),new Set(),true).size).toBe(4);
+});
+
+it('resincroniza según el límite vigente sin volver a pedir libros todavía recientes',async()=>{
+ vi.useFakeTimers();vi.setSystemTime(now);
+ try {
+  const fetchOrderBooks=vi.fn(async(requests:{assetId:string}[])=>requests.map(r=>raw(r.assetId,now-60000)));
+  const data=new MarketData(undefined,{fetchOrderBooks} as unknown as PublicClient,new FootballData());
+  vi.spyOn(data as unknown as {marketInfo:()=>Promise<unknown>},'marketInfo').mockResolvedValue({});
+  vi.spyOn(data.stream,'connect').mockImplementation(async ids=>{data.stream.identities=ids;data.stream.status.connected=true;});
+  await data.prepare([market('m')],1000);expect(fetchOrderBooks).toHaveBeenCalledTimes(1);expect(data.coverage.ready).toBe(1);
+  vi.setSystemTime(now+499);await data.prepare([market('m')],1000);expect(fetchOrderBooks).toHaveBeenCalledTimes(1);
+  vi.setSystemTime(now+501);await data.prepare([market('m')],1000);expect(fetchOrderBooks).toHaveBeenCalledTimes(2);expect(data.coverage.ready).toBe(1);
+  data.stream.takeChanges();vi.setSystemTime(now+1502);await data.prepare([market('m')],1000);expect(data.stream.takeChanges()).toEqual(new Set(['m']));expect(data.coverage.ready).toBe(1);
+ }finally{vi.useRealTimers();}
+});

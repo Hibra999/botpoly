@@ -200,9 +200,14 @@ export class Ledger {
     }
   }
   mark(frame?: Frame): void {
+    this.markFrames(frame ? [frame] : []);
+  }
+  markFrames(frames: readonly Frame[]): void {
     this.rollDay();
+    const byMarket = new Map(frames.map(f => [f.marketId, f]));
     for (const p of this.positions) {
-      if (frame && p.marketId === frame.marketId) {
+      const frame = byMarket.get(p.marketId);
+      if (frame) {
         const b = p.outcome === "YES" ? frame.yes : frame.no;
         if (freshBook(b, this.now(), this.config.maxDataAgeMs)) {
           const exit = quote(b.bids, p.quantity, frame.feeRate, "SELL");
@@ -377,8 +382,9 @@ export class Ledger {
       statistics: this.store.all<DailyStatistics>("statistics"),
       observation: this.store.get<{
         markets: number;
+        processing?: import("../research/market-data.js").ProcessingStats;
         coverage?: {inspected:number;selected:number;football:number;forecast:number;retained:number;discoveryErrors:number;metadataFailures:number;ready?:number;limit:number;activeLimit:number;refreshMs:number};
-        feed?: {connected:boolean;updates:number;coalesced:number;invalid:number;reconnects:number;snapshots:number};
+        feed?: {connected:boolean;updates:number;coalesced:number;invalid:number;reconnects:number;snapshots:number;unchangedSnapshots?:number};
         refreshedAt: number;
         recorded: number;
         gasUnits: number;

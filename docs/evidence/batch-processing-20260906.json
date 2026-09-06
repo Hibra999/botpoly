@@ -1,0 +1,91 @@
+{
+  "schema": 1,
+  "kind": "paper-batch-operational-verification",
+  "at": 1788675304476,
+  "mode": "paper",
+  "runtime": {
+    "startedAt": 1788674495131,
+    "experimentStartedAt": 1788590543706,
+    "lastEvaluationAt": 1788675300918,
+    "version": "botpoly-v4-batch-analysis"
+  },
+  "config": {
+    "capitalUsd": 1000,
+    "dailyLossPct": 0.02,
+    "maxDrawdownPct": 0.1,
+    "eventExposurePct": 0.1,
+    "totalExposurePct": 0.3,
+    "unhedgedLossPct": 0.01,
+    "minNetProfitUsd": 0.02,
+    "maxSlippageBps": 50,
+    "maxDataAgeMs": 5000,
+    "maxErrors": 3,
+    "maxCostUsd": 1
+  },
+  "sourceHashes": {
+    "src/app/main.ts": "040a2980c2b4926c416b0635f39a2e47aaa41c59cb84af46693a7eedd45f1580",
+    "src/engine/engine.ts": "124f5f55a4634d9d2d631e5e8bbe0350a3b6ba13940920cf6583a1f35d15135a",
+    "src/engine/ledger.ts": "4284ec588789389ffb7125e6c388d20d7ab05a446de78e0b70dc05e71fcc2a0a",
+    "src/engine/model.ts": "db2bda9dd832cbaefeeebf9bc5d4cbbc1a8cea9f8d2c6e2d43c57130a377d041",
+    "src/research/backtest.ts": "69c6203bdcb270c541afd4669f61ce8364faec100513e6fa54988e3ecbe262b2",
+    "src/research/book-stream.ts": "c969346e64c13168d287f40c96d289b9c5c421e974e3fcde911b8fefb4d8a197",
+    "src/research/market-data.ts": "880ebf0bdd474ffc3e7d792a842f3e45e70394dffddb9176caab7a0f3fdaf93d",
+    "src/research/market-data.test.ts": "225cf744caedd7db9e413b032e314002c199d6d368cbb57a86a2565a81bfd23c",
+    "src/engine/football.test.ts": "6e004165bbb7134758d0cbfb031aa699922441aded4e1aed39b2bf712aba8540",
+    "dashboard/src/views/Workspace.tsx": "a2f5969469deaa0651410cb3ecdee5f8fd0a41b7909f38f9d09e1da3f4ef7754"
+  },
+  "observation": {
+    "file": ".runtime/batch-observation-20260906.json",
+    "sha256": "697bc80f58b1e3a0294a2bcd144b61195d3f6a2efeb393aa7abe983492e82ae4",
+    "from": 1788674608445,
+    "to": 1788674665503,
+    "samples": 20,
+    "uniqueCycles": 15,
+    "allSamplesHealthy": true,
+    "evaluated": 1657,
+    "skippedUnchanged": 1337,
+    "availableConditions": 3000,
+    "medianMs": {
+      "prepareMs": 547.2976780000026,
+      "evaluateMs": 370.1408689999953,
+      "cycleMs": 1220.2509100000025
+    },
+    "maxBacklog": 9
+  },
+  "account": {
+    "positions": 11,
+    "fills": 11,
+    "reservations": 11,
+    "settlements": 0,
+    "preservedQuantitiesCostsIdentities": true,
+    "preservedCapitalAndCashflows": true,
+    "fees": 2.67237,
+    "gas": 0,
+    "stop": null,
+    "connected": true,
+    "errors": 0
+  },
+  "backup": {
+    "path": ".runtime/backups/paper-before-batch-20260906T055627Z.sqlite",
+    "integrityCheck": "ok"
+  },
+  "verification": {
+    "tests": 115,
+    "testFiles": 13,
+    "typecheck": "passed",
+    "build": "passed",
+    "desktopWidth": 1440,
+    "mobileWidth": 390,
+    "keyboard": "passed",
+    "axeViolations": 0,
+    "deployedApiAnalysis": "passed",
+    "cashflowReturnAndEmptyStates": "passed"
+  },
+  "limitations": [
+    "57 segundos de observación; no acredita velocidad relativa, disponibilidad permanente ni rentabilidad.",
+    "Los libros obsoletos se mantienen bloqueados; ready varía y no cubre toda la plataforma.",
+    "Comparación por partido solo entre las alternativas verificadas disponibles en el lote, sin datos futuros.",
+    "Gas paper modelado; once compras simuladas, sin liquidaciones ni beneficio realizado.",
+    "Los datos a treinta minutos de las once entradas históricas están ausentes."
+  ]
+}
