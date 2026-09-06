@@ -1,5 +1,23 @@
 export type Mode = "paper" | "backtest" | "live";
 export type Outcome = "YES" | "NO";
+export type Strategy = "yes-no" | "football-value";
+export const footballPolicy = Object.freeze({ version: "poisson-clubs-v1", minEdge: 0.05, kelly: 0.25, matchExposure: 0.01, totalExposure: 0.10, takeProfit: 0.10, minMatches: 10, shrinkMatches: 5, historyDays: 730 });
+export interface FootballMarket {
+  matchId: string;
+  league: string;
+  home: string;
+  away: string;
+  startAt: number;
+  result: "home" | "draw" | "away";
+}
+export interface Forecast {
+  probability: number;
+  version: string;
+  checksum: string;
+  generatedAt: number;
+  dataVerifiedAt: number;
+  sampleSize: number;
+}
 export interface Level {
   price: number;
   size: number;
@@ -41,6 +59,8 @@ export interface Frame {
   };
   source: string;
   depth: boolean;
+  football?: FootballMarket;
+  forecast?: Forecast;
 }
 export interface RiskConfig {
   capitalUsd: number;
@@ -266,7 +286,11 @@ export interface Order {
     | "cancelled";
   timestamp: number;
   mode: Mode;
-  strategy: "yes-no";
+  strategy: Strategy;
+  forecast?: Forecast;
+  football?: FootballMarket;
+  takeProfit?: number;
+  title?: string;
   externalId?: string;
 }
 export interface Fill {
@@ -288,6 +312,12 @@ export interface Position {
   mark: number;
   timestamp: number;
   stale?: boolean;
+  strategy?: Strategy;
+  pairId?: string;
+  football?: FootballMarket;
+  forecast?: Forecast;
+  takeProfit?: number;
+  title?: string;
 }
 export interface Execution {
   status: "confirmed" | "rejected" | "uncertain" | "not_found";
@@ -311,6 +341,7 @@ export interface Executor {
     frame: Frame,
     quantity: number,
   ): Promise<Settlement>;
+  redeem?(id: string, frame: Frame, quantity: number): Promise<Settlement>;
 }
 export interface Account {
   initialCapital: number;
@@ -334,6 +365,8 @@ export interface Reservation {
   underlying: string;
   remaining: number;
   timestamp: number;
+  strategy?: Strategy;
+  marketId?: string;
 }
 export interface AuditEvent {
   id: string;
