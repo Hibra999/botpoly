@@ -1,5 +1,13 @@
 # Validación
 
+## 2026-09-06 06:37 UTC: ocho mejoras verificadas
+
+La [lista de mejoras y resultados](IMPROVEMENTS.md) conserva todo el alcance solicitado. El análisis contable, dashboard, procesamiento por cambios y selección por partido están en el servicio paper. La comparación de cuatro modelos y la calibración por liga son retrospectivas: mejora pequeña y todavía peor que las cuotas de cierre. La investigación maker conserva el resultado insuficiente de sus escenarios; no se añade al arranque.
+
+Pasaron 117 pruebas en quince archivos, typecheck, build y comprobaciones pertinentes de modelos, replay, colector público y navegador. Las 5.570 predicciones Poisson originales siguen idénticas por SHA-256. Los informes HTML nuevos se revisaron en escritorio, móvil y teclado; el dashboard desplegado ya pasó esas comprobaciones y axe sin infracciones. Fuentes, periodos, costes, parámetros y hashes están en los manifiestos vinculados.
+
+A las 06:37:46 UTC, systemd seguía `active/running`, PID 2133963, cero reinicios automáticos desde las 06:01:32 UTC; `/health` devolvió 200. La cuenta estaba conectada, sin parada ni errores, con evaluación reciente, once posiciones y once fills, sin liquidaciones. Las bibliotecas de investigación adicionales no requieren reiniciar ese proceso; no promueven modelos ni envían órdenes. El próximo seguimiento de 24 horas aún no había vencido en esta comprobación.
+
 ## 2026-09-06 06:10 UTC: análisis y procesamiento desplegados
 
 La unidad permanece activa, reanudada en paper tras cargar `botpoly-v4-batch-analysis` a las 06:01:32 UTC. Conserva once posiciones y once fills, sin liquidaciones. Las pruebas del dashboard se repitieron contra la API desplegada en escritorio, móvil y teclado, con cero infracciones axe. Pasaron 115 pruebas, typecheck y build. El análisis incluye desglose contable, referencia de efectivo, concentración y calidad de entrada; los treinta minutos históricos sin datos siguen identificados como ausentes. [Detalle y límites](IMPROVEMENTS.md) y [evidencia con hashes y medidas](evidence/batch-processing-20260906.json).

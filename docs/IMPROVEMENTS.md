@@ -2,7 +2,7 @@
 
 Objetivo: los ocho puntos del adjunto del 2026-09-06. Esta lista conserva todo el alcance; un resultado negativo o insuficiente no se convierte en rentabilidad. El modo sigue siendo paper y la cuenta SQLite conserva posiciones, costes, pérdidas y reservas.
 
-| Punto | Estado y evidencia | Verificación pendiente |
+| Punto | Estado y evidencia | Verificación y límites |
 |---|---|---|
 | 1. Calidad a 1, 5 y 30 minutos | Implementada en `account-analysis.ts`, informe y dashboard. En la cuenta observada: 9/11 válidas a 1 minuto, 11/11 a 5 y 11 ausentes a 30. | Verificada en API y dashboard desplegados; actualización cada cinco minutos. |
 | 2. Frescura y evaluaciones repetidas | Implementadas métricas y evaluación de cambios; REST verifica frescura sin repetir snapshots idénticos. | 115 pruebas; quince ciclos observados, 1.337 evaluaciones omitidas entre 3.000 condiciones. |
@@ -11,7 +11,7 @@ Objetivo: los ocho puntos del adjunto del 2026-09-06. Esta lista conserva todo e
 | 5. Alternativas del mismo partido | Implementada comparación previa de alternativas del lote por valor esperado neto ejecutable. | Pruebas de mejor alternativa, falta de profundidad/costes/frescura, reinicio, parada y reserva única. |
 | 6. Concentración | Implementada por liga, equipo y liga/fecha UTC, incluyendo reservas. Los equipos se solapan; la fecha es una aproximación de jornada, no ronda oficial. | Verificadas en escritorio, móvil y teclado contra el servicio desplegado. |
 | 7. Dashboard | Implementadas tablas por estrategia/liga, realizado/abierto, comisiones/gas y línea de efectivo sin operar. | Integración verificada; cero infracciones axe, referencia de efectivo y depósitos/retiros comprobados. |
-| 8. Maker | Capturados 6.306 eventos públicos y 960 snapshots en 12 minutos; pendiente evaluador. | Recogida de eventos y evaluación explícita de suficiencia; investigar llenados parciales, cola y latencia de cancelación sin órdenes reales. |
+| 8. Maker | Investigación completada con captura, evaluador reproducible y escenarios de cola/latencia/costes; evidencia insuficiente. | 13 avisos de trades, cero fills confirmados ni prioridad propia comprobada; no se incorpora maker al arranque. |
 
 ## Primera entrega: análisis contable
 
@@ -52,3 +52,40 @@ La calibración usa treinta celdas por liga/modelo/periodo (tres resultados y di
 Los resultados son retrospectivos y el periodo 2025/26 del modelo base ya se había observado antes; no se presenta como un holdout intacto para seleccionar modelo. La mejora es pequeña, varía por liga y todos quedan por detrás de las cuotas de cierre. No contiene fills ni PnL de Polymarket y no activa live. El predictor de producción reproduce exactamente las 5.570 predicciones originales (mismo SHA-256), comprobado con guardia contra importación de firmantes. Pasaron 116 pruebas en 14 archivos, typecheck y build.
 
 El HTML autónomo se revisó en escritorio y móvil, con apertura de calibración por teclado, foco visible y estados de muestra insuficiente. Las tablas tienen desplazamiento propio sin desbordar la página.
+
+## Cuarta entrega: investigación maker
+
+El colector público reproducible y su evaluador offline reutilizan el SDK, validación de libros y cálculo de profundidad/comisiones existentes. No crean firmantes, envían órdenes ni escriben el Ledger. La selección del colector lee SQLite en modo de solo lectura; los datos se guardan en un directorio nuevo, con manifiesto, periodo, parámetros y SHA-256. Comandos:
+
+```bash
+pnpm maker:collect --seconds 720 --limit 20 --out data/NOMBRE-NUEVO
+pnpm maker:analyze --input data/NOMBRE-NUEVO --out reports/NOMBRE-NUEVO
+```
+
+Captura entregada: `data/maker-events-20260906`, 05:50:54–06:02:57 UTC, cuarenta tokens de veinte mercados, 6.306 eventos, 960 snapshots y trece avisos de trades validados. El manifiesto marca finalización normal; la reconstrucción identifica 49 invalidaciones de libro y no acredita secuencia completa del exchange. Informe: `reports/maker-analysis-20260906/`; [evidencia, costes y hashes](evidence/maker-analysis-20260906.json).
+
+Se evaluaron 480 ventanas hipotéticas de US$10 a mejor bid, 250 ms de entrada, 60 segundos de permanencia y 250 ms adicionales para cancelar. Hubo 422 ventanas completas según los controles del escenario, dieciocho inválidas y cuarenta cortadas por el fin de captura. Se comprueba post-only al llegar y se cuenta el volumen posterior a la petición de cancelación hasta su acuse supuesto. La profundidad eliminada no se convierte en trades ni reduce automáticamente la cola previa.
+
+| Escenario supuesto | Ventanas con fill hipotético | Parciales | Salidas valorables |
+|---|---:|---:|---:|
+| Sin cola por delante | 2 | 1 | 1 |
+| Profundidad visible por delante | 0 | 0 | 0 |
+
+La única salida valorable del escenario sin cola dio US$0 antes del gas supuesto: −US$0,01 o −US$0,03 con esas sensibilidades. El otro parcial fue de 0,06 participaciones y carece de salida valorable; se conserva como inventario hipotético, sin inventar valor. Estas cifras parciales no son el PnL de una estrategia. La comisión maker cero procede de la documentación consultada; no se acreditan rebates. Los costes de salida usan los metadatos iniciales; el gas no está verificado históricamente.
+
+**Conclusión: evidencia insuficiente para introducir órdenes maker.** Los dos escenarios de cola son supuestos, no límites demostrados. Faltan identidad/prioridad propia, acuses reales de entrada/cancelación y fills privados; trece avisos públicos y doce minutos tampoco permiten medir rentabilidad. El trabajo pedido queda investigado y reproducible, con su resultado negativo; una futura estrategia maker requiere nueva evidencia antes de integrarse en Engine.
+
+Pasaron 117 pruebas en quince archivos, typecheck y build. La prueba pertinente cubre parciales, costes, duplicados, eliminaciones de profundidad, gap, reloj y cancelación. Un ensayo público adicional de diez segundos con el colector versionado produjo un manifiesto íntegro, dos tokens y su replay, bajo guardia que prohíbe importar firmantes. El informe HTML se revisó en escritorio, móvil y teclado.
+
+## Estado del alcance
+
+Los puntos 1, 2, 5, 6 y 7 están implementados y comprobados en el servicio paper; 3 y 4 están evaluados y publicados sin promover un modelo nuevo; 8 se investigó y documentó como insuficiente. No hay una activación live pendiente de este trabajo ni se afirma una mejora de rentabilidad. Quedan como trabajo futuro la observación prospectiva más larga, datos de jornada oficial, validación independiente del dimensionamiento y evidencia verificable para maker.
+
+## Mejoras futuras, por prioridad
+
+1. **Completar observación prospectiva.** Más entradas y liquidaciones oficiales, con cobertura continua de los horizontes de calidad y costes. Es la evidencia pendiente para juzgar resultados netos.
+2. **Validar ajustes de calibración y tamaño.** Evaluar una transformación por liga con periodos nuevos, sin ajustar ni elegir parámetros con el mismo conjunto usado para informar resultados.
+3. **Probar Dixon–Coles con ajuste conjunto.** Registrar otro ensayo de ataque/defensa y rho, compararlo con las cuatro variantes conservadas y medir incertidumbre antes de promoverlo.
+4. **Evaluar límites de concentración adicionales.** Usar la exposición ya medida para estudiar topes por equipo y liga, incluyendo reservas y oportunidades descartadas.
+5. **Obtener jornada oficial verificable.** Sustituir la aproximación por liga/fecha UTC cuando una fuente aporte identidad de ronda y procedencia suficientes.
+6. **Ampliar evidencia maker.** Más duración y mercados, continuidad del feed y validación de cola, parciales y cancelaciones; después valorar si una estrategia pasiva merece integrarse en Engine.

@@ -200,3 +200,7 @@ Antes de entrar, saldo, posiciones y órdenes remotas deben conciliar con la con
 ## Git
 
 Trabaja desde esta carpeta, cuyo remoto es `git@github.com:Hibra999/botpoly.git`. La identidad y SSH locales ya están configuradas. No cambiar la configuración del repositorio padre. El usuario autorizó commit y push de cada modificación verificada.
+
+## Investigación de mejoras
+
+El [registro de las ocho mejoras](docs/IMPROVEMENTS.md) contiene implementación, pruebas, comandos de comparación de fútbol y captura/análisis maker. Los resultados exploratorios, incluidos los insuficientes, están vinculados a sus fuentes y hashes. Los comandos maker solo recogen o analizan eventos públicos; no forman parte de `pnpm start` ni envían órdenes.

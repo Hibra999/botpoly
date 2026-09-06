@@ -34,7 +34,9 @@
     "paper:resume": "node --import tsx src/app/paper-cli.ts --resume",
     "paper:report": "node --import tsx src/app/paper-cli.ts --report",
     "football:evaluate": "node --import tsx src/research/football-evaluation-cli.ts",
-    "football:compare": "node --import tsx src/research/football-comparison-cli.ts"
+    "football:compare": "node --import tsx src/research/football-comparison-cli.ts",
+    "maker:collect": "node --import tsx src/research/maker-collect-cli.ts",
+    "maker:analyze": "node --import tsx src/research/maker-analysis-cli.ts"
   },
   "keywords": [
     "polymarket",
