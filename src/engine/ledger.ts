@@ -400,6 +400,7 @@ export class Ledger {
         .recent<{
           timestamp: number;
           equity: number;
+          netPnl: number;
           drawdown: number;
         }>("equity", 1000)
         .reverse(),

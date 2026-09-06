@@ -363,17 +363,21 @@ describe("reservas, ejecuciones y contabilidad", () => {
     expect(l.account.cash).toBe(1000);
   });
   it("mantiene PnL y drawdown independientes de depósitos y retiradas", () => {
-    const { l } = setup();
+    const { l, engine, advance } = setup();
     const a = l.account;
     a.cash = 990;
     l.save(a);
     const before = l.metrics();
+    engine.recordEquity();
     l.cashflow("deposit-1", 500, "deposit");
     l.cashflow("deposit-1", 500, "deposit");
     l.cashflow("withdrawal-1", 100, "withdrawal");
     expect(l.account.cash).toBe(1390);
     expect(l.metrics().netPnl).toBe(before.netPnl);
     expect(l.metrics().drawdown).toBe(before.drawdown);
+    advance(1);
+    engine.recordEquity();
+    expect(l.snapshot().equity.map(point => point.netPnl)).toEqual([-10, -10]);
   });
   it("permite salida con liquidez recuperada durante una pausa", async () => {
     const ctx = setup();

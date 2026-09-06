@@ -1,4 +1,4 @@
-import { type FormEvent } from "react";
+import { type FormEvent, useState } from "react";
 import {
   ResponsiveContainer,
   LineChart,
@@ -36,6 +36,11 @@ function Empty({ children }: { children: React.ReactNode }) {
 export function Overview({ data }: { data: Snapshot }) {
   const m = data.metrics,
     a = data.account;
+  const [performanceView, setPerformanceView] = useState("capital");
+  const showReturn = performanceView === "return";
+  const returnPct = (netPnl: number) => netPnl / a.initialCapital * 100;
+  const percent = (n: number) => `${n.toLocaleString("es", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%`;
+  const chartLabel = showReturn ? "Rendimiento sobre capital inicial" : "Capital neto";
   const counts: Record<string, number> = {};
   for (const day of data.statistics ?? [])
     for (const [key, n] of Object.entries(day.counts))
@@ -135,41 +140,52 @@ export function Overview({ data }: { data: Snapshot }) {
       </section>
       <section className="panel">
         <div className="section-heading">
-          <h2>Evolución del capital</h2>
-          <span className="muted">USD · UTC</span>
+          <h2>Capital y rendimiento</h2>
+          <label>
+            Mostrar
+            <select aria-label="Métrica de la gráfica" value={performanceView} onChange={(e) => setPerformanceView(e.target.value)}>
+              <option value="capital">Capital (USD)</option>
+              <option value="return">Rendimiento (%)</option>
+            </select>
+          </label>
         </div>
+        <p>Capital actual: <strong>{usd(m.equity)}</strong> · PnL neto: <strong>{usd(m.netPnl)} ({percent(returnPct(m.netPnl))})</strong>.</p>
+        <p className="muted">Rendimiento acumulado = PnL neto, incluidas comisiones y gas, dividido por el capital inicial de {usd(a.initialCapital)}. Los depósitos y retiros no cuentan como ganancias. Horas UTC; toda la cuenta.</p>
         {data.equity.length > 1 ? (
           <div
             className="chart"
             role="img"
-            aria-label="Curva histórica de capital neto"
+            aria-label={`Curva histórica: ${chartLabel}`}
           >
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={data.equity}>
+              <LineChart data={data.equity.map((point) => ({ ...point, value: showReturn ? returnPct(point.netPnl) : point.equity }))}>
                 <CartesianGrid stroke="var(--border-color)" vertical={false} />
                 <XAxis
                   dataKey="timestamp"
+                  type="number"
+                  domain={["dataMin", "dataMax"]}
                   tickFormatter={(t) =>
-                    new Date(t).toLocaleTimeString("es", { timeZone: "UTC" })
+                    new Date(t).toLocaleString("es", { timeZone: "UTC", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })
                   }
                   minTickGap={80}
                   stroke="var(--text-secondary)"
                 />
                 <YAxis
                   domain={["auto", "auto"]}
-                  width={65}
+                  width={75}
+                  tickFormatter={showReturn ? percent : undefined}
                   stroke="var(--text-secondary)"
                 />
                 <Tooltip
                   labelFormatter={(t) => date(Number(t))}
-                  formatter={(n: number) => [usd(n), "Capital"]}
+                  formatter={(n: number) => [showReturn ? percent(n) : usd(n), chartLabel]}
                   contentStyle={{
                     background: "var(--bg-card)",
                     border: "1px solid var(--border-color)",
                   }}
                 />
                 <Line
-                  dataKey="equity"
+                  dataKey="value"
                   type="linear"
                   stroke="var(--accent-blue)"
                   strokeWidth={2}

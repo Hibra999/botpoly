@@ -68,6 +68,8 @@ La configuración inicial solo se aplica al crear una base. Después prevalece l
 
 ## Datos y backtesting
 
+En **Resumen → Capital y rendimiento**, el selector muestra una línea de capital en USD o de rendimiento porcentual. El porcentaje usa el PnL neto histórico dividido por el capital inicial de la cuenta: incluye comisiones y gas y no convierte depósitos/retiros en ganancias. No es rentabilidad anualizada ni ponderada por flujos. Cambiar el presupuesto operativo no cambia ese denominador. La curva respeta el tiempo UTC real entre observaciones y muestra hasta las últimas 1.000 disponibles; el informe conserva la cobertura más amplia documentada abajo.
+
 ### Dejar el bot paper ejecutándose durante días
 
 Desde este servidor, usando la instalación existente:

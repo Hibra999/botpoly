@@ -366,6 +366,8 @@ select:focus {
 }
 .section-heading {
   display: flex;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
