@@ -14,6 +14,8 @@ import {
   quote,
   bookTime,
   freshBook,
+  validateResolution,
+  footballPolicy,
 } from "./model.js";
 import { Store } from "./store.js";
 export interface DailyStatistics {
@@ -139,7 +141,7 @@ export class Ledger {
       sizeFactor: Math.max(0, 1 - drawdown / Math.min(0.1, cfg.maxDrawdownPct)),
     };
   }
-  event(type: string, message: string, marketId?: string): void {
+  event(type: string, message: string, marketId?: string, strategy = "system"): void {
     const id = randomUUID();
     this.store.put("events", id, {
       id,
@@ -147,7 +149,7 @@ export class Ledger {
       type,
       message,
       mode: this.mode,
-      strategy: "yes-no",
+      strategy,
       marketId,
     } satisfies AuditEvent);
   }
@@ -254,7 +256,14 @@ export class Ledger {
       cost: 0,
       mark: 0,
       timestamp: fill.timestamp,
+      strategy: order.strategy ?? "yes-no",
+      pairId: order.pairId,
+      football: order.football,
+      forecast: order.forecast,
+      takeProfit: order.takeProfit,
+      title: order.title,
     };
+    if (p.quantity > 1e-7 && (p.strategy ?? "yes-no") !== (order.strategy ?? "yes-no")) throw new Error("Posición de otra estrategia");
     if (order.side === "BUY") {
       const cost = money(fill.gross + fill.fees);
       if (cost > a.cash + 1e-6) throw new Error("Saldo inconsistente");
@@ -285,8 +294,9 @@ export class Ledger {
     this.save(a);
     this.event(
       "fill",
-      `${order.side} ${fill.quantity} ${order.outcome} · US$${fill.gross.toFixed(4)}`,
+      `${order.side} ${fill.quantity} ${order.outcome} · US$${fill.gross.toFixed(4)} · comisión US$${fill.fees.toFixed(4)} · ${order.title ?? order.marketId}`,
       order.marketId,
+      order.strategy ?? "yes-no",
     );
   }
   merge(id: string, frame: Frame, quantity: number, gas: number): void {
@@ -302,7 +312,7 @@ export class Ledger {
     let basis = 0;
     for (const token of [frame.yes.tokenId, frame.no.tokenId]) {
       const p = this.store.get<Position>("positions", token);
-      if (!p || p.quantity + 1e-6 < quantity)
+      if (!p || (p.strategy ?? "yes-no") !== "yes-no" || p.quantity + 1e-6 < quantity)
         throw new Error("Fusión sin posiciones complementarias");
       const fraction = quantity / p.quantity;
       basis += p.cost * fraction;
@@ -328,6 +338,27 @@ export class Ledger {
       frame.marketId,
     );
   }
+  settle(id: string, frame: Frame, gas: number): void {
+    if (this.store.get("settlements", id)) return;
+    if (!frame.resolution || !Number.isFinite(gas) || gas < 0) throw new Error("Liquidación sin confirmación");
+    validateResolution(frame.resolution, this.now());
+    const positions = this.positions.filter((p) => p.marketId === frame.marketId && p.strategy === "football-value");
+    if (!positions.length) throw new Error("Liquidación sin posición");
+    let payout = 0, basis = 0;
+    for (const p of positions) {
+      payout += p.quantity * frame.resolution.payouts[p.outcome === "YES" ? 0 : 1];
+      basis += p.cost;
+      this.store.put("positions", p.tokenId, {...p, quantity: 0, cost: 0, mark: 0, stale: false});
+    }
+    const a = this.account;
+    a.cash = money(a.cash + payout - gas);
+    a.realized = money(a.realized + payout - basis - gas);
+    a.gas = money(a.gas + gas);
+    this.save(a);
+    this.store.insert("settlements", id, {id, marketId: frame.marketId, strategy: "football-value", timestamp: this.now(), payout: money(payout), basis: money(basis), gas, resolution: frame.resolution});
+    this.count("settled");
+    this.event("settled", `Resolución oficial · pago US$${money(payout)} · coste US$${money(basis)} · gas US$${gas} · ${frame.title}`, frame.marketId, "football-value");
+  }
   snapshot() {
     return {
       runtime: this.store.get<{ startedAt: number; experimentStartedAt: number; lastEvaluationAt?: number; version?: string }>("meta", "runtime"),
@@ -343,7 +374,9 @@ export class Ledger {
         gasAt?: number;
       }>("meta", "paper:observation"),
       mode: this.mode,
-      strategy: "yes-no",
+      strategy: "yes-no + football-value",
+      footballPolicy,
+      football: this.store.get("meta", "football:status"),
       config: this.config,
       account: this.account,
       metrics: this.metrics(),

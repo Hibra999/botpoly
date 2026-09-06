@@ -28,6 +28,7 @@ export interface Book {
   timestamp: number;
   /** Time of a complete, validated REST snapshot. Does not replace source time. */
   verifiedAt?: number;
+  receivedAt?: number;
   bids: Level[];
   asks: Level[];
   minSize: number;
@@ -61,6 +62,18 @@ export interface Frame {
   depth: boolean;
   football?: FootballMarket;
   forecast?: Forecast;
+  resolution?: Resolution;
+  secondsDelay?: number;
+}
+export interface Resolution {
+  payouts: [number, number];
+  verifiedAt: number;
+  source: string;
+  evidence: string;
+}
+export function validateResolution(r: Resolution, now: number): void {
+  if (!Array.isArray(r.payouts) || r.payouts.length !== 2 || !r.payouts.every((p) => Number.isFinite(p) && p >= 0 && p <= 1) || Math.abs(r.payouts[0] + r.payouts[1] - 1) > 1e-9 || !Number.isFinite(r.verifiedAt) || r.verifiedAt > now || !r.source || !r.evidence)
+    throw new Error("Resolución o vector de pagos inválido");
 }
 export interface RiskConfig {
   capitalUsd: number;
@@ -261,6 +274,16 @@ export function validateFrame(input: unknown): Frame {
           throw new Error("Nivel inválido");
     }
   }
+  if (f.football) {
+    const m = f.football;
+    if (![m.matchId,m.league,m.home,m.away].every((v) => typeof v === "string" && v.length > 0 && v.length <= 500) || m.home === m.away || !["epl","lal","bun","sea","fl1","mex"].includes(m.league) || !["home","draw","away"].includes(m.result) || !Number.isFinite(m.startAt)) throw new Error("Partido inválido");
+  }
+  if (f.forecast) {
+    const p = f.forecast;
+    if (!f.football || !Number.isFinite(p.probability) || p.probability <= 0 || p.probability >= 1 || p.version !== footballPolicy.version || !/^[a-f0-9]{64}$/.test(p.checksum) || !Number.isFinite(p.generatedAt) || !Number.isFinite(p.dataVerifiedAt) || p.dataVerifiedAt > p.generatedAt || p.generatedAt > f.timestamp || !Number.isInteger(p.sampleSize) || p.sampleSize < footballPolicy.minMatches) throw new Error("Pronóstico inválido");
+  }
+  if (f.resolution) validateResolution(f.resolution, f.timestamp);
+  if (f.secondsDelay !== undefined && (!Number.isFinite(f.secondsDelay) || f.secondsDelay < 0 || f.secondsDelay > 120)) throw new Error("Latencia deportiva inválida");
   if (f.yes.tokenId === f.no.tokenId)
     throw new Error("Tokens complementarios inválidos");
   return f;
@@ -342,6 +365,7 @@ export interface Executor {
     quantity: number,
   ): Promise<Settlement>;
   redeem?(id: string, frame: Frame, quantity: number): Promise<Settlement>;
+  reconcileRedeem?(id: string, frame: Frame, quantity: number): Promise<Settlement>;
 }
 export interface Account {
   initialCapital: number;

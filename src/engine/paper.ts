@@ -8,6 +8,7 @@ import {
   money,
   validateFrame,
   freshBook,
+  validateResolution,
 } from "./model.js";
 import type { Store } from "./store.js";
 type Consumed = { hash: string; quantities: Record<string, number> };
@@ -81,14 +82,17 @@ export class PaperExecutor implements Executor {
     }
     const book = order.outcome === "YES" ? frame.yes : frame.no;
     if (
+      book.tokenId !== order.tokenId || frame.marketId !== order.marketId || !frame.feeVerified || frame.resolution ||
+      (order.strategy === "football-value" && order.side === "BUY" && (!frame.football || frame.football.matchId !== order.football?.matchId || frame.football.startAt - this.now() < 3600000)) ||
       !freshBook(book, this.now(), this.maxDataAgeMs)
     ) {
       this.remember(order.id, reject);
       return reject;
     }
-    const key = `paper:liquidity:${book.tokenId}:${order.side}`;
+    const key = `paper:liquidity:${book.tokenId}:${order.side}:${book.hash ?? frame.id}`;
+    const legacy = this.store?.get<Consumed>("meta", `paper:liquidity:${book.tokenId}:${order.side}`);
     const previous =
-      this.store?.get<Consumed>("meta", key) ?? this.consumed.get(key);
+      this.store?.get<Consumed>("meta", key) ?? this.consumed.get(key) ?? (legacy?.hash === book.hash ? legacy : undefined);
     const consumed: Consumed =
       previous && book.hash && previous.hash === book.hash
         ? previous
@@ -191,6 +195,14 @@ export class PaperExecutor implements Executor {
       gas: money(frame.mergeGasUsd * this.config.gasMultiplier),
       timestamp: this.now(),
     };
+  }
+  async redeem(id: string, frame: Frame, _quantity: number): Promise<Settlement> {
+    if (!frame.resolution) throw new Error("Sin resolución oficial");
+    validateResolution(frame.resolution, this.now());
+    return {id, status: "confirmed", gas: money(frame.mergeGasUsd * this.config.gasMultiplier), timestamp: this.now()};
+  }
+  async reconcileRedeem(id: string, frame: Frame, quantity: number): Promise<Settlement> {
+    return this.redeem(id, frame, quantity);
   }
   async reconcileMerge(
     id: string,
