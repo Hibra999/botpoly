@@ -1,0 +1,1175 @@
+Continúa la IMPLEMENTACIÓN y el cierre operativo de Botpoly desde el estado real descrito aquí. No empieces otra sesión de planificación ni vuelvas a implementar lo que ya está publicado.
+
+La sesión anterior se interrumpió porque se perdió la conexión del modelo y el entorno pasó de permisos amplios a sandbox restringido. El usuario pidió expresamente detener el trabajo y preparar este traspaso. El objetivo técnico sigue vigente.
+
+Trabaja con autonomía dentro de los permisos efectivos. Antes de arrancar, verifica que no existe otra instancia. No confundas autorización del usuario, permisos del sandbox y privilegios del sistema operativo.
+
+════════════════════════════════════════════════════════════
+1. OBJETIVO Y AUTORIZACIONES
+════════════════════════════════════════════════════════════
+
+El usuario quiere terminar Botpoly y dejarlo funcionando de forma persistente en PAPER, con:
+
+- Arbitraje YES/NO conservado y corregido.
+- Búsqueda ampliada de mercados.
+- Fútbol automático mediante modelo matemático, sin LLM.
+- Europa y Liga MX, excluyendo Mundial y clasificatorias.
+- Decisiones explicables y motivos de no entrada.
+- Operaciones a través del motor y la contabilidad compartidos.
+- Salida anticipada al alcanzar 10% NETO ejecutable o mantenimiento hasta resolución oficial.
+- Telegram con señales, reservas, operaciones confirmadas, liquidaciones, estado horario, gráficas horarias, informe diario, /report y seguimientos de 24/72 horas.
+- Dashboard actualizado.
+- Evaluación cronológica reproducible.
+- Preparación para live, manteniendo sus barreras y SIN activarlo.
+- Commit y push de cada modificación coherente verificada.
+
+El usuario YA autorizó:
+
+- Cambios de código.
+- Pruebas y consultas públicas.
+- Parada y arranque ordenados.
+- Conciliación y reanudación paper mediante el control normal.
+- Mensajes e informes al único Telegram privado configurado.
+- Commit y push a origin/main.
+
+NO autorizó:
+
+- Activar operaciones con dinero real.
+- Enviar órdenes o transacciones reales durante pruebas.
+- Eliminar o sustituir la base de datos para quitar paradas o pérdidas.
+- Saltarse controles live.
+- Usar otros chats.
+- Explotar permisos sudo de servicios ajenos.
+
+Preferencias ya decididas, no volver a preguntar:
+
+- Fuentes gratuitas para fútbol.
+- Liga MX, Premier League, LaLiga, Bundesliga, Serie A y Ligue 1.
+- Una apuesta por partido.
+- 1/4 Kelly.
+- Ventaja estimada mínima de cinco puntos porcentuales después de costes.
+- Máximo 1% de capital por partido y 10% agregado para fútbol.
+- Entrar entre una hora y siete días antes del inicio.
+- No nuevas apuestas durante el juego.
+- Salir con beneficio neto ejecutable del 10%; en otro caso, resolución oficial.
+- Gráficas cada hora.
+- Continuar ahora en paper.
+
+No prometas rentabilidad. No relajes límites para producir actividad. No presentes fixtures como resultados reales.
+
+════════════════════════════════════════════════════════════
+2. REPOSITORIO, ENTORNO Y REGLAS
+════════════════════════════════════════════════════════════
+
+Directorio real:
+
+/home/gabo/portfolio/projects/38-hibraim/botpoly/Polymarket-bot
+
+Remoto:
+
+git@github.com:Hibra999/botpoly.git
+
+Rama:
+
+main
+
+El directorio padre también puede tener Git. Trabaja exclusivamente en Polymarket-bot. Comprueba cwd, raíz Git, remoto y rama antes de modificar/publicar.
+
+Lee:
+
+- AGENTS.md
+- INIT.md
+
+Ya se leyeron en la sesión anterior, pero el siguiente agente debe conocerlos. INIT.md tiene modificaciones locales pendientes que hay que conservar y terminar.
+
+Entorno fijado y funcionando:
+
+- Node 24.20.0.
+- pnpm 10.32.1.
+- @polymarket/client 0.9.0.
+- Un workspace.
+- Un único pnpm-lock.yaml.
+- Scripts de instalación desactivados.
+- No reinstalar dependencias por rutina.
+- No actualizar paquetes ni introducir package-lock.json.
+- No añadir infraestructura para facilitar pruebas.
+
+Comandos:
+
+export PATH="$PWD/.runtime/node24/bin:$PATH"
+
+pnpm start
+pnpm test
+pnpm typecheck
+pnpm build
+
+Aplicar Ponytail full: entender el flujo, reutilizar lo existente, biblioteca estándar primero, corregir causas compartidas y conservar validación, integridad, seguridad y accesibilidad.
+
+No ejecutar auth:setup por rutina: rota contraseña y sesiones.
+
+No mostrar ni registrar:
+
+- .env
+- .dashboard-password
+- sesiones
+- claves privadas
+- credenciales CLOB
+- URLs de Telegram, porque contienen el token
+
+No generar capturas del login con contraseñas visibles.
+
+════════════════════════════════════════════════════════════
+3. ESTADO GIT EXACTO AL TRASPASO
+════════════════════════════════════════════════════════════
+
+Comprobado el 2026-09-06 a las 03:52 UTC:
+
+HEAD y origin/main coinciden:
+
+1cea79a202d37b9e87bdb3c3d517a2b143d5b822
+
+Commits publicados durante esta sesión, de más antiguo a nuevo:
+
+0b71627 Validate football histories and cache provenance for Poisson forecasts
+c0ef964 Execute and reconcile directional football through shared risk and ledger
+0bd6c87 Expand market discovery and verify streamed depth and official football payouts
+81b1d31 Bind live approval to strategies and configuration and reconcile redemption receipts
+704b298 Report strategy coverage and positions with responsive dashboard and queued Telegram reports
+61299b3 Evaluate football chronologically with calibration and checksum-verified offline replay
+2dc6b85 Preserve valid book batches and reconcile uncertain directional positions
+1cea79a Anchor paper follow-ups to the account's original recorded history
+
+Commits anteriores relevantes:
+
+82f4a00 Send persistent hourly Telegram status and chart reports
+4e3e0f2 Fix arbitrage sizing, accepted counts and stale valuations
+b5a731a fix: habilita seguimiento paper persistente con costes y resultados
+
+Los cambios de fútbol que al comenzar estaban incompletos y sin commit YA se corrigieron, integraron, probaron y publicaron. No siguen siendo un borrador aislado.
+
+Cambios locales pendientes EXACTOS al redactar el traspaso:
+
+ M INIT.md
+?? docs/evidence/football-20260906-manifest.json
+?? docs/evidence/football-20260906.json
+
+No hay otros archivos de código modificados sin commit en esa comprobación. Este archivo propmtnow.txt se añadió después a petición del usuario; verifica Git actual por si su guardado/publicación añadió un commit documental.
+
+IMPORTANTE:
+
+- INIT.md referencia docs/FOOTBALL.md.
+- docs/FOOTBALL.md TODAVÍA NO EXISTE.
+- Debes crearlo y cerrar ese enlace pendiente.
+- docs/VALIDATION.md todavía describe principalmente la validación del 2026-09-05 y necesita una sección nueva.
+- Los dos JSON de evidencia son resúmenes/manifiestos reales de la evaluación realizada, no fixtures.
+- No descartes estos archivos ni hagas reset.
+
+════════════════════════════════════════════════════════════
+4. ESTADO OPERATIVO Y PERMISOS: NO SUPONER QUE ESTÁ ACTIVO
+════════════════════════════════════════════════════════════
+
+Unidad permanente existente:
+
+botpoly.service
+
+Referencia:
+
+deploy/botpoly.service
+
+Está instalada y habilitada para arrancar tras reinicio del servidor. Usa usuario gabo, este directorio y Node local.
+
+Durante la sesión con permisos amplios:
+
+sudo -n systemctl start botpoly.service
+
+falló porque sudo requiere contraseña.
+
+El modo YOLO del cliente NO proporciona esa contraseña.
+
+No se alteraron otras unidades, no se explotaron permisos portfolio* y no se creó un servicio alternativo que pudiera duplicar la instancia.
+
+Para validar el comportamiento se ejecutó explícitamente una instancia temporal EN PRIMER PLANO usando pnpm start. Se informó claramente de que no era un servicio permanente.
+
+Esa ejecución:
+
+- Arrancó aproximadamente a las 03:10 UTC.
+- Fue conciliada y reanudada mediante pnpm paper:resume.
+- Generó 11 compras PAPER verificables.
+- Envió Telegram real.
+- Se reinició de forma ordenada para comprobar persistencia.
+- Conservó las 11 posiciones sin aumentar cantidades.
+- Se reanudó otra vez por el control normal.
+- Finalmente se detuvo ordenadamente para cargar la última corrección temporal.
+
+Después cambió el sandbox.
+
+Último estado del servicio comprobado mediante systemctl fuera del sandbox, aproximadamente a las 03:49 UTC:
+
+ActiveState=inactive
+MainPID=0
+
+Un intento posterior de pnpm start DENTRO del sandbox restringido falló:
+
+Error: listen EPERM: operation not permitted 127.0.0.1:3001
+
+Ese intento sí alcanzó a cargar la base, conciliar y actualizar runtime, pero NO llegó a abrir el servidor ni a ejecutar un ciclo normal.
+
+Se solicitó ejecución fuera del sandbox para repetir el arranque. El usuario interrumpió/canceló ese turno. NO existe confirmación de que ese arranque escalado se haya ejecutado.
+
+No describas este caso como rechazo de revisión automática: fue una interrupción del usuario.
+
+La comprobación de procesos realizada después estaba dentro del sandbox y solo mostraba su propio espacio de procesos. NO prueba de forma definitiva el estado global del host.
+
+Por tanto, el siguiente agente debe:
+
+1. Verificar botpoly.service y procesos reales con los permisos efectivos.
+2. Verificar si 127.0.0.1:3001 está ocupado.
+3. Evitar dos instancias.
+4. Arrancar mediante la vía legítima disponible.
+5. Si continúa faltando sudo, terminar el trabajo independiente y explicar el comando preciso que requiere intervención.
+
+No describas una instancia temporal como despliegue persistente.
+
+════════════════════════════════════════════════════════════
+5. BASE DE DATOS Y CUENTA QUE DEBES PRESERVAR
+════════════════════════════════════════════════════════════
+
+Base activa correcta:
+
+.runtime/paper-observation.sqlite
+
+Cuenta de US$1.000 SIMULADOS iniciada el 2026-09-05.
+
+La otra base:
+
+.runtime/paper.sqlite
+
+corresponde al experimento anterior de US$50. No tocarla ni confundirlas.
+
+Backups consistentes existentes:
+
+.runtime/backups/paper-observation-20260906T022057Z.sqlite
+.runtime/backups/paper-observation-20260906T031023Z.sqlite
+
+El segundo se creó mediante sqlite3.Connection.backup antes del arranque controlado. No fue una copia insegura del archivo principal. La base había pasado integrity_check=ok.
+
+No restaurar estos backups para quitar las posiciones o pérdidas actuales.
+
+Última lectura SQLite SOLO LECTURA, 2026-09-06 03:52 UTC:
+
+mode: paper
+
+account:
+  initialCapital: 1000
+  cash: 901.46423
+  realized: 0
+  fees: 2.67237
+  gas: 0
+  deposits: 1000
+  withdrawals: 0
+  stop: "Proceso detenido; requiere reanudación autorizada"
+  errors: 1
+  connected: false
+
+Posiciones abiertas: 11
+Fills: 11
+Reservas: 11
+Capital reservado restante: 0.203958
+Liquidaciones: 0
+
+Última valoración persistida:
+  equity: 990.75517
+  netPnl: -9.24483 aproximadamente
+
+Son pérdidas NO REALIZADAS de la simulación, incluyendo comisiones y valoración de salida. No hubo ventas ni liquidaciones confirmadas durante la observación.
+
+La valoración persistida NO equivale a una valoración fresca tras la parada.
+
+account.errors=1 y connected=false quedaron después del intento de arranque sin permisos de red/listen. Engine.health(true) limpia los errores de conectividad cuando vuelven datos válidos. No editar esos campos manualmente.
+
+La parada debe resolverse mediante conciliación y el comando normal autorizado:
+
+pnpm paper:resume
+
+Puede denegarse si aún faltan valoraciones frescas. En el reinicio anterior ocurrió una denegación inicial y luego la reanudación funcionó cuando los libros quedaron sincronizados. No debilitar la comprobación para evitar esa espera.
+
+Estados terminales de Order:
+
+filled
+rejected
+cancelled
+
+No confundir Order.status="filled" con Execution.status="confirmed". Consultar órdenes SQL usando "confirmed" como estado terminal produciría un diagnóstico incorrecto.
+
+Archivo de comparación de cantidades antes del reinicio:
+
+.runtime/restart-positions-20260906.json
+
+Ya se comprobó que las cantidades posteriores eran idénticas y seguían existiendo exactamente 11 fills.
+
+════════════════════════════════════════════════════════════
+6. COBERTURA Y ACTIVIDAD REAL OBSERVADAS
+════════════════════════════════════════════════════════════
+
+Última cobertura persistida antes de detener la ejecución:
+
+- 5.000 mercados generales inspeccionados.
+- 200 seleccionados.
+- 100 de fútbol.
+- 76 con pronóstico disponible.
+- 0 mercados adicionales retenidos en esa muestra.
+- 0 errores de descubrimiento en esa muestra.
+- 0 fallos de metadatos en esa muestra.
+- 195 mercados con ambos libros frescos al cierre de prepare.
+- Durante comprobaciones se observaron hasta 200 sincronizados.
+
+Estos números cambian con el mercado. No presentarlos como constantes ni como estado actual estando detenido.
+
+Los contadores finales acumulados de la cuenta, leídos a las 03:53 UTC:
+
+evaluated: 374205
+rejected:Datos obsoletos o futuros: 150906
+rejected:Ventaja neta insuficiente después de costes: 179629
+rejected:Mínimo del mercado excede saldo, profundidad o límites: 8134
+rejected:Proceso detenido; requiere reanudación autorizada: 3296
+fetch_failed: 6173
+rejected:Costes sin verificar: 2
+
+evaluated:football-value: 27397
+evaluated:yes-no: 21613
+
+rejected:Fútbol: historial ausente, ambiguo, insuficiente o caducado: 2501
+signals: 11
+accepted: 11
+buys: 11
+rejected:Fútbol: partido ya reservado; no aumentar posición: 1386
+rejected:Fútbol: ventaja neta <5 pp, mínimo, profundidad, Kelly o límites: 2162
+rejected:Valoración de posiciones obsoleta: 26178
+
+Los contadores por estrategia se introdujeron después del inicio de la cuenta; no suman todo el histórico de evaluated.
+
+El campo observation.feed.connected puede conservar true de la última observación aunque account.connected sea false tras la parada. No usar ese dato histórico aislado para afirmar que el bot está funcionando.
+
+════════════════════════════════════════════════════════════
+7. IMPLEMENTACIÓN DE FÚTBOL YA PUBLICADA
+════════════════════════════════════════════════════════════
+
+Archivos centrales:
+
+src/strategies/football.ts
+src/strategies/football.test.ts
+src/engine/model.ts
+src/engine/engine.ts
+src/engine/ledger.ts
+src/engine/paper.ts
+src/engine/football.test.ts
+
+Política:
+
+version: poisson-clubs-v1
+minEdge: 0.05
+kelly: 0.25
+matchExposure: 0.01
+totalExposure: 0.10
+takeProfit: 0.10
+minMatches: 10
+shrinkMatches: 5
+historyDays: 730
+
+El cargador/modelo incluye:
+
+- CSV estricto: BOM, comillas, comas, saltos, cierre correcto de comillas.
+- Validación completa de día/mes/año.
+- Columnas y tamaños de fila.
+- Goles ausentes/incompletos.
+- Duplicados idénticos y conflictos entre temporadas.
+- Normalización y aliases explícitos.
+- Rechazo de equipos ambiguos.
+- Sin aliases excesivamente genéricos como “atletico”, “rb” o “le”.
+- Poisson con localía y regularización.
+- Ventana de 730 días y mínimo de diez partidos por equipo.
+- Probabilidades home/draw/away normalizadas.
+- Solo resultados anteriores al corte temporal.
+- Pronósticos cacheados por partido, datos y día UTC.
+- Actualización de fuentes cada seis horas.
+- Bloqueo si la verificación de datos supera siete días.
+- CSV originales conservados por SHA-256.
+- Integridad de dataset y reconstrucción desde CSV originales.
+- Sin sustitución de fallos del proveedor por resultados supuestos.
+
+Las probabilidades anteriores al partido NO se usan como pronóstico actualizado durante el juego.
+
+Fuentes gratuitas SIN www:
+
+https://football-data.co.uk/data.php
+https://football-data.co.uk/new/MEX.csv
+
+Europa:
+
+https://football-data.co.uk/mmz4281/2627/E0.csv
+https://football-data.co.uk/mmz4281/2627/SP1.csv
+https://football-data.co.uk/mmz4281/2627/D1.csv
+https://football-data.co.uk/mmz4281/2627/I1.csv
+https://football-data.co.uk/mmz4281/2627/F1.csv
+
+Se cargan temporadas anteriores. Las URLs con www devolvían 503 en este servidor; las anteriores funcionaron.
+
+Football-Data es una fuente por lotes. Sus cuotas históricas no son un feed actual de cuotas.
+
+════════════════════════════════════════════════════════════
+8. DESCUBRIMIENTO, SDK Y LIBROS YA INTEGRADOS
+════════════════════════════════════════════════════════════
+
+Archivos:
+
+src/research/market-data.ts
+src/research/book-stream.ts
+src/research/market-data.test.ts
+src/app/main.ts
+
+SDK instalado: @polymarket/client 0.9.0.
+
+Usa:
+
+client.subscribe([
+  {
+    topic: "market",
+    assetIds: [...],
+    customFeatureEnabled: true
+  }
+])
+
+Handle AsyncIterable con close().
+
+No volver a conectar el feed heredado de CLOB mediante real-time-data-client.
+
+Detalle de tipos importante:
+
+El MarketEvent exportado desde la raíz del SDK no es el tipo correcto del stream. La implementación usa:
+
+Extract<PublicRealtimeEvent, { topic: "market" }>
+
+desde @polymarket/client/actions.
+
+listMarkets/listEvents se recorren con for await...of sobre páginas.
+seriesIds requiere números en esta versión.
+
+Metadatos deportivos verificados públicamente:
+
+epl -> 10188
+lal -> 10193
+bun -> 10194
+sea -> 10203
+fl1 -> 10195
+mex -> 10290
+
+No inventar otros identificadores.
+
+Matching deportivo verifica:
+
+- Liga y serie permitidas.
+- Identidad del deporte/competición.
+- Etiquetas y exclusión de Mundial/clasificatorias.
+- Local y visitante con ordering distinto.
+- Liga de ambos equipos.
+- Tipo moneyline.
+- Outcomes Yes/No.
+- Inicio consistente entre evento y mercado.
+- Proposición exacta de victoria/empate.
+- Alcance de primeros 90 minutos más descuento.
+- Estado activo/abierto/aceptando órdenes.
+- Versión V1 para el alcance de resolución implementado.
+
+No interpreta Over/Under como Yes/No.
+No incluye clasificación, penaltis, prórroga, córners ni marcador exacto.
+
+NegRisk:
+
+- Se admite compra/venta individual de fútbol verificado.
+- Sigue excluido del arbitraje YES/NO estándar.
+- No se han implementado conversiones multiresultado ni deben activarse.
+
+Libros:
+
+- Snapshot inicial completo.
+- REST por lotes y WebSocket de profundidad.
+- Eliminación de niveles de tamaño cero.
+- Identidad de condición y token.
+- Rechazo de tiempos futuros y fuera de orden.
+- Reconexión con invalidación y resincronización.
+- Separación timestamp, receivedAt y verifiedAt.
+- verifiedAt solo para verificación auténtica de snapshot REST completo.
+- best_bid_ask y last_trade_price no rejuvenecen profundidad.
+- Metadatos/high-water temporal permiten recuperación por un book WS completo.
+- Cambio de tick exige REST nuevo.
+- Memoria acotada al último libro por token y cambios agrupados.
+- Archivo de muestras cada diez segundos y snapshots usados para ejecución.
+- No se afirma disponer de todos los eventos.
+
+Defecto corregido en 2dc6b85:
+
+fetchOrderBooks puede OMITIR tokens sin libro, sin fallar todo el lote.
+Antes eso descartaba libros válidos vecinos.
+Ahora invalida la condición faltante y conserva los snapshots válidos.
+
+La selección general usa diversidad por evento, liquidez y proximidad al cierre.
+Los mercados pendientes se reconstruyen y conservan fuera del cupo de nuevas entradas.
+
+════════════════════════════════════════════════════════════
+9. MOTOR, SALIDA Y RESOLUCIÓN YA IMPLEMENTADOS
+════════════════════════════════════════════════════════════
+
+Toda operación automática sigue:
+
+Engine -> reserva transaccional -> ejecutor -> confirmación -> Ledger
+
+No hay un bot paralelo que compre directamente desde el cargador.
+
+Ya integrado:
+
+- Estrategias yes-no y football-value.
+- Compatibilidad de registros antiguos sin estrategia como yes-no.
+- Metadatos de partido, estrategia, pronóstico y salida en órdenes/posiciones.
+- Límites globales y de fútbol compartidos.
+- Precio ejecutable con profundidad, comisiones y gas modelado.
+- Reserva persistida antes de ejecutar.
+- Señales reales deduplicadas.
+- Una apuesta por partido mediante identidad persistente.
+- No aumentar posiciones por tick, submercado ni reinicio.
+- Direccionales nunca pasan por finishPair.
+- finishFootball gestiona salida y resolución.
+- Resume admite posiciones direccionales sanas y conciliadas.
+- Órdenes/canjes inciertos conservan reserva y bloquean.
+- Las posiciones históricas de cantidad cero adoptan metadatos de una nueva estrategia al comprar; se corrigió la mezcla de semánticas.
+
+Simplificación conservadora:
+
+La marca de “partido ya reservado” permanece incluso después de un intento completamente rechazado. Evita reintentos/reentrada automática por partido. No se ha implementado selección retrospectiva de la mejor de las seis alternativas ni se debe afirmar eso.
+
+Salida:
+
+- Debe existir profundidad para cerrar toda la posición.
+- Beneficio neto mínimo del 10% sobre su coste.
+- Incluye comisiones y costes aplicables.
+- FOK.
+- Solo contabiliza fills confirmados.
+- Una salida parcial conserva resto y estado.
+- Una salida incierta no se reenvía.
+- Conciliación/reinicio probados con ejecutores simulados.
+
+Resolución:
+
+- No se liquida por un resultado de Football-Data ni por terminar el partido.
+- Exige Gamma resuelto/cerrado y vector oficial CTF.
+- Lectura pública Polygon, chainId 137.
+- Bloque fijo confirmado.
+- payoutDenominator/payoutNumerators coherentes.
+- Ganador, perdedor y pagos fraccionarios.
+- Idempotencia y base de coste.
+- Intención de canje persistida antes de ejecutar.
+- Conciliación de canje incierto.
+
+Se verificó públicamente una resolución real con pagos [1,0].
+NO se observó todavía una liquidación de las once posiciones de esta cuenta.
+
+Límite explícito actual: fútbol V1 compatible con esta lectura CTF.
+No ampliar versiones sin verificar contratos y semántica.
+
+Paper:
+
+- Reconsulta estado/libros después de latencia.
+- Incluye secondsDelay del mercado deportivo.
+- Liquidez consumida persistida por token/lado/hash.
+- Secuencia A -> B -> A no recrea liquidez de A.
+- Gas paper sigue siendo MODELO, no eth_estimateGas ni gasto real.
+- No importa el adaptador live durante arranque paper/backtest.
+
+════════════════════════════════════════════════════════════
+10. TELEGRAM: LO IMPLEMENTADO Y LO REALMENTE VERIFICADO
+════════════════════════════════════════════════════════════
+
+Archivos:
+
+src/app/telegram.ts
+src/app/telegram.test.ts
+src/research/paper-report.ts
+
+Credenciales ya configuradas en .env privado. No mostrarlas ni volver a pedirlas.
+
+Comandos:
+
+/status
+/pnl
+/positions
+/risk
+/pause
+/resume
+/cancel_orders
+/report
+
+Ya implementado:
+
+- Recepción y envío en bucles separados.
+- /report encola un trabajo persistente y responde enseguida.
+- Resumen horario UTC persistente.
+- PNG horario.
+- Informe completo a las 00 UTC.
+- Seguimientos 24 y 72 horas.
+- Señales/reservas/fills/liquidaciones diferenciados.
+- Reintentos con retry_after.
+- Sin avalancha de horas antiguas.
+- Hora enviada no se repite al reiniciar.
+- Fallo de gráfica comunicado como fallo.
+- Rutas reales confinadas a reports/.
+- Captions limitados.
+- Sin token/URL Telegram en errores.
+- Cola persistente.
+
+Renderer:
+
+/usr/bin/rsvg-convert
+
+No instalar Chromium/matplotlib para generar PNG: rsvg-convert funciona.
+
+Gráfica oscura 1200x1000:
+
+- Capital.
+- PnL acumulado.
+- Drawdown.
+- Actividad horaria.
+- Identificación PAPER.
+- Costes.
+- Caso cero operaciones y un único punto legibles.
+
+Confirmaciones REALES de la API de Telegram persistidas:
+
+telegram:sent:hourly:2026-09-06T03
+telegram:sent:hourly:2026-09-06T03:photo
+
+Ese estado y PNG se enviaron realmente aproximadamente a las 03:10 UTC.
+
+También se enviaron realmente:
+
+telegram:sent:verification:20260906:paper
+telegram:sent:verification:20260906:chart
+telegram:sent:verification:20260906:model
+
+Los tres corresponden a informe paper, PNG y evaluación predictiva.
+Última outbox: 0 elementos.
+
+Eso acredita aceptación por la API, no lectura humana.
+
+NO se observaron dos ciclos horarios reales.
+Solo está verificada la hora 03.
+No hay confirmación de la hora 04 en el último traspaso.
+No adelantar el reloj y describirlo como observación real.
+
+Informes locales:
+
+reports/paper-hourly-2026-09-06T03/
+reports/paper-verification-20260906/
+reports/paper-actual/
+reports/football-evaluation-20260906/
+reports/football-evaluation-20260906-replay/
+
+Los informes están ignorados por Git. No forzarlos todos al repositorio.
+
+════════════════════════════════════════════════════════════
+11. CORRECCIÓN MÁS RECIENTE: ORIGEN DE 24/72 HORAS
+════════════════════════════════════════════════════════════
+
+Commit:
+
+1cea79a
+
+Se detectó que la introducción de runtime asignaba experimentStartedAt al despliegue nuevo de reportes, aunque la cuenta existía desde el día anterior.
+
+Corrección publicada:
+
+Ledger.startRuntime(version)
+
+Busca el primer timestamp válido persistido en:
+
+- equity
+- events
+- statistics.firstAt
+
+y conserva el menor origen válido junto con el runtime previo.
+Ignora timestamps futuros.
+startedAt sigue siendo el inicio del proceso actual.
+
+Main usa ledger.startRuntime("botpoly-v3-football").
+
+Prueba añadida: cuenta previa a runtime, reparación de origen, ignorar futuro y conservar origen al reiniciar.
+
+Último runtime persistido, después del intento de arranque fallido por EPERM:
+
+experimentStartedAt: 1788590543706
+
+Equivale a:
+
+2026-09-05T06:42:23.706Z
+
+Por tanto los seguimientos corresponden aproximadamente a:
+
+24 h: 2026-09-06T06:42:23.706Z
+72 h: 2026-09-08T06:42:23.706Z
+
+No se han observado esos seguimientos todavía.
+
+La corrección tiene tests y está publicada.
+Su derivación histórica sí quedó reflejada en SQLite.
+Falta comprobar un arranque operativo completo con ella, porque el último intento no pudo abrir el puerto.
+
+════════════════════════════════════════════════════════════
+12. EVALUACIÓN CRONOLÓGICA REALIZADA
+════════════════════════════════════════════════════════════
+
+Archivos:
+
+src/research/football-evaluation.ts
+src/research/football-evaluation-cli.ts
+src/research/football-evaluation.test.ts
+
+Comando:
+
+pnpm football:evaluate --out reports/NOMBRE
+
+Opcional:
+
+--register .runtime/paper-observation.sqlite
+
+Reproducción offline:
+
+pnpm football:evaluate \
+  --manifest reports/football-evaluation-20260906-replay/manifest.json \
+  --out reports/NUEVA-REPRODUCCION
+
+También se está preparando el manifiesto versionado:
+
+docs/evidence/football-20260906-manifest.json
+
+La reproducción requiere los CSV originales por SHA-256 que ya existen en:
+
+.runtime/football/
+
+No inventa datos ni descarga otros al reproducir con manifiesto.
+Rechaza checksums/contenido inconsistentes.
+No sobrescribe un informe previo.
+
+Periodos:
+
+- Desarrollo: 2023-07-01 a 2025-07-01.
+- Evaluación: 2025-07-01 a 2026-07-01.
+
+Un único modelo y configuración registrados.
+No se ajustaron parámetros para seleccionar un ganador después de ver la evaluación.
+
+Resultados:
+
+Desarrollo:
+  Predicciones: 3569
+  Modelo Brier: 0.5912427795
+  Modelo log-loss: 0.9904028744
+  Referencia histórica Brier: 0.6513281055
+  Referencia histórica log-loss: 1.0761479127
+  Cuotas cierre sin margen Brier: 0.5730193337
+  Cuotas cierre sin margen log-loss: 0.9639650460
+
+Evaluación:
+  Predicciones: 2001
+  Modelo Brier: 0.5938611568
+  Modelo log-loss: 0.9964560189
+  Referencia histórica Brier: 0.6465472905
+  Referencia histórica log-loss: 1.0697149993
+  Cuotas cierre sin margen Brier: 0.5797625673
+  Cuotas cierre sin margen log-loss: 0.9744787005
+
+Brier es suma multiclase de tres errores cuadrados, rango 0–2.
+Log-loss usa logaritmo natural.
+
+Conclusión:
+
+El modelo supera la referencia de frecuencias históricas, pero resulta PEOR que las cuotas de cierre sin margen en estos datos.
+
+NO demuestra ventaja rentable ni fills en Polymarket.
+
+Hay calibración por resultado/decil, cobertura y casos excluidos por muestra insuficiente.
+
+Las cuotas de referencia solo usan AvgCH/AvgCD/AvgCA completas.
+No se usaron otras columnas haciéndolas pasar por cierre.
+
+Limitación temporal preservada:
+
+Solo se usan resultados anteriores al día del partido.
+Football-Data no ofrece historial completo de revisiones ni hora exacta de publicación histórica.
+No se puede demostrar disponibilidad intradía retrospectiva.
+
+La reproducción offline generó un predictions.csv idéntico al CSV de la primera evaluación, comprobado con cmp.
+
+Artefactos:
+
+result.json
+predictions.csv
+report.html
+manifest.json
+
+El directorio inicial antiguo puede tener el CSV llamado trades.csv aunque contiene predicciones. La reproducción final usa correctamente predictions.csv.
+
+El registro en SQLite enlaza esta evaluación como calidad predictiva; no añade PnL, operaciones ni evidencia live ficticia.
+
+Atribución ya incluida:
+
+Ideas de Poisson, regularización y Kelly de:
+
+https://github.com/memonkey01/pypro_polymarket_agent/tree/e7ed2f35bf4bf0a7fef5d3c497cd9aff62d3b0a5
+
+Implementación propia, sin copiar dependencias/proyecto.
+Su estrategia Liga MX estaba en draft sin ventaja demostrada.
+
+════════════════════════════════════════════════════════════
+13. DASHBOARD Y VERIFICACIÓN VISUAL
+════════════════════════════════════════════════════════════
+
+Archivos relevantes:
+
+dashboard/src/views/Workspace.tsx
+dashboard/src/hooks/useBot
+src/dashboard/server.ts
+
+Ya muestra:
+
+- Cobertura por estrategia.
+- Libros sincronizados.
+- Uptime.
+- Última evaluación.
+- Contadores y motivos de rechazo.
+- Disponibilidad de fuentes de fútbol.
+- Posiciones con partido, estrategia, política de salida y edad/estado de valoración.
+- Enlace a evaluación predictiva.
+- Informes actuales.
+
+Conserva español, fondo oscuro, paleta, estados vacíos y feedback.
+No hay activación live en dashboard ni Telegram.
+
+Verificación real realizada:
+
+- Escritorio 1440px.
+- Móvil 390px.
+- Navegación de secciones.
+- Teclado y foco visible.
+- Tabla horizontal accesible por teclado.
+- Sin desbordamiento general.
+- Sin errores JavaScript.
+- Axe: cero infracciones detectadas.
+
+Capturas revisadas visualmente:
+
+/tmp/botpoly-desktop.png
+/tmp/botpoly-mobile.png
+/tmp/botpoly-positions-mobile.png
+
+Script reutilizable:
+
+/tmp/playwright-test-botpoly.cjs
+
+Usa contraseña local internamente sin imprimirla.
+Hace login, navegación, capturas, teclado, axe y logout.
+
+Dos ejecuciones iniciales tuvieron ECONNRESET en logout después de pasar las comprobaciones visuales. Se ajustó el script temporal para permitir hasta dos reintentos de transporte de logout y exigir status 200. La ejecución final completa pasó.
+
+No se modificó el producto para maquillar ese fallo.
+
+Dependencias de navegador YA EXISTENTES:
+
+/home/gabo/.codex/skills/playwright-skill/node_modules/playwright
+/home/gabo/.cache/ms-playwright/chromium-1243/chrome-linux64/chrome
+/tmp/botpoly-browser/node_modules/@axe-core/playwright
+
+No instalar otra copia por rutina.
+
+Skill leída:
+
+/home/gabo/.agents/skills/playwright-skill/SKILL.md
+
+El puerto 5000 detectado por helpers corresponde a otro proyecto. No tocarlo. Botpoly usa 3001.
+
+════════════════════════════════════════════════════════════
+14. LIVE: IMPLEMENTADO, BLOQUEADO Y REVISIÓN PENDIENTE
+════════════════════════════════════════════════════════════
+
+Archivos:
+
+src/app/config.ts
+src/engine/live.ts
+src/engine/live.test.ts
+src/engine/model.ts
+
+Se mantiene:
+
+BOT_MODE=live
+LIVE_ACK explícito
+LIVE_EVIDENCE_FILE
+Revisión de seguridad/costes/ejecución
+Checksum del informe
+Evidencia suficiente fuera de muestra
+Sin firmantes en paper/backtest
+
+Se añadió:
+
+- strategyBinding por estrategia, versión y configuración exacta.
+- Evidencia vinculada a YES/NO y fútbol.
+- Cambio de configuración invalida aprobación.
+- Una revisión YES/NO no habilita fútbol.
+- Evidencia prospectiva específica de fútbol.
+- Al menos 100 fills confirmados y liquidaciones oficiales.
+- Resultados/intervalo positivos después de costes.
+- Gestión direccional y canje con persistencia de transacción y recibos.
+- Confirmación de recibos y conciliación sin reenvío.
+
+No se han enviado órdenes reales.
+
+Límites honestos:
+
+- El adaptador tiene pruebas de frontera simuladas.
+- No está validado integralmente con fondos.
+- La estimación de gas puede revertir sin posiciones, bloqueando entradas.
+- No marcar evidencia live como cumplida por compilar.
+- La evaluación predictiva negativa frente al cierre no autoriza live.
+
+PUNTO CONCRETO PENDIENTE DE REVISIÓN:
+
+Al final de la sesión se detectó leyendo authorizeLive que algunas comprobaciones heredadas usan comparaciones negativas con campos opcionales, por ejemplo:
+
+result.manifest?.coverage?.maxGapMs > 1000
+result.manifest?.coverage?.frames < 1000
+validation?.fills?.length < 100
+
+Con undefined, esas comparaciones pueden resultar false y no rechazar un campo ausente.
+
+Todavía NO se escribió ni ejecutó una prueba de bypass completo, ni se modificó este punto.
+
+Debes revisar la frontera completa y, si se confirma, endurecer validación de forma/tipos/presencia:
+- Números finitos.
+- Conteos enteros.
+- Arrays reales.
+- Campos obligatorios.
+- Umbrales expresados de forma que ausencia implique rechazo.
+
+Añadir prueba con evidencia malformada/sin cobertura/sin fills y checksum correcto, usando datos de prueba y SIN importar claves reales ni hacer red.
+
+No presentar este hallazgo como vulnerabilidad explotada o como activación real ocurrida: es una revisión pendiente del código.
+
+════════════════════════════════════════════════════════════
+15. PRUEBAS YA REALIZADAS
+════════════════════════════════════════════════════════════
+
+Última suite obligatoria completa, después de 1cea79a:
+
+pnpm test: 108 pruebas correctas, 12 archivos.
+pnpm typecheck: correcto.
+pnpm build: correcto.
+
+Cada bloque publicado tuvo estas verificaciones.
+
+Se probaron, entre otros:
+
+- accepted correcto.
+- Tamaño rentable menor que el máximo.
+- Stale marks conservadas.
+- CSV/datos/aliases/muestras.
+- No look-ahead.
+- Paginación/diversidad.
+- Retención de posiciones.
+- Identidad/timestamps/reconexión.
+- Lotes que omiten tokens.
+- Liquidez A -> B -> A.
+- Mundial excluido.
+- Local/visitante/empate.
+- Kelly y exposición compartida.
+- Una apuesta por partido.
+- No aumentar tras reinicio.
+- Direccional separada de finishPair.
+- Salida al 10% neto.
+- Parciales e incertidumbre.
+- Ganador/perdedor/pago fraccionario.
+- Liquidación idempotente.
+- Canje incierto y recuperación.
+- Live sin autorización.
+- Aprobación de otra estrategia.
+- Recibos simulados.
+- Telegram horario/deduplicación/PNG/reintento/comandos.
+
+Prueba adicional de imports:
+
+.runtime/no-live-import.mjs
+
+Usa registerHooks de Node para fallar si paper/backtest importa:
+
+src/engine/live
+src/services/trading-service
+
+Se ejecutó con:
+
+NODE_OPTIONS='--import ./.runtime/no-live-import.mjs' pnpm start
+
+y también un backtest sintético con destino:
+
+reports/signer-boundary-synthetic-20260906/
+
+Ambos funcionaron durante la validación con permisos amplios.
+El backtest quedó marcado exploratorio y liveEligible=false.
+
+Esto comprueba la frontera de imports observada; no afirmar que valida todo el SDK ni todas las rutas hipotéticas.
+
+Integración heredada:
+
+pnpm test:integration
+
+Log local:
+
+.runtime/integration-20260906.log
+
+Resultado de Vitest:
+
+8 archivos correctos
+74 pruebas correctas
+
+PERO hay una incompatibilidad externa importante registrada:
+
+El feed heredado ws-live-data.polymarket.com devolvió:
+
+"CLOB messages are not supported anymore"
+
+Algunos tests heredados aceptan arrancar sin recibir datos dentro del timeout, por lo que la suite puede salir verde aunque ese feed esté obsoleto.
+
+No se añadieron catch silenciosos ni se modificó la suite para esconderlo.
+Debes documentar este límite; 74/74 no demuestra compatibilidad del feed antiguo.
+El runtime nuevo usa el SDK/feed actual y no ese servicio heredado.
+
+No se modificó el importador PMXT en esta sesión.
+No es necesario tocarlo ni repetir Python por comodidad.
+
+════════════════════════════════════════════════════════════
+16. TRABAJO PENDIENTE CONCRETO
+════════════════════════════════════════════════════════════
+
+A. Cerrar revisión de evidencia live
+
+- Revisar el problema de campos ausentes descrito arriba.
+- Corregir si se confirma.
+- Añadir prueba útil de frontera.
+- Ejecutar pnpm test, pnpm typecheck, pnpm build.
+- Revisar diff/secretos.
+- Commit y push del bloque.
+
+B. Terminar documentación ya empezada
+
+- Completar INIT.md conservando sus modificaciones.
+- Crear docs/FOOTBALL.md, actualmente enlazado pero inexistente.
+- Añadir sección 2026-09-06 a docs/VALIDATION.md.
+- Revisar y publicar:
+  docs/evidence/football-20260906.json
+  docs/evidence/football-20260906-manifest.json
+
+Debe explicar:
+
+- Estrategia y límites reales.
+- Seis ligas y exclusión Mundial.
+- Alcance V1/90 minutos.
+- Descubrimiento 5000/200/100/5 minutos.
+- Posiciones retenidas fuera del cupo.
+- Snapshots y coalescencia: archivo muestreado.
+- Fuentes, captura, checksum, parámetros y periodos.
+- Reproducción offline y necesidad de CSV originales.
+- Modelo peor que cuotas de cierre en evaluación.
+- Separación entre calidad predictiva y ejecución.
+- Resultados paper negativos observados.
+- Costes/gas supuestos.
+- Barreras live pendientes.
+- Integración heredada verde pero feed antiguo incompatible.
+- Estado operativo y bloqueo sudo sin afirmar servicio activo.
+- Observación Telegram real de una sola hora hasta ahora.
+- Inicio histórico de seguimiento corregido.
+
+No publicar credenciales ni todo reports/ o .runtime/.
+No borrar informes anteriores.
+Conservar resultados negativos.
+
+C. Arranque y conciliación
+
+- Comprobar permisos efectivos, unidad, procesos y puerto.
+- No asumir que el arranque escalado cancelado se ejecutó.
+- Priorizar botpoly.service si existen privilegios legítimos.
+- Mantener modo paper y base paper-observation.sqlite.
+- Conciliar.
+- Esperar valoraciones frescas de las once posiciones.
+- Reanudar mediante pnpm paper:resume.
+- Verificar que no aumentan apuestas del mismo partido.
+- Confirmar crecimiento real de evaluaciones.
+- Confirmar cobertura real y fuentes.
+- Confirmar salud.
+- Confirmar Telegram.
+- Verificar runtime.experimentStartedAt del 2026-09-05.
+- No editar account.stop/errors/connected a mano.
+
+Si sudo continúa bloqueado:
+
+- Completar primero código, pruebas y documentación.
+- No usar unidades ajenas.
+- No presentar un proceso temporal como persistente.
+- Dejar instrucciones exactas para intervención.
+- Si se deja un proceso temporal, decirlo explícitamente y evitar que el siguiente comando genere una segunda instancia.
+
+Comando permanente que antes requería intervención:
+
+sudo systemctl start botpoly.service
+
+Después, con Node local en PATH:
+
+pnpm paper:resume
+
+El segundo puede requerir esperar sincronización; no saltar sus controles.
+
+D. Telegram y observación
+
+- Confirmar mensajes/PNG reales en outbox/meta.
+- No fabricar updates de usuario para afirmar que /report llegó de Telegram.
+- Las pruebas simuladas de /report ya existen.
+- Observar dos horas reales cuando el tiempo de sesión lo permita.
+- Solo la hora 03 está confirmada en este traspaso.
+- Mantener seguimientos 24/72 y diario.
+- No adelantar reloj y describirlo como tiempo real.
+
+E. Cierre
+
+- Repetir comprobaciones obligatorias cuando haya cambios nuevos.
+- Revisar escritorio/móvil/teclado si cambias dashboard.
+- Revisar Git y secretos.
+- Publicar cada bloque coherente verificado.
+- Confirmar HEAD=origin/main y explicar cualquier archivo pendiente.
+- Entregar cierre breve con commits, tests, estado operativo, cifras reales y límites.
+
+La entrega técnica está muy avanzada. No hace falta reescribir el modelo, motor, feed, dashboard ni evaluación; ya están integrados y publicados. Falta cerrar revisión de frontera, documentación y despliegue/observación final.
+
+════════════════════════════════════════════════════════════
+17. FORMA DE TRABAJAR
+════════════════════════════════════════════════════════════
+
+- Empieza revisando el estado actual, no proponiendo otra planificación.
+- El usuario se frustra si se repiten preguntas ya resueltas.
+- Usa las autorizaciones existentes.
+- Cumple los permisos efectivos del nuevo entorno.
+- Si el sandbox bloquea red, localhost o Git, usa el mecanismo legítimo de escalado disponible; no eludas restricciones.
+- El permiso del cliente y sudo son cosas distintas.
+- Da actualizaciones breves mientras trabajas.
+- No declares terminado el despliegue porque compile.
+- No declares ganancias; la cuenta observada lleva PnL negativo.
+- No borres ni reinicialices SQLite.
+- No actives live.
+- No añadas dependencias por comodidad.
+- No cambies servicios ajenos.
+- No termines con “puedo continuar”.
+- Distingue hechos comprobados, pruebas simuladas, datos históricos y pendientes.
+
+Empieza con AGENTS.md, INIT.md, Git, servicio/procesos y diff local. Continúa desde estos commits y termina lo pendiente.
