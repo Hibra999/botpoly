@@ -371,6 +371,7 @@ export class Ledger {
   }
   snapshot() {
     return {
+      analysis: this.store.get<import("../research/account-analysis.js").PaperAnalysis>("meta", "paper:analysis"),
       runtime: this.store.get<{ startedAt: number; experimentStartedAt: number; lastEvaluationAt?: number; version?: string }>("meta", "runtime"),
       activity: this.store.recent<DailyStatistics>("activity", 168).reverse(),
       statistics: this.store.all<DailyStatistics>("statistics"),

@@ -7,7 +7,9 @@ import {
   YAxis,
   Tooltip,
   CartesianGrid,
+  Legend,
 } from "recharts";
+import { Analysis, groupName } from "./Analysis";
 import type { Snapshot } from "../hooks/useBot";
 import type { RiskConfig } from "../../../src/engine/model";
 const usd = (n: number) =>
@@ -59,7 +61,7 @@ export function Overview({ data }: { data: Snapshot }) {
           <div><dt>Posiciones conservadas</dt><dd>{coverage?.retained ?? 0} mercados adicionales</dd></div>
         </dl>
         <p className="muted">Compras al precio disponible con profundidad. Una apuesta por partido, máximo 1% por partido y 10% agregado en fútbol. Sin Mundial ni apuestas durante el juego.</p>
-        {data.football && <details><summary>Fuentes y disponibilidad de fútbol</summary><ul>{Object.entries(data.football.leagues).map(([league,status])=><li key={league}>{({epl:"Premier League",lal:"LaLiga",bun:"Bundesliga",sea:"Serie A",fl1:"Ligue 1",mex:"Liga MX"} as Record<string,string>)[league] ?? league}: {status}</li>)}</ul></details>}
+        {data.football && <details><summary>Fuentes y disponibilidad de fútbol</summary><ul>{Object.entries(data.football.leagues).map(([league,status])=><li key={league}>{groupName(league)}: {status}</li>)}</ul></details>}
         {data.footballEvidence && <p><a href={`/reports/${encodeURIComponent(data.footballEvidence.report)}/report.html`}>Evaluación cronológica del modelo de fútbol</a> · calidad predictiva, sin PnL ni prueba de ejecución.</p>}
         <p className="muted">Libros sincronizados: {coverage?.ready ?? 0} mercados · Flujo: {data.observation?.feed?.connected ? "conectados" : "pendientes de conexión"} · {data.observation?.feed?.invalid ?? 0} invalidaciones · {data.observation?.feed?.coalesced ?? 0} cambios agrupados. Se conserva el último libro completo; el archivo contiene muestras.</p>
       </section>
@@ -158,7 +160,7 @@ export function Overview({ data }: { data: Snapshot }) {
             aria-label={`Curva histórica: ${chartLabel}`}
           >
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={data.equity.map((point) => ({ ...point, value: showReturn ? returnPct(point.netPnl) : point.equity }))}>
+              <LineChart data={data.equity.map((point) => ({ ...point, value: showReturn ? returnPct(point.netPnl) : point.equity, cash: showReturn ? 0 : point.equity - point.netPnl }))}>
                 <CartesianGrid stroke="var(--border-color)" vertical={false} />
                 <XAxis
                   dataKey="timestamp"
@@ -178,12 +180,14 @@ export function Overview({ data }: { data: Snapshot }) {
                 />
                 <Tooltip
                   labelFormatter={(t) => date(Number(t))}
-                  formatter={(n: number) => [showReturn ? percent(n) : usd(n), chartLabel]}
+                  formatter={(n: number, name: string) => [showReturn ? percent(n) : usd(n), name === "cash" ? "Efectivo sin operar" : chartLabel]}
                   contentStyle={{
                     background: "var(--bg-card)",
                     border: "1px solid var(--border-color)",
                   }}
                 />
+                <Legend formatter={(name) => name === "cash" ? "Efectivo sin operar" : chartLabel} />
+                <Line dataKey="cash" type="linear" stroke="var(--text-secondary)" strokeDasharray="5 5" dot={false} isAnimationActive={false} />
                 <Line
                   dataKey="value"
                   type="linear"
@@ -201,6 +205,7 @@ export function Overview({ data }: { data: Snapshot }) {
           </Empty>
         )}
       </section>
+      <Analysis data={data} />
       <section className="panel">
         <h2>Actividad reciente</h2>
         {data.events.length ? (

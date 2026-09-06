@@ -1,0 +1,1279 @@
+{
+  "schema": 1,
+  "kind": "paper-account-analysis",
+  "report": "reports/paper-analysis-20260906",
+  "generatedAt": 1788672413914,
+  "from": 1788307200000,
+  "to": 1788672413914,
+  "resultSha256": "beefa6bd13c6f229bd829f55a79558c5093aa43d1777146f1be22ce7b91273be",
+  "manifest": {
+    "schema": 1,
+    "generatedAt": 1788672413914,
+    "kind": "paper",
+    "from": 1788307200000,
+    "to": 1788672413914,
+    "source": "SQLite persistente: libros observados, órdenes, fills simulados y contabilidad",
+    "files": {
+      "report.html": "fd8ba0cfa057b1c985ccaf9fe9d9469ea139d2a59559ad392549e1e84035bada",
+      "result.json": "beefa6bd13c6f229bd829f55a79558c5093aa43d1777146f1be22ce7b91273be",
+      "trades.csv": "6931117637e99937a9aa2f20156d63812ec430d857bc75d0ca92a192bedb4e23"
+    }
+  },
+  "config": {
+    "capitalUsd": 1000,
+    "dailyLossPct": 0.02,
+    "maxDrawdownPct": 0.1,
+    "eventExposurePct": 0.1,
+    "totalExposurePct": 0.3,
+    "unhedgedLossPct": 0.01,
+    "minNetProfitUsd": 0.02,
+    "maxSlippageBps": 50,
+    "maxDataAgeMs": 5000,
+    "maxErrors": 3,
+    "maxCostUsd": 1
+  },
+  "footballPolicy": {
+    "version": "poisson-clubs-v1",
+    "minEdge": 0.05,
+    "kelly": 0.25,
+    "matchExposure": 0.01,
+    "totalExposure": 0.1,
+    "takeProfit": 0.1,
+    "minMatches": 10,
+    "shrinkMatches": 5,
+    "historyDays": 730
+  },
+  "metrics": {
+    "equity": 990.87866,
+    "available": 901.260272,
+    "reserved": 0.203958,
+    "exposure": 98.739728,
+    "unrealized": -9.12134,
+    "netPnl": -9.12134,
+    "drawdown": 0.00912134,
+    "dailyPnl": -9.12134,
+    "operationalCapital": 990.87866,
+    "sizeFactor": 0.9087866
+  },
+  "analysis": {
+    "generatedAt": 1788672413914,
+    "initialCapital": 1000,
+    "cashBenchmark": 1000,
+    "excessOverCash": -9.12134,
+    "byStrategy": [
+      {
+        "name": "football-value",
+        "cash": -98.53577,
+        "basis": 98.53577,
+        "mark": 89.41443,
+        "realized": 0,
+        "unrealized": -9.12134,
+        "netPnl": -9.12134,
+        "fees": 2.67237,
+        "gas": 0,
+        "fills": 11
+      }
+    ],
+    "byLeague": [
+      {
+        "name": "sea",
+        "cash": -28.79028,
+        "basis": 28.79028,
+        "mark": 26.38587,
+        "realized": 0,
+        "unrealized": -2.40441,
+        "netPnl": -2.40441,
+        "fees": 0.75098,
+        "gas": 0,
+        "fills": 3
+      },
+      {
+        "name": "epl",
+        "cash": -9.88303,
+        "basis": 9.88303,
+        "mark": 8.86314,
+        "realized": 0,
+        "unrealized": -1.01989,
+        "netPnl": -1.01989,
+        "fees": 0.34343,
+        "gas": 0,
+        "fills": 1
+      },
+      {
+        "name": "bun",
+        "cash": -9.76825,
+        "basis": 9.76825,
+        "mark": 9.48245,
+        "realized": 0,
+        "unrealized": -0.2858,
+        "netPnl": -0.2858,
+        "fees": 0.23825,
+        "gas": 0,
+        "fills": 1
+      },
+      {
+        "name": "lal",
+        "cash": -19.21788,
+        "basis": 19.21788,
+        "mark": 16.89315,
+        "realized": 0,
+        "unrealized": -2.32473,
+        "netPnl": -2.32473,
+        "fees": 0.65938,
+        "gas": 0,
+        "fills": 2
+      },
+      {
+        "name": "mex",
+        "cash": -30.87633,
+        "basis": 30.87633,
+        "mark": 27.78982,
+        "realized": 0,
+        "unrealized": -3.08651,
+        "netPnl": -3.08651,
+        "fees": 0.68033,
+        "gas": 0,
+        "fills": 4
+      }
+    ],
+    "concentration": [
+      {
+        "kind": "league",
+        "key": "mex",
+        "cost": 30.87633,
+        "reserved": 0.071759,
+        "exposure": 30.948089,
+        "capitalPct": 3.0948089,
+        "matches": [
+          "mex:90112714",
+          "mex:90112713",
+          "mex:90112717",
+          "mex:90112719"
+        ],
+        "stalePositions": 0
+      },
+      {
+        "kind": "league",
+        "key": "sea",
+        "cost": 28.79028,
+        "reserved": 0.056339,
+        "exposure": 28.846619,
+        "capitalPct": 2.8846619000000002,
+        "matches": [
+          "sea:90111134",
+          "sea:90111135",
+          "sea:90111147"
+        ],
+        "stalePositions": 0
+      },
+      {
+        "kind": "league",
+        "key": "lal",
+        "cost": 19.21788,
+        "reserved": 0.036818,
+        "exposure": 19.254698,
+        "capitalPct": 1.9254698000000001,
+        "matches": [
+          "lal:90117151",
+          "lal:90117158"
+        ],
+        "stalePositions": 0
+      },
+      {
+        "kind": "matchday",
+        "key": "mex:2026-09-12",
+        "cost": 14.06196,
+        "reserved": 0.034941,
+        "exposure": 14.096901,
+        "capitalPct": 1.4096901,
+        "matches": [
+          "mex:90112717",
+          "mex:90112719"
+        ],
+        "stalePositions": 0
+      },
+      {
+        "kind": "team",
+        "key": "sea:parma",
+        "cost": 9.98028,
+        "reserved": 0.019521,
+        "exposure": 9.999801,
+        "capitalPct": 0.9999800999999999,
+        "matches": [
+          "sea:90111134"
+        ],
+        "stalePositions": 0
+      },
+      {
+        "kind": "team",
+        "key": "sea:monza",
+        "cost": 9.98028,
+        "reserved": 0.019521,
+        "exposure": 9.999801,
+        "capitalPct": 0.9999800999999999,
+        "matches": [
+          "sea:90111134"
+        ],
+        "stalePositions": 0
+      },
+      {
+        "kind": "matchday",
+        "key": "sea:2026-09-06",
+        "cost": 9.98028,
+        "reserved": 0.019521,
+        "exposure": 9.999801,
+        "capitalPct": 0.9999800999999999,
+        "matches": [
+          "sea:90111134"
+        ],
+        "stalePositions": 0
+      },
+      {
+        "kind": "league",
+        "key": "epl",
+        "cost": 9.88303,
+        "reserved": 0.019521,
+        "exposure": 9.902551,
+        "capitalPct": 0.9902551,
+        "matches": [
+          "epl:90114093"
+        ],
+        "stalePositions": 0
+      },
+      {
+        "kind": "team",
+        "key": "epl:everton",
+        "cost": 9.88303,
+        "reserved": 0.019521,
+        "exposure": 9.902551,
+        "capitalPct": 0.9902551,
+        "matches": [
+          "epl:90114093"
+        ],
+        "stalePositions": 0
+      },
+      {
+        "kind": "team",
+        "key": "epl:manunited",
+        "cost": 9.88303,
+        "reserved": 0.019521,
+        "exposure": 9.902551,
+        "capitalPct": 0.9902551,
+        "matches": [
+          "epl:90114093"
+        ],
+        "stalePositions": 0
+      },
+      {
+        "kind": "matchday",
+        "key": "epl:2026-09-06",
+        "cost": 9.88303,
+        "reserved": 0.019521,
+        "exposure": 9.902551,
+        "capitalPct": 0.9902551,
+        "matches": [
+          "epl:90114093"
+        ],
+        "stalePositions": 0
+      },
+      {
+        "kind": "team",
+        "key": "lal:valencia",
+        "cost": 9.77066,
+        "reserved": 0.019521,
+        "exposure": 9.790181,
+        "capitalPct": 0.9790181,
+        "matches": [
+          "lal:90117151"
+        ],
+        "stalePositions": 0
+      },
+      {
+        "kind": "team",
+        "key": "lal:barcelona",
+        "cost": 9.77066,
+        "reserved": 0.019521,
+        "exposure": 9.790181,
+        "capitalPct": 0.9790181,
+        "matches": [
+          "lal:90117151"
+        ],
+        "stalePositions": 0
+      },
+      {
+        "kind": "matchday",
+        "key": "lal:2026-09-06",
+        "cost": 9.77066,
+        "reserved": 0.019521,
+        "exposure": 9.790181,
+        "capitalPct": 0.9790181,
+        "matches": [
+          "lal:90117151"
+        ],
+        "stalePositions": 0
+      },
+      {
+        "kind": "league",
+        "key": "bun",
+        "cost": 9.76825,
+        "reserved": 0.019521,
+        "exposure": 9.787771,
+        "capitalPct": 0.9787770999999998,
+        "matches": [
+          "bun:90118308"
+        ],
+        "stalePositions": 0
+      },
+      {
+        "kind": "team",
+        "key": "bun:einfrankfurt",
+        "cost": 9.76825,
+        "reserved": 0.019521,
+        "exposure": 9.787771,
+        "capitalPct": 0.9787770999999998,
+        "matches": [
+          "bun:90118308"
+        ],
+        "stalePositions": 0
+      },
+      {
+        "kind": "team",
+        "key": "bun:augsburg",
+        "cost": 9.76825,
+        "reserved": 0.019521,
+        "exposure": 9.787771,
+        "capitalPct": 0.9787770999999998,
+        "matches": [
+          "bun:90118308"
+        ],
+        "stalePositions": 0
+      },
+      {
+        "kind": "matchday",
+        "key": "bun:2026-09-06",
+        "cost": 9.76825,
+        "reserved": 0.019521,
+        "exposure": 9.787771,
+        "capitalPct": 0.9787770999999998,
+        "matches": [
+          "bun:90118308"
+        ],
+        "stalePositions": 0
+      },
+      {
+        "kind": "team",
+        "key": "mex:cruzazul",
+        "cost": 9.57754,
+        "reserved": 0.019521,
+        "exposure": 9.597061,
+        "capitalPct": 0.9597061,
+        "matches": [
+          "mex:90112714"
+        ],
+        "stalePositions": 0
+      },
+      {
+        "kind": "team",
+        "key": "mex:santoslaguna",
+        "cost": 9.57754,
+        "reserved": 0.019521,
+        "exposure": 9.597061,
+        "capitalPct": 0.9597061,
+        "matches": [
+          "mex:90112714"
+        ],
+        "stalePositions": 0
+      },
+      {
+        "kind": "matchday",
+        "key": "mex:2026-09-06",
+        "cost": 9.57754,
+        "reserved": 0.019521,
+        "exposure": 9.597061,
+        "capitalPct": 0.9597061,
+        "matches": [
+          "mex:90112714"
+        ],
+        "stalePositions": 0
+      },
+      {
+        "kind": "team",
+        "key": "sea:udinese",
+        "cost": 9.53374,
+        "reserved": 0.019521,
+        "exposure": 9.553261,
+        "capitalPct": 0.9553260999999998,
+        "matches": [
+          "sea:90111135"
+        ],
+        "stalePositions": 0
+      },
+      {
+        "kind": "team",
+        "key": "sea:lazio",
+        "cost": 9.53374,
+        "reserved": 0.019521,
+        "exposure": 9.553261,
+        "capitalPct": 0.9553260999999998,
+        "matches": [
+          "sea:90111135"
+        ],
+        "stalePositions": 0
+      },
+      {
+        "kind": "matchday",
+        "key": "sea:2026-09-07",
+        "cost": 9.53374,
+        "reserved": 0.019521,
+        "exposure": 9.553261,
+        "capitalPct": 0.9553260999999998,
+        "matches": [
+          "sea:90111135"
+        ],
+        "stalePositions": 0
+      },
+      {
+        "kind": "team",
+        "key": "lal:elche",
+        "cost": 9.44722,
+        "reserved": 0.017297,
+        "exposure": 9.464517,
+        "capitalPct": 0.9464517,
+        "matches": [
+          "lal:90117158"
+        ],
+        "stalePositions": 0
+      },
+      {
+        "kind": "team",
+        "key": "lal:sociedad",
+        "cost": 9.44722,
+        "reserved": 0.017297,
+        "exposure": 9.464517,
+        "capitalPct": 0.9464517,
+        "matches": [
+          "lal:90117158"
+        ],
+        "stalePositions": 0
+      },
+      {
+        "kind": "matchday",
+        "key": "lal:2026-09-07",
+        "cost": 9.44722,
+        "reserved": 0.017297,
+        "exposure": 9.464517,
+        "capitalPct": 0.9464517,
+        "matches": [
+          "lal:90117158"
+        ],
+        "stalePositions": 0
+      },
+      {
+        "kind": "team",
+        "key": "sea:venezia",
+        "cost": 9.27626,
+        "reserved": 0.017297,
+        "exposure": 9.293557,
+        "capitalPct": 0.9293556999999999,
+        "matches": [
+          "sea:90111147"
+        ],
+        "stalePositions": 0
+      },
+      {
+        "kind": "team",
+        "key": "sea:fiorentina",
+        "cost": 9.27626,
+        "reserved": 0.017297,
+        "exposure": 9.293557,
+        "capitalPct": 0.9293556999999999,
+        "matches": [
+          "sea:90111147"
+        ],
+        "stalePositions": 0
+      },
+      {
+        "kind": "matchday",
+        "key": "sea:2026-09-11",
+        "cost": 9.27626,
+        "reserved": 0.017297,
+        "exposure": 9.293557,
+        "capitalPct": 0.9293556999999999,
+        "matches": [
+          "sea:90111147"
+        ],
+        "stalePositions": 0
+      },
+      {
+        "kind": "team",
+        "key": "mex:necaxa",
+        "cost": 9.22581,
+        "reserved": 0.017297,
+        "exposure": 9.243107,
+        "capitalPct": 0.9243107,
+        "matches": [
+          "mex:90112717"
+        ],
+        "stalePositions": 0
+      },
+      {
+        "kind": "team",
+        "key": "mex:puebla",
+        "cost": 9.22581,
+        "reserved": 0.017297,
+        "exposure": 9.243107,
+        "capitalPct": 0.9243107,
+        "matches": [
+          "mex:90112717"
+        ],
+        "stalePositions": 0
+      },
+      {
+        "kind": "team",
+        "key": "mex:unampumas",
+        "cost": 7.23683,
+        "reserved": 0.017297,
+        "exposure": 7.254127,
+        "capitalPct": 0.7254127000000001,
+        "matches": [
+          "mex:90112713"
+        ],
+        "stalePositions": 0
+      },
+      {
+        "kind": "team",
+        "key": "mex:leon",
+        "cost": 7.23683,
+        "reserved": 0.017297,
+        "exposure": 7.254127,
+        "capitalPct": 0.7254127000000001,
+        "matches": [
+          "mex:90112713"
+        ],
+        "stalePositions": 0
+      },
+      {
+        "kind": "matchday",
+        "key": "mex:2026-09-11",
+        "cost": 7.23683,
+        "reserved": 0.017297,
+        "exposure": 7.254127,
+        "capitalPct": 0.7254127000000001,
+        "matches": [
+          "mex:90112713"
+        ],
+        "stalePositions": 0
+      },
+      {
+        "kind": "team",
+        "key": "mex:tijuana",
+        "cost": 4.83615,
+        "reserved": 0.017644,
+        "exposure": 4.853794,
+        "capitalPct": 0.48537939999999996,
+        "matches": [
+          "mex:90112719"
+        ],
+        "stalePositions": 0
+      },
+      {
+        "kind": "team",
+        "key": "mex:queretaro",
+        "cost": 4.83615,
+        "reserved": 0.017644,
+        "exposure": 4.853794,
+        "capitalPct": 0.48537939999999996,
+        "matches": [
+          "mex:90112719"
+        ],
+        "stalePositions": 0
+      }
+    ],
+    "unallocatedNetPnl": 0,
+    "limitations": [
+      "PnL acumulado de toda la cuenta; realizado más valoración de posiciones abiertas. No son retornos de capital asignado a cada grupo.",
+      "Efectivo sin operar: mismos depósitos y retiros, sin intereses ni comisiones externas.",
+      "Costes sin vínculo suficiente y redondeos se muestran en sin-atribuir; nunca se reparten por intuición.",
+      "Concentración de fútbol: coste más reservas. Un partido cuenta para ambos equipos; las filas de equipos se solapan.",
+      "Jornada aproximada por liga y fecha UTC de inicio; no equivale al número oficial de ronda, ausente del feed verificado."
+    ],
+    "entryQuality": {
+      "horizons": [
+        1,
+        5,
+        30
+      ],
+      "maxDelayMs": 30000,
+      "rows": [
+        {
+          "fillId": "sim:319c9bc0ac5e1451a17b97501b74b444:BUY",
+          "marketId": "0x5f49df0abc3cd430386d926544d74acb80c6d0cd6ea3614323f5ac5480480ec3",
+          "strategy": "football-value",
+          "league": "sea",
+          "outcome": "YES",
+          "horizonMinutes": 1,
+          "targetAt": 1788664370415,
+          "entryPrice": 0.37,
+          "entryFees": 0.30478,
+          "quantity": 26.15,
+          "status": "observed",
+          "invalidSamples": 0,
+          "observedAt": 1788664378152,
+          "delayMs": 7737,
+          "bookTime": 1788664363395,
+          "verifiedAt": 1788664377682,
+          "frameId": "0x5f49df0abc3cd430386d926544d74acb80c6d0cd6ea3614323f5ac5480480ec3:91c60256fdc4deaf7b523db13603bae302f3b2f7:d1fe7b6110fd2aba293abf0e97a5948f9eabfb7a:1788664378152",
+          "sourceSha256": "5ca6289b82bc772481693ab3b8d37926d18e9a2de4062043f3068e4f8625f51e",
+          "exitPrice": 0.36,
+          "exitFees": 0.30125,
+          "modeledGas": 0,
+          "hypotheticalNetPnl": -0.86753
+        },
+        {
+          "fillId": "sim:319c9bc0ac5e1451a17b97501b74b444:BUY",
+          "marketId": "0x5f49df0abc3cd430386d926544d74acb80c6d0cd6ea3614323f5ac5480480ec3",
+          "strategy": "football-value",
+          "league": "sea",
+          "outcome": "YES",
+          "horizonMinutes": 5,
+          "targetAt": 1788664610415,
+          "entryPrice": 0.37,
+          "entryFees": 0.30478,
+          "quantity": 26.15,
+          "status": "observed",
+          "invalidSamples": 0,
+          "observedAt": 1788664620703,
+          "delayMs": 10288,
+          "bookTime": 1788664620190,
+          "frameId": "0x5f49df0abc3cd430386d926544d74acb80c6d0cd6ea3614323f5ac5480480ec3:5fe71cd93e5517cd2d47ce07a5b4a6bfb130f853:a6d91c4cf6d83072469e28e9c03c81e59dbafbb5:1788664620703",
+          "sourceSha256": "dcac698a35f38b8e860c657ec6d6241249c1669e68f61be1fcd02a72b9c3203b",
+          "exitPrice": 0.36,
+          "exitFees": 0.30125,
+          "modeledGas": 0,
+          "hypotheticalNetPnl": -0.86753
+        },
+        {
+          "fillId": "sim:319c9bc0ac5e1451a17b97501b74b444:BUY",
+          "marketId": "0x5f49df0abc3cd430386d926544d74acb80c6d0cd6ea3614323f5ac5480480ec3",
+          "strategy": "football-value",
+          "league": "sea",
+          "outcome": "YES",
+          "horizonMinutes": 30,
+          "targetAt": 1788666110415,
+          "entryPrice": 0.37,
+          "entryFees": 0.30478,
+          "quantity": 26.15,
+          "status": "missing",
+          "invalidSamples": 0
+        },
+        {
+          "fillId": "sim:5babae05ebe871f87841dd129eaaa183:BUY",
+          "marketId": "0x6a368c7b3755a6f5f38f04576cc1ef10c920de3a0171682b7fede7d92d4646d8",
+          "strategy": "football-value",
+          "league": "epl",
+          "outcome": "YES",
+          "horizonMinutes": 1,
+          "targetAt": 1788664372087,
+          "entryPrice": 0.28,
+          "entryFees": 0.34343,
+          "quantity": 34.07,
+          "status": "observed",
+          "invalidSamples": 0,
+          "observedAt": 1788664378244,
+          "delayMs": 6157,
+          "bookTime": 1788664366858,
+          "verifiedAt": 1788664377683,
+          "frameId": "0x6a368c7b3755a6f5f38f04576cc1ef10c920de3a0171682b7fede7d92d4646d8:dacd5b681559720fe94af2453d23d18a81d4dcc2:1b75e75639d8b93431199eebf08a425692b58b3f:1788664378244",
+          "sourceSha256": "e049ca414f2a19f3c1e6668f9b4ca6af92bc83920219179ef9c0ed4782225b3f",
+          "exitPrice": 0.27,
+          "exitFees": 0.33576,
+          "modeledGas": 0,
+          "hypotheticalNetPnl": -1.01989
+        },
+        {
+          "fillId": "sim:5babae05ebe871f87841dd129eaaa183:BUY",
+          "marketId": "0x6a368c7b3755a6f5f38f04576cc1ef10c920de3a0171682b7fede7d92d4646d8",
+          "strategy": "football-value",
+          "league": "epl",
+          "outcome": "YES",
+          "horizonMinutes": 5,
+          "targetAt": 1788664612087,
+          "entryPrice": 0.28,
+          "entryFees": 0.34343,
+          "quantity": 34.07,
+          "status": "observed",
+          "invalidSamples": 0,
+          "observedAt": 1788664620764,
+          "delayMs": 8677,
+          "bookTime": 1788664617864,
+          "verifiedAt": 1788664620130,
+          "frameId": "0x6a368c7b3755a6f5f38f04576cc1ef10c920de3a0171682b7fede7d92d4646d8:53cb274d0fe99655b9ea631659dfe5d839443da4:4f47d735978d9e16e03e7b24cfbb21542daa3cb4:1788664620764",
+          "sourceSha256": "bcf2013ec237e1707161182904e85e548b50330307f8e0bea92ef7e69ff99a18",
+          "exitPrice": 0.27,
+          "exitFees": 0.33576,
+          "modeledGas": 0,
+          "hypotheticalNetPnl": -1.01989
+        },
+        {
+          "fillId": "sim:5babae05ebe871f87841dd129eaaa183:BUY",
+          "marketId": "0x6a368c7b3755a6f5f38f04576cc1ef10c920de3a0171682b7fede7d92d4646d8",
+          "strategy": "football-value",
+          "league": "epl",
+          "outcome": "YES",
+          "horizonMinutes": 30,
+          "targetAt": 1788666112087,
+          "entryPrice": 0.28,
+          "entryFees": 0.34343,
+          "quantity": 34.07,
+          "status": "missing",
+          "invalidSamples": 0
+        },
+        {
+          "fillId": "sim:afdda3764c391da4eb7be6f185b6f888:BUY",
+          "marketId": "0x9704be831cd427a465efb81aced562a505fc85177f654758af390d0c5a967867",
+          "strategy": "football-value",
+          "league": "bun",
+          "outcome": "YES",
+          "horizonMinutes": 1,
+          "targetAt": 1788664373932,
+          "entryPrice": 0.5,
+          "entryFees": 0.23825,
+          "quantity": 19.06,
+          "status": "observed",
+          "invalidSamples": 0,
+          "observedAt": 1788664378447,
+          "delayMs": 4515,
+          "bookTime": 1788664221974,
+          "verifiedAt": 1788664377681,
+          "frameId": "0x9704be831cd427a465efb81aced562a505fc85177f654758af390d0c5a967867:ed195400810965f6f9e085e76631f59317ae057d:ebae1895ce3043420cb5909dddb2cb6b30988a9f:1788664378447",
+          "sourceSha256": "b4af20f8a7a11bd73a5df3b9eaf9be0946a084a925f32b79a7df3c604a50e733",
+          "exitPrice": 0.49,
+          "exitFees": 0.23815,
+          "modeledGas": 0,
+          "hypotheticalNetPnl": -0.667
+        },
+        {
+          "fillId": "sim:afdda3764c391da4eb7be6f185b6f888:BUY",
+          "marketId": "0x9704be831cd427a465efb81aced562a505fc85177f654758af390d0c5a967867",
+          "strategy": "football-value",
+          "league": "bun",
+          "outcome": "YES",
+          "horizonMinutes": 5,
+          "targetAt": 1788664613932,
+          "entryPrice": 0.5,
+          "entryFees": 0.23825,
+          "quantity": 19.06,
+          "status": "observed",
+          "invalidSamples": 0,
+          "observedAt": 1788664620909,
+          "delayMs": 6977,
+          "bookTime": 1788664616163,
+          "verifiedAt": 1788664620130,
+          "frameId": "0x9704be831cd427a465efb81aced562a505fc85177f654758af390d0c5a967867:68da54e079fed91e16f30892b5bbe9eb6016087c:f5f64aead8413cae3ae95fa97b84412ed05df04c:1788664620909",
+          "sourceSha256": "733d22ff9c08cc2f25164110794d92e8279816026896b63258a3d64b8425f7f6",
+          "exitPrice": 0.49,
+          "exitFees": 0.23815,
+          "modeledGas": 0,
+          "hypotheticalNetPnl": -0.667
+        },
+        {
+          "fillId": "sim:afdda3764c391da4eb7be6f185b6f888:BUY",
+          "marketId": "0x9704be831cd427a465efb81aced562a505fc85177f654758af390d0c5a967867",
+          "strategy": "football-value",
+          "league": "bun",
+          "outcome": "YES",
+          "horizonMinutes": 30,
+          "targetAt": 1788666113932,
+          "entryPrice": 0.5,
+          "entryFees": 0.23825,
+          "quantity": 19.06,
+          "status": "missing",
+          "invalidSamples": 0
+        },
+        {
+          "fillId": "sim:cc426d6a522d4580222a375df12d14d9:BUY",
+          "marketId": "0x6031ee9f21f34cf5e3462d0c7314557d6e7c7473fe9cb3587677740b239778a1",
+          "strategy": "football-value",
+          "league": "lal",
+          "outcome": "NO",
+          "horizonMinutes": 1,
+          "targetAt": 1788664379605,
+          "entryPrice": 0.25,
+          "entryFees": 0.35316,
+          "quantity": 37.67,
+          "status": "observed",
+          "invalidSamples": 0,
+          "observedAt": 1788664390189,
+          "delayMs": 10584,
+          "bookTime": 1788664389843,
+          "frameId": "0x6031ee9f21f34cf5e3462d0c7314557d6e7c7473fe9cb3587677740b239778a1:89858053189654701c46df7b331afdd94a50d9eb:b38067b38c3d5d620e2b15ae559e25166832dd9d:1788664390189",
+          "sourceSha256": "2e866ce7030282271970d4943b6a572eecba270c09d8f27d907abe8a08776e37",
+          "exitPrice": 0.24000000000000002,
+          "exitFees": 0.34355,
+          "modeledGas": 0,
+          "hypotheticalNetPnl": -1.07341
+        },
+        {
+          "fillId": "sim:cc426d6a522d4580222a375df12d14d9:BUY",
+          "marketId": "0x6031ee9f21f34cf5e3462d0c7314557d6e7c7473fe9cb3587677740b239778a1",
+          "strategy": "football-value",
+          "league": "lal",
+          "outcome": "NO",
+          "horizonMinutes": 5,
+          "targetAt": 1788664619605,
+          "entryPrice": 0.25,
+          "entryFees": 0.35316,
+          "quantity": 37.67,
+          "status": "observed",
+          "invalidSamples": 0,
+          "observedAt": 1788664620847,
+          "delayMs": 1242,
+          "bookTime": 1788664619238,
+          "verifiedAt": 1788664620130,
+          "frameId": "0x6031ee9f21f34cf5e3462d0c7314557d6e7c7473fe9cb3587677740b239778a1:968e798904a5b4ddd8fed8aa0f355220fca70f28:518046aa698451bcfb860c618adcdf20e0636a23:1788664620847",
+          "sourceSha256": "f70bc8a7e7ff21ad8a8e204e8cd62f82f4303f9ba07cd0099c4e55af661920c6",
+          "exitPrice": 0.24000000000000002,
+          "exitFees": 0.34355,
+          "modeledGas": 0,
+          "hypotheticalNetPnl": -1.07341
+        },
+        {
+          "fillId": "sim:cc426d6a522d4580222a375df12d14d9:BUY",
+          "marketId": "0x6031ee9f21f34cf5e3462d0c7314557d6e7c7473fe9cb3587677740b239778a1",
+          "strategy": "football-value",
+          "league": "lal",
+          "outcome": "NO",
+          "horizonMinutes": 30,
+          "targetAt": 1788666119605,
+          "entryPrice": 0.25,
+          "entryFees": 0.35316,
+          "quantity": 37.67,
+          "status": "missing",
+          "invalidSamples": 0
+        },
+        {
+          "fillId": "sim:cc5bdb6571f4abc79d4d6afa6015e532:BUY",
+          "marketId": "0xfd36ea8fa31bedd20efaf7d35154e9af8ab872f18b270c926e2f458af09e8ca7",
+          "strategy": "football-value",
+          "league": "mex",
+          "outcome": "YES",
+          "horizonMinutes": 1,
+          "targetAt": 1788664381525,
+          "entryPrice": 0.7,
+          "entryFees": 0.14154,
+          "quantity": 13.48,
+          "status": "invalid",
+          "invalidSamples": 1
+        },
+        {
+          "fillId": "sim:cc5bdb6571f4abc79d4d6afa6015e532:BUY",
+          "marketId": "0xfd36ea8fa31bedd20efaf7d35154e9af8ab872f18b270c926e2f458af09e8ca7",
+          "strategy": "football-value",
+          "league": "mex",
+          "outcome": "YES",
+          "horizonMinutes": 5,
+          "targetAt": 1788664621525,
+          "entryPrice": 0.7,
+          "entryFees": 0.14154,
+          "quantity": 13.48,
+          "status": "observed",
+          "invalidSamples": 0,
+          "observedAt": 1788664632770,
+          "delayMs": 11245,
+          "bookTime": 1788664617980,
+          "verifiedAt": 1788664631773,
+          "frameId": "0xfd36ea8fa31bedd20efaf7d35154e9af8ab872f18b270c926e2f458af09e8ca7:4c33ad84a8fe6c9eda7d02545c0d7d9d3071414c:6e658e2918bb5e2a9d5694129054e8b0d027862c:1788664632770",
+          "sourceSha256": "2833833fc0d7f66795733bcf0ddf93a589efaff4f1fcda50083ae62bb2c65864",
+          "exitPrice": 0.69,
+          "exitFees": 0.14417,
+          "modeledGas": 0,
+          "hypotheticalNetPnl": -0.42051
+        },
+        {
+          "fillId": "sim:cc5bdb6571f4abc79d4d6afa6015e532:BUY",
+          "marketId": "0xfd36ea8fa31bedd20efaf7d35154e9af8ab872f18b270c926e2f458af09e8ca7",
+          "strategy": "football-value",
+          "league": "mex",
+          "outcome": "YES",
+          "horizonMinutes": 30,
+          "targetAt": 1788666121525,
+          "entryPrice": 0.7,
+          "entryFees": 0.14154,
+          "quantity": 13.48,
+          "status": "missing",
+          "invalidSamples": 0
+        },
+        {
+          "fillId": "sim:c53ae04c6f1b325385cb004ce5127a4d:BUY",
+          "marketId": "0xc49afbcf2abadda0a5e5cb65de7e9d32c694d0252657f9cf524f892f78bd12c6",
+          "strategy": "football-value",
+          "league": "sea",
+          "outcome": "YES",
+          "horizonMinutes": 1,
+          "targetAt": 1788664383588,
+          "entryPrice": 0.37,
+          "entryFees": 0.29114,
+          "quantity": 24.98,
+          "status": "invalid",
+          "invalidSamples": 1
+        },
+        {
+          "fillId": "sim:c53ae04c6f1b325385cb004ce5127a4d:BUY",
+          "marketId": "0xc49afbcf2abadda0a5e5cb65de7e9d32c694d0252657f9cf524f892f78bd12c6",
+          "strategy": "football-value",
+          "league": "sea",
+          "outcome": "YES",
+          "horizonMinutes": 5,
+          "targetAt": 1788664623588,
+          "entryPrice": 0.37,
+          "entryFees": 0.29114,
+          "quantity": 24.98,
+          "status": "observed",
+          "invalidSamples": 0,
+          "observedAt": 1788664632900,
+          "delayMs": 9312,
+          "bookTime": 1788664628957,
+          "frameId": "0xc49afbcf2abadda0a5e5cb65de7e9d32c694d0252657f9cf524f892f78bd12c6:7b6da40f9344d1a4af313684f97f5c41e8fa028b:1a55610fd1a7a6eab780a554860d6ebff5fecde7:1788664632900",
+          "sourceSha256": "18bb9f56d1514e8d3b23f67f739af3e5a7d0181279cec5ef94643ace7dbba2ad",
+          "exitPrice": 0.36000000000000004,
+          "exitFees": 0.28777,
+          "modeledGas": 0,
+          "hypotheticalNetPnl": -0.82871
+        },
+        {
+          "fillId": "sim:c53ae04c6f1b325385cb004ce5127a4d:BUY",
+          "marketId": "0xc49afbcf2abadda0a5e5cb65de7e9d32c694d0252657f9cf524f892f78bd12c6",
+          "strategy": "football-value",
+          "league": "sea",
+          "outcome": "YES",
+          "horizonMinutes": 30,
+          "targetAt": 1788666123588,
+          "entryPrice": 0.37,
+          "entryFees": 0.29114,
+          "quantity": 24.98,
+          "status": "missing",
+          "invalidSamples": 0
+        },
+        {
+          "fillId": "sim:e9be2badbe0bb548f3b874de3217ae90:BUY",
+          "marketId": "0x51c7f31525b293b12a1e751c0cbbc722516147228563305f8878cea890b81ff4",
+          "strategy": "football-value",
+          "league": "lal",
+          "outcome": "YES",
+          "horizonMinutes": 1,
+          "targetAt": 1788664402642,
+          "entryPrice": 0.33,
+          "entryFees": 0.30622,
+          "quantity": 27.7,
+          "status": "observed",
+          "invalidSamples": 0,
+          "observedAt": 1788664416449,
+          "delayMs": 13807,
+          "bookTime": 1788664372343,
+          "verifiedAt": 1788664415605,
+          "frameId": "0x51c7f31525b293b12a1e751c0cbbc722516147228563305f8878cea890b81ff4:7703cda74d2ebc7084ee90a0cf22d9ef999bd04a:1bab7dc0396fc7fca11457be5c150d9aed7f6829:1788664416449",
+          "sourceSha256": "c505b76987c5f09e62f1ef2ed6cbd5db29efbae463ed20ce4b9c7ae25c698a92",
+          "exitPrice": 0.32000000000000006,
+          "exitFees": 0.30138,
+          "modeledGas": 0,
+          "hypotheticalNetPnl": -0.8846
+        },
+        {
+          "fillId": "sim:e9be2badbe0bb548f3b874de3217ae90:BUY",
+          "marketId": "0x51c7f31525b293b12a1e751c0cbbc722516147228563305f8878cea890b81ff4",
+          "strategy": "football-value",
+          "league": "lal",
+          "outcome": "YES",
+          "horizonMinutes": 5,
+          "targetAt": 1788664642642,
+          "entryPrice": 0.33,
+          "entryFees": 0.30622,
+          "quantity": 27.7,
+          "status": "observed",
+          "invalidSamples": 0,
+          "observedAt": 1788664644791,
+          "delayMs": 2149,
+          "bookTime": 1788664614519,
+          "verifiedAt": 1788664643501,
+          "frameId": "0x51c7f31525b293b12a1e751c0cbbc722516147228563305f8878cea890b81ff4:b599a21c942d9e8791a012661d24af4090770b68:bbe984f2948069339c46fba5affd02f690bbc671:1788664644791",
+          "sourceSha256": "d52e0a88a0988ed7dced1a7ccdce320352018c02e92dcb8f93fcbc302cb23743",
+          "exitPrice": 0.32000000000000006,
+          "exitFees": 0.30138,
+          "modeledGas": 0,
+          "hypotheticalNetPnl": -0.8846
+        },
+        {
+          "fillId": "sim:e9be2badbe0bb548f3b874de3217ae90:BUY",
+          "marketId": "0x51c7f31525b293b12a1e751c0cbbc722516147228563305f8878cea890b81ff4",
+          "strategy": "football-value",
+          "league": "lal",
+          "outcome": "YES",
+          "horizonMinutes": 30,
+          "targetAt": 1788666142642,
+          "entryPrice": 0.33,
+          "entryFees": 0.30622,
+          "quantity": 27.7,
+          "status": "missing",
+          "invalidSamples": 0
+        },
+        {
+          "fillId": "sim:b49b8ccbbd4d0c2dbffaee3fcc257764:BUY",
+          "marketId": "0x5e6d0a13bd53915311d5481d5fe82ce2508ac7579854ca41810ee58770cecb66",
+          "strategy": "football-value",
+          "league": "mex",
+          "outcome": "YES",
+          "horizonMinutes": 1,
+          "targetAt": 1788664408807,
+          "entryPrice": 0.47,
+          "entryFees": 0.18683,
+          "quantity": 15,
+          "status": "observed",
+          "invalidSamples": 0,
+          "observedAt": 1788664416477,
+          "delayMs": 7670,
+          "bookTime": 1788664133759,
+          "verifiedAt": 1788664415606,
+          "frameId": "0x5e6d0a13bd53915311d5481d5fe82ce2508ac7579854ca41810ee58770cecb66:9fc7b89c0cc467643f86541857623fe00db5be44:79fee4ebe0d63a754b3926a1aa9d8d5128b034d2:1788664416477",
+          "sourceSha256": "e073e9b5adeae4300b7d386a26768e19d486f16f8fd1b06c091a4779c64256cd",
+          "exitPrice": 0.45,
+          "exitFees": 0.18563,
+          "modeledGas": 0,
+          "hypotheticalNetPnl": -0.67246
+        },
+        {
+          "fillId": "sim:b49b8ccbbd4d0c2dbffaee3fcc257764:BUY",
+          "marketId": "0x5e6d0a13bd53915311d5481d5fe82ce2508ac7579854ca41810ee58770cecb66",
+          "strategy": "football-value",
+          "league": "mex",
+          "outcome": "YES",
+          "horizonMinutes": 5,
+          "targetAt": 1788664648807,
+          "entryPrice": 0.47,
+          "entryFees": 0.18683,
+          "quantity": 15,
+          "status": "observed",
+          "invalidSamples": 0,
+          "observedAt": 1788664659697,
+          "delayMs": 10890,
+          "bookTime": 1788664532248,
+          "verifiedAt": 1788664658621,
+          "frameId": "0x5e6d0a13bd53915311d5481d5fe82ce2508ac7579854ca41810ee58770cecb66:e926e4ee51f30d5ffe7e16b08d40a43e72eb2088:64ee4d0314e0b8b592baf149d94ccdeb714e315e:1788664659697",
+          "sourceSha256": "13b02d24f681c94626483347e2136e084588ac824850b94a60c57c18a3f2a577",
+          "exitPrice": 0.45,
+          "exitFees": 0.18563,
+          "modeledGas": 0,
+          "hypotheticalNetPnl": -0.67246
+        },
+        {
+          "fillId": "sim:b49b8ccbbd4d0c2dbffaee3fcc257764:BUY",
+          "marketId": "0x5e6d0a13bd53915311d5481d5fe82ce2508ac7579854ca41810ee58770cecb66",
+          "strategy": "football-value",
+          "league": "mex",
+          "outcome": "YES",
+          "horizonMinutes": 30,
+          "targetAt": 1788666148807,
+          "entryPrice": 0.47,
+          "entryFees": 0.18683,
+          "quantity": 15,
+          "status": "missing",
+          "invalidSamples": 0
+        },
+        {
+          "fillId": "sim:0955157359f04358755d603cd538aefc:BUY",
+          "marketId": "0x37ce8866c39f2efde971ecb2eef24d06cc4c19a9ef15a8130d488218d1e71f64",
+          "strategy": "football-value",
+          "league": "sea",
+          "outcome": "NO",
+          "horizonMinutes": 1,
+          "targetAt": 1788664410673,
+          "entryPrice": 0.66,
+          "entryFees": 0.15506,
+          "quantity": 13.82,
+          "status": "observed",
+          "invalidSamples": 0,
+          "observedAt": 1788664416535,
+          "delayMs": 5862,
+          "bookTime": 1788664279970,
+          "verifiedAt": 1788664415606,
+          "frameId": "0x37ce8866c39f2efde971ecb2eef24d06cc4c19a9ef15a8130d488218d1e71f64:bb2c0ea87b556a68c4a5ff0bd1509ed184dd3a5c:168cd2565e5429d18369230c2b22897b37ee1dd8:1788664416535",
+          "sourceSha256": "081222c2569dd788973c4e8e8cfaa5cb117414ae3551e7ed0522fe0b217c06dc",
+          "exitPrice": 0.65,
+          "exitFees": 0.1572,
+          "modeledGas": 0,
+          "hypotheticalNetPnl": -0.45046
+        },
+        {
+          "fillId": "sim:0955157359f04358755d603cd538aefc:BUY",
+          "marketId": "0x37ce8866c39f2efde971ecb2eef24d06cc4c19a9ef15a8130d488218d1e71f64",
+          "strategy": "football-value",
+          "league": "sea",
+          "outcome": "NO",
+          "horizonMinutes": 5,
+          "targetAt": 1788664650673,
+          "entryPrice": 0.66,
+          "entryFees": 0.15506,
+          "quantity": 13.82,
+          "status": "observed",
+          "invalidSamples": 0,
+          "observedAt": 1788664659754,
+          "delayMs": 9081,
+          "bookTime": 1788664620877,
+          "verifiedAt": 1788664658620,
+          "frameId": "0x37ce8866c39f2efde971ecb2eef24d06cc4c19a9ef15a8130d488218d1e71f64:99905325ed73a1c9fc225b360fb1492f06e7e8ca:082d32ef7a2c9272d785de3c05d951babf9f181e:1788664659754",
+          "sourceSha256": "ab54e49fcdf3d5f89c2c4ec962ad3482a1d3bd2a6d100941965ff4ff16f96b06",
+          "exitPrice": 0.65,
+          "exitFees": 0.1572,
+          "modeledGas": 0,
+          "hypotheticalNetPnl": -0.45046
+        },
+        {
+          "fillId": "sim:0955157359f04358755d603cd538aefc:BUY",
+          "marketId": "0x37ce8866c39f2efde971ecb2eef24d06cc4c19a9ef15a8130d488218d1e71f64",
+          "strategy": "football-value",
+          "league": "sea",
+          "outcome": "NO",
+          "horizonMinutes": 30,
+          "targetAt": 1788666150673,
+          "entryPrice": 0.66,
+          "entryFees": 0.15506,
+          "quantity": 13.82,
+          "status": "missing",
+          "invalidSamples": 0
+        },
+        {
+          "fillId": "sim:c225ce1ec64600c7db316471557221f7:BUY",
+          "marketId": "0xb25fa65a472d9d01185505b56226273ca40dade69f4b28186eabe607ee83a143",
+          "strategy": "football-value",
+          "league": "mex",
+          "outcome": "YES",
+          "horizonMinutes": 1,
+          "targetAt": 1788664420937,
+          "entryPrice": 0.49,
+          "entryFees": 0.22941,
+          "quantity": 18.36,
+          "status": "observed",
+          "invalidSamples": 0,
+          "observedAt": 1788664428875,
+          "delayMs": 7938,
+          "bookTime": 1788664259997,
+          "verifiedAt": 1788664427814,
+          "frameId": "0xb25fa65a472d9d01185505b56226273ca40dade69f4b28186eabe607ee83a143:14d9baee0ae6097da541817fe96a612a6b8aaeee:b9a30e3fd5cde0a1a1eb8189562e55ea38f53888:1788664428875",
+          "sourceSha256": "28a9b0797c0dadd7cb84c97e9ac83bf4c69e784da78053fa52ca8813f7f1d957",
+          "exitPrice": 0.4408932461873638,
+          "exitFees": 0.2262,
+          "modeledGas": 0,
+          "hypotheticalNetPnl": -1.35721
+        },
+        {
+          "fillId": "sim:c225ce1ec64600c7db316471557221f7:BUY",
+          "marketId": "0xb25fa65a472d9d01185505b56226273ca40dade69f4b28186eabe607ee83a143",
+          "strategy": "football-value",
+          "league": "mex",
+          "outcome": "YES",
+          "horizonMinutes": 5,
+          "targetAt": 1788664660937,
+          "entryPrice": 0.49,
+          "entryFees": 0.22941,
+          "quantity": 18.36,
+          "status": "observed",
+          "invalidSamples": 0,
+          "observedAt": 1788664675367,
+          "delayMs": 14430,
+          "bookTime": 1788664539157,
+          "verifiedAt": 1788664673822,
+          "frameId": "0xb25fa65a472d9d01185505b56226273ca40dade69f4b28186eabe607ee83a143:721a599f51448ac4939e957b79fcaa1d925cd8e4:8eeaef19efa10f82164f8f2a7aaf9f74f372fead:1788664675367",
+          "sourceSha256": "410efc9b375dfb65263b031e709f9e668ef0efb37b73423708c95bb15eb5b0d6",
+          "exitPrice": 0.4408932461873638,
+          "exitFees": 0.2262,
+          "modeledGas": 0,
+          "hypotheticalNetPnl": -1.35721
+        },
+        {
+          "fillId": "sim:c225ce1ec64600c7db316471557221f7:BUY",
+          "marketId": "0xb25fa65a472d9d01185505b56226273ca40dade69f4b28186eabe607ee83a143",
+          "strategy": "football-value",
+          "league": "mex",
+          "outcome": "YES",
+          "horizonMinutes": 30,
+          "targetAt": 1788666160937,
+          "entryPrice": 0.49,
+          "entryFees": 0.22941,
+          "quantity": 18.36,
+          "status": "missing",
+          "invalidSamples": 0
+        },
+        {
+          "fillId": "sim:e697ab55367606a77123510a64c14763:BUY",
+          "marketId": "0x28f9b11063d5772d7abd89c8ea930aa71dba243b62a4470de27e87221cb37995",
+          "strategy": "football-value",
+          "league": "mex",
+          "outcome": "YES",
+          "horizonMinutes": 1,
+          "targetAt": 1788664427177,
+          "entryPrice": 0.4799999999999999,
+          "entryFees": 0.12255,
+          "quantity": 9.82,
+          "status": "observed",
+          "invalidSamples": 0,
+          "observedAt": 1788664428911,
+          "delayMs": 1734,
+          "bookTime": 1788664404000,
+          "verifiedAt": 1788664427814,
+          "frameId": "0x28f9b11063d5772d7abd89c8ea930aa71dba243b62a4470de27e87221cb37995:27ed2cac69b068d6e0100a0e588309dd20d5d87c:dd7f897436c70a8ee07affd3fe59be8443a1986e:1788664428911",
+          "sourceSha256": "3bd4c80ba8582a4997e404329febbab79d9588f2a707363723d64ac010db22bd",
+          "exitPrice": 0.44,
+          "exitFees": 0.12098,
+          "modeledGas": 0,
+          "hypotheticalNetPnl": -0.63633
+        },
+        {
+          "fillId": "sim:e697ab55367606a77123510a64c14763:BUY",
+          "marketId": "0x28f9b11063d5772d7abd89c8ea930aa71dba243b62a4470de27e87221cb37995",
+          "strategy": "football-value",
+          "league": "mex",
+          "outcome": "YES",
+          "horizonMinutes": 5,
+          "targetAt": 1788664667177,
+          "entryPrice": 0.4799999999999999,
+          "entryFees": 0.12255,
+          "quantity": 9.82,
+          "status": "observed",
+          "invalidSamples": 0,
+          "observedAt": 1788664675400,
+          "delayMs": 8223,
+          "bookTime": 1788664584698,
+          "verifiedAt": 1788664673821,
+          "frameId": "0x28f9b11063d5772d7abd89c8ea930aa71dba243b62a4470de27e87221cb37995:2613c9ed34e8f823b43e39d8ed791632ba106d6b:3ccd03857b9758161a7b2e6204ac2d30ca7238b6:1788664675400",
+          "sourceSha256": "8bfada553c2039f46a8da967c19e508dcc74ed8b4b98d94b69e9c35e46e5b204",
+          "exitPrice": 0.44,
+          "exitFees": 0.12098,
+          "modeledGas": 0,
+          "hypotheticalNetPnl": -0.63633
+        },
+        {
+          "fillId": "sim:e697ab55367606a77123510a64c14763:BUY",
+          "marketId": "0x28f9b11063d5772d7abd89c8ea930aa71dba243b62a4470de27e87221cb37995",
+          "strategy": "football-value",
+          "league": "mex",
+          "outcome": "YES",
+          "horizonMinutes": 30,
+          "targetAt": 1788666167177,
+          "entryPrice": 0.4799999999999999,
+          "entryFees": 0.12255,
+          "quantity": 9.82,
+          "status": "missing",
+          "invalidSamples": 0
+        }
+      ]
+    }
+  },
+  "limitations": [
+    "Evaluación prospectiva paper. Los fills son simulados sobre profundidad observada; no se enviaron órdenes reales.",
+    "Gas: unidades supuestas × precio fast de Polygon Gas Station × POL/USD × margen. No es eth_estimateGas ni una confirmación on-chain.",
+    "Descubrimiento de hasta 5.000 mercados y observación de hasta 200, hasta 100 de fútbol; renovación cada cinco minutos. Las posiciones pendientes conservan cobertura adicional.",
+    "Snapshots completos REST y cambios WebSocket con coalescencia. Se archivan muestras cada 10 segundos por mercado y snapshots usados para ejecución; no es un archivo completo de eventos ni una prueba de prioridad de cola.",
+    "Fútbol: Poisson con datos gratuitos por lotes, 1/4 Kelly, ventaja neta mínima 5 pp, 1% por partido y 10% agregado. Salida al 10% neto ejecutable o resolución oficial CTF. No hay nuevas apuestas durante el juego ni probabilidades in-play.",
+    "El PnL y los costes mostrados son acumulados de esta cuenta. Las observaciones, fills y motivos de rechazo corresponden a los días UTC seleccionados.",
+    "Cero operaciones es un resultado posible; no se relajan los límites para fabricar actividad. No demuestra rentabilidad live."
+  ]
+}

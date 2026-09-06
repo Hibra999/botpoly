@@ -6,6 +6,7 @@ import { basename, resolve } from "node:path";
 import type { Ledger } from "../engine/ledger.js";
 import type { Fill, Order } from "../engine/model.js";
 import { chart, csvCell, escapeHtml } from "./report.js";
+import { accountAnalysis, entryQuality, type PaperAnalysis } from "./account-analysis.js";
 
 export function writePaperReport(
   ledger: Ledger,
@@ -26,6 +27,8 @@ export function writePaperReport(
       (days - 1) * 86400000;
   const s = ledger.snapshot(),
     statistics = s.statistics.filter((d) => d.lastAt >= from);
+  const analysis: PaperAnalysis = {...accountAnalysis(ledger, to), entryQuality: entryQuality(ledger, to)};
+  ledger.store.put("meta", "paper:analysis", analysis);
   const totals: Record<string, number> = {};
   for (const day of statistics)
     for (const [key, n] of Object.entries(day.counts))
@@ -65,6 +68,7 @@ export function writePaperReport(
   const result = {
     schema: 1,
     kind: "paper",
+    analysis,
     status: "exploratorio",
     from,
     to,
@@ -97,7 +101,7 @@ export function writePaperReport(
   )}${chart(
     curve.map((v) => v.drawdown * 100),
     "Drawdown (%)",
-  )}<h2>Cobertura y estrategias</h2><pre>${escapeHtml(JSON.stringify({runtime:s.runtime,coverage:s.observation?.coverage,feed:s.observation?.feed,football:s.football?.leagues},null,2))}</pre><h2>Posiciones abiertas</h2><pre>${escapeHtml(s.positions.length ? JSON.stringify(s.positions,null,2) : "Sin posiciones abiertas.")}</pre><h2>Motivos de rechazo</h2><table><thead><tr><th>Motivo</th><th>Cantidad</th></tr></thead><tbody>${
+  )}${analysisHtml(analysis)}<h2>Cobertura y estrategias</h2><pre>${escapeHtml(JSON.stringify({runtime:s.runtime,coverage:s.observation?.coverage,feed:s.observation?.feed,football:s.football?.leagues},null,2))}</pre><h2>Posiciones abiertas</h2><pre>${escapeHtml(s.positions.length ? JSON.stringify(s.positions,null,2) : "Sin posiciones abiertas.")}</pre><h2>Motivos de rechazo</h2><table><thead><tr><th>Motivo</th><th>Cantidad</th></tr></thead><tbody>${
     Object.entries(totals)
       .filter(([k]) => k.startsWith("rejected:"))
       .map(
@@ -200,3 +204,8 @@ export async function writePaperChart(directory: string): Promise<string> {
   return output;
 }
 interface DailyStatisticsForChart { day:string; counts: Record<string, number> }
+
+function analysisHtml(a: PaperAnalysis): string {
+  const usd = (n: number) => `US$${n.toFixed(4)}`;
+  return `<h2>Rendimiento atribuido y efectivo</h2><p>Efectivo sin operar: ${usd(a.cashBenchmark)} · diferencia neta: ${usd(a.excessOverCash)}. Acumulado de la cuenta, con los mismos flujos externos y sin intereses.</p>${[['Estrategia',a.byStrategy],['Liga',a.byLeague]].map(([title,rows])=>`<h3>${title}</h3><div style="overflow:auto"><table><tr><th>Grupo</th><th>Realizado</th><th>Abierto</th><th>PnL neto</th><th>Comisiones</th><th>Gas</th></tr>${(rows as PaperAnalysis['byStrategy']).map(r=>`<tr><td>${escapeHtml(r.name)}</td>${[r.realized,r.unrealized,r.netPnl,r.fees,r.gas].map(v=>`<td>${usd(v)}</td>`).join('')}</tr>`).join('') || '<tr><td colspan="6">Sin operaciones.</td></tr>'}</table></div>`).join('')}<h2>Calidad de entrada a 1, 5 y 30 minutos</h2><p>Salida hipotética del fill completo al primer libro verificado dentro de los 30 segundos posteriores al horizonte. Incluye comisión de compra, venta y gas de recuperación modelado. Una muestra sin profundidad o por debajo del mínimo no tiene PnL ejecutable. No son ventas ni beneficios contabilizados; no sumar estas alternativas entre sí.</p><pre>${escapeHtml(JSON.stringify(a.entryQuality,null,2))}</pre><h2>Concentración de fútbol</h2><pre>${escapeHtml(JSON.stringify(a.concentration,null,2))}</pre><ul>${a.limitations.map(x=>`<li>${escapeHtml(x)}</li>`).join('')}</ul>`;
+}

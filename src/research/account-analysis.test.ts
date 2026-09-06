@@ -1,0 +1,53 @@
+import {it, expect} from 'vitest';
+import {Store} from '../engine/store.js';
+import {Ledger} from '../engine/ledger.js';
+import {defaults, type Order, type Frame, fee} from '../engine/model.js';
+import {readDataset} from './dataset.js';
+import {accountAnalysis, entryQuality} from './account-analysis.js';
+
+it('reconcilia atribución, costes, ventas parciales, pérdida total y concentración; no inventa fills al medir horizontes', () => {
+  const store = new Store(':memory:');
+  let now = Date.UTC(2026,0,1);
+  const start=now, ledger=new Ledger(store,'paper',defaults,()=>now);
+  const football={matchId:'match',league:'epl',home:'Manchester United',away:'Chelsea',startAt:now+86400000,result:'home' as const};
+  const sample=readDataset('fixtures/demo.jsonl').frames[0];
+  const frame=(at:number):Frame=>({...structuredClone(sample),id:`quality:${at}`,timestamp:at,football,gasVerified:true,recoveryGasUsd:.02,yes:{...structuredClone(sample.yes),timestamp:at,minSize:5,bids:[{price:.5,size:20}]},no:{...structuredClone(sample.no),timestamp:at}});
+  const order:Order={id:'buy',pairId:'pair',marketId:sample.marketId,eventId:'match',underlying:'match',tokenId:sample.yes.tokenId,outcome:'YES',side:'BUY',quantity:10,limit:.4,feeRate:.02,status:'filled',timestamp:now,mode:'paper',strategy:'football-value',football};
+  try {
+    store.put('orders',order.id,order);
+    store.put('reservations','pair',{id:'pair',eventId:'match',underlying:'match',remaining:4.2,timestamp:now,strategy:'football-value',marketId:sample.marketId});
+    store.put('meta','signal:pair',frame(now));
+    store.transaction(()=>ledger.fill(order,{id:'fill-buy',orderId:'buy',quantity:10,gross:4,fees:.1,timestamp:now}));
+    const bad=frame(start+60000);bad.feeVerified=false;store.recordBook(bad);
+    store.recordBook(frame(start+70000));
+    now=start+120000;
+    const before=ledger.metrics(), quality=entryQuality(ledger);
+    expect(quality.rows.map(r=>r.status)).toEqual(['observed','pending','pending']);
+    expect(quality.rows[0]).toMatchObject({delayMs:10000,invalidSamples:1,exitFees:fee(10,.5,sample.feeRate),modeledGas:.02});
+    expect(quality.rows[0].hypotheticalNetPnl).toBeCloseTo(5-fee(10,.5,sample.feeRate)-.02-4.1,6);
+    expect(quality.rows[0].sourceSha256).toMatch(/^[a-f0-9]{64}$/);
+    expect(ledger.metrics()).toEqual(before);expect(store.all('fills')).toHaveLength(1);
+    const empty=frame(start+300000);empty.yes.bids=[];store.recordBook(empty);
+    now=start+31*60000;
+    expect(entryQuality(ledger).rows.map(r=>r.status)).toEqual(['observed','illiquid','missing']);
+    const sell={...order,id:'sell',side:'SELL' as const,quantity:5,limit:.6};store.put('orders','sell',sell);
+    store.transaction(()=>ledger.fill(sell,{id:'fill-sell',orderId:'sell',quantity:5,gross:3,fees:.1,timestamp:now}));
+    ledger.mark(frame(now));
+    store.transaction(()=>ledger.gasExpense('failed-redeem',.2));
+    ledger.cashflow('in',500,'deposit');ledger.cashflow('out',100,'withdrawal');
+    const analysis=accountAnalysis(ledger);
+    expect(analysis.cashBenchmark).toBe(1400);
+    expect(analysis.byStrategy.find(r=>r.name==='football-value')).toMatchObject({realized:.85,fees:.2,fills:2});
+    expect(analysis.byStrategy.find(r=>r.name==='sin-atribuir')).toMatchObject({netPnl:-.2,gas:.2});
+    expect(analysis.byStrategy.reduce((sum,r)=>sum+r.netPnl,0)).toBeCloseTo(ledger.metrics().netPnl,6);
+    expect(analysis.byLeague.reduce((sum,r)=>sum+r.netPnl,0)).toBeCloseTo(ledger.metrics().netPnl,6);
+    expect(analysis.concentration.filter(r=>r.kind==='team')).toHaveLength(2);
+    expect(analysis.concentration.find(r=>r.kind==='league')).toMatchObject({cost:2.05,reserved:.1,exposure:2.15,matches:['match']});
+    const resolved=frame(now);resolved.resolution={payouts:[0,1],verifiedAt:now,source:'synthetic-test',evidence:'test-only'};
+    store.transaction(()=>{ledger.settle('settled',resolved,.05);store.delete('reservations','pair');});
+    const closed=accountAnalysis(ledger);
+    expect(closed.byStrategy.find(r=>r.name==='football-value')).toMatchObject({realized:-1.25,unrealized:0,gas:.05});
+    expect(closed.excessOverCash).toBe(-1.45);expect(closed.concentration).toHaveLength(0);
+    expect(closed.byLeague.reduce((sum,r)=>sum+r.netPnl,0)).toBeCloseTo(-1.45,6);
+  } finally {store.close();}
+});
