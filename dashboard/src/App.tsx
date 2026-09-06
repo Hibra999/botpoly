@@ -76,9 +76,9 @@ export default function App() {
             {data.mode === "paper" ? "SIMULACIÓN" : data.mode.toUpperCase()}
           </span>
           <p>
-            Arbitraje YES / NO
+            Arbitraje YES/NO y fútbol
             <br />
-            Perfil moderado
+            Riesgo compartido
           </p>
         </div>
         <button className="logout" onClick={bot.logout}>
@@ -168,6 +168,7 @@ export default function App() {
             >
               <option value="all">Todas</option>
               <option value="yes-no">Arbitraje YES / NO</option>
+              <option value="football-value">Fútbol automático</option>
             </select>
           </label>
         </div>

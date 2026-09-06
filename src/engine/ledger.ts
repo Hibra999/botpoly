@@ -366,6 +366,8 @@ export class Ledger {
       statistics: this.store.all<DailyStatistics>("statistics"),
       observation: this.store.get<{
         markets: number;
+        coverage?: {inspected:number;selected:number;football:number;forecast:number;retained:number;discoveryErrors:number;metadataFailures:number;limit:number;activeLimit:number;refreshMs:number};
+        feed?: {connected:boolean;updates:number;coalesced:number;invalid:number;reconnects:number;snapshots:number};
         refreshedAt: number;
         recorded: number;
         gasUnits: number;
@@ -376,7 +378,8 @@ export class Ledger {
       mode: this.mode,
       strategy: "yes-no + football-value",
       footballPolicy,
-      football: this.store.get("meta", "football:status"),
+      football: this.store.get<{leagues: Record<string,string>; sources: {league:string;checksum:string;verifiedAt:number;sources:{url:string;sha256:string}[];matches:number}[]}>("meta", "football:status"),
+      footballEvidence: this.store.get("meta", "football:evidence"),
       config: this.config,
       account: this.account,
       metrics: this.metrics(),

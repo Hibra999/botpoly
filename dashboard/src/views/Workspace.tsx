@@ -40,16 +40,32 @@ export function Overview({ data }: { data: Snapshot }) {
   for (const day of data.statistics ?? [])
     for (const [key, n] of Object.entries(day.counts))
       counts[key] = (counts[key] ?? 0) + n;
+  const coverage=data.observation?.coverage;
+  const uptime=Math.max(0,Date.now()-(data.runtime?.startedAt ?? Date.now()));
   return (
     <>
+      <section className="panel" aria-label="Estado de estrategias">
+        <h2>Cobertura y funcionamiento</h2>
+        <p>Tiempo ejecutándose: {Math.floor(uptime/3600000)} h {Math.floor(uptime/60000)%60} min · Última evaluación: {data.runtime?.lastEvaluationAt ? date(data.runtime.lastEvaluationAt) + " UTC" : "Pendiente"}</p>
+        <dl className="risk-facts">
+          <div><dt>Arbitraje YES/NO</dt><dd>{Math.max(0,(coverage?.selected ?? 0)-(coverage?.football ?? 0))} mercados</dd></div>
+          <div><dt>Fútbol · 90 minutos</dt><dd>{coverage?.football ?? 0} mercados · {coverage?.forecast ?? 0} con pronóstico</dd></div>
+          <div><dt>Descubrimiento</dt><dd>{coverage?.inspected ?? 0} inspeccionados · cada 5 min</dd></div>
+          <div><dt>Posiciones conservadas</dt><dd>{coverage?.retained ?? 0} mercados adicionales</dd></div>
+        </dl>
+        <p className="muted">Compras al precio disponible con profundidad. Una apuesta por partido, máximo 1% por partido y 10% agregado en fútbol. Sin Mundial ni apuestas durante el juego.</p>
+        {data.football && <details><summary>Fuentes y disponibilidad de fútbol</summary><ul>{Object.entries(data.football.leagues).map(([league,status])=><li key={league}>{({epl:"Premier League",lal:"LaLiga",bun:"Bundesliga",sea:"Serie A",fl1:"Ligue 1",mex:"Liga MX"} as Record<string,string>)[league] ?? league}: {status}</li>)}</ul></details>}
+        <p className="muted">Libros en tiempo real: {data.observation?.feed?.connected ? "conectados" : "pendientes de conexión"} · {data.observation?.feed?.invalid ?? 0} invalidaciones · {data.observation?.feed?.coalesced ?? 0} cambios agrupados. Se conserva el último libro completo; el archivo contiene muestras.</p>
+      </section>
       {data.mode === "paper" && data.observation && (
         <section className="panel" aria-label="Seguimiento de simulación">
           <h2>Seguimiento paper</h2>
           <p>
             {data.observation.markets} mercados compatibles ·{" "}
             {counts.evaluated ?? 0} libros evaluados · {counts.accepted ?? 0}{" "}
-            pares autorizados · {data.observation.recorded} libros archivados.
+            reservas autorizadas · {data.observation.recorded} libros archivados.
           </p>
+          <p>Actividad acumulada: {counts.signals ?? 0} señales · {counts.buys ?? 0} compras · {counts.sells ?? 0} ventas · {counts.settled ?? 0} liquidaciones.</p>
           <p className="muted">
             Gas modelado: {data.observation.gasUnits.toLocaleString("es")}{" "}
             unidades supuestas × precios actuales ×{" "}
@@ -95,7 +111,7 @@ export function Overview({ data }: { data: Snapshot }) {
         <div>
           <span>Reservado</span>
           <strong>{usd(m.reserved)}</strong>
-          <small>Órdenes pendientes</small>
+          <small>Órdenes y costes de liquidación</small>
         </div>
       </section>
       <section className="metrics-grid" aria-label="Resultados">
@@ -183,6 +199,9 @@ export function Overview({ data }: { data: Snapshot }) {
                 >
                   {(
                     {
+                      signal: "Señal",
+                      settled: "Liquidación",
+                      markets: "Mercados",
                       rejected: "Omitida",
                       fill: "Ejecución",
                       stop: "Parada",
@@ -221,7 +240,7 @@ export function Orders({ data }: { data: Snapshot }) {
       {!data.orders.length ? (
         <Empty>Sin órdenes para estos filtros.</Empty>
       ) : (
-        <div className="table-scroll">
+        <div className="table-scroll" tabIndex={0} aria-label="Tabla desplazable">
           <table>
             <thead>
               <tr>
@@ -238,7 +257,8 @@ export function Orders({ data }: { data: Snapshot }) {
                 <tr key={o.id}>
                   <td>{date(o.timestamp)}</td>
                   <td className="identifier" title={o.marketId}>
-                    {o.marketId}
+                    {o.title ?? o.marketId}
+                    <small>{o.strategy === "football-value" ? "Fútbol" : "Arbitraje YES/NO"}</small>
                   </td>
                   <td>
                     {o.side === "BUY" ? "Compra" : "Venta"} {o.outcome}
@@ -262,8 +282,7 @@ export function Positions({ data }: { data: Snapshot }) {
     <section className="panel">
       <h2>Posiciones abiertas</h2>
       <p className="muted">
-        Valoradas con profundidad de salida. Sin liquidez o con datos caducados,
-        el valor de salida es cero.
+        Valoradas con profundidad de salida. Si los datos caducan se conserva la última valoración y se bloquean nuevas entradas. Un libro verificado sin liquidez tiene valor de salida cero.
       </p>
       {!data.positions.length ? (
         <Empty>
@@ -271,7 +290,7 @@ export function Positions({ data }: { data: Snapshot }) {
           encontrar una operación admisible.
         </Empty>
       ) : (
-        <div className="table-scroll">
+        <div className="table-scroll" tabIndex={0} aria-label="Tabla desplazable">
           <table>
             <thead>
               <tr>
@@ -282,13 +301,16 @@ export function Positions({ data }: { data: Snapshot }) {
                 <th>Coste total</th>
                 <th>Valor de salida</th>
                 <th>PnL abierto</th>
+                <th>Estrategia y salida</th>
+                <th>Antigüedad</th>
               </tr>
             </thead>
             <tbody>
               {data.positions.map((p) => (
                 <tr key={p.tokenId}>
                   <td className="identifier" title={p.marketId}>
-                    {p.marketId}
+                    {p.title ?? p.marketId}
+                    {p.football && <small>{p.football.home} — {p.football.away}</small>}
                   </td>
                   <td>{p.outcome}</td>
                   <td>{p.quantity}</td>
@@ -296,6 +318,8 @@ export function Positions({ data }: { data: Snapshot }) {
                   <td>{usd(p.cost)}</td>
                   <td>{usd(p.mark)}</td>
                   <td>{usd(p.mark - p.cost)}</td>
+                  <td>{p.strategy === "football-value" ? "Fútbol · +10% neto o resolución oficial" : "YES/NO · fusión o recuperación"}</td>
+                  <td>{Math.max(0,Math.floor((Date.now()-p.timestamp)/1000))} s · {p.stale ? "Obsoleta" : "Verificada"}</td>
                 </tr>
               ))}
             </tbody>

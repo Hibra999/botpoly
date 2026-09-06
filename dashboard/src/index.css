@@ -764,3 +764,6 @@ td {
     scroll-behavior: auto !important;
   }
 }
+
+.table-scroll:focus-visible { outline: 2px solid var(--accent-blue); outline-offset: 3px; }
+.identifier small { display: block; color: var(--text-secondary); }

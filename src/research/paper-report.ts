@@ -19,6 +19,7 @@ export function writePaperReport(
     days > 30
   )
     throw new Error("Informe paper: periodo entre 1 y 30 días");
+  return ledger.store.transaction(() => {
   const to = ledger.now(),
     from =
       Date.parse(new Date(to).toISOString().slice(0, 10)) -
@@ -35,7 +36,7 @@ export function writePaperReport(
     )
     .all(from) as { data: string }[];
   const curve = rows.map((r) => JSON.parse(r.data));
-  if (!curve.length) curve.push({ timestamp: to, ...s.metrics });
+  if (!curve.length || curve[curve.length-1].timestamp < to) curve.push({ timestamp: to, ...s.metrics });
   const fills = (
     ledger.store.db
       .prepare(
@@ -55,8 +56,9 @@ export function writePaperReport(
   const limits = [
     "Evaluación prospectiva paper. Los fills son simulados sobre profundidad observada; no se enviaron órdenes reales.",
     "Gas: unidades supuestas × precio fast de Polygon Gas Station × POL/USD × margen. No es eth_estimateGas ni una confirmación on-chain.",
-    "Se consultan hasta 20 mercados binarios estándar por ciclo, renovados cada 15 minutos; no se cubre todo Polymarket ni todos los cambios entre consultas.",
-    "Se usan los mejores 20 niveles por lado. Se archivan libros comprimidos cada 10 segundos por mercado y los libros usados en ejecuciones.",
+    "Descubrimiento de hasta 5.000 mercados y observación de hasta 200, hasta 100 de fútbol; renovación cada cinco minutos. Las posiciones pendientes conservan cobertura adicional.",
+    "Snapshots completos REST y cambios WebSocket con coalescencia. Se archivan muestras cada 10 segundos por mercado y snapshots usados para ejecución; no es un archivo completo de eventos ni una prueba de prioridad de cola.",
+    "Fútbol: Poisson con datos gratuitos por lotes, 1/4 Kelly, ventaja neta mínima 5 pp, 1% por partido y 10% agregado. Salida al 10% neto ejecutable o resolución oficial CTF. No hay nuevas apuestas durante el juego ni probabilidades in-play.",
     "El PnL y los costes mostrados son acumulados de esta cuenta. Las observaciones, fills y motivos de rechazo corresponden a los días UTC seleccionados.",
     "Cero operaciones es un resultado posible; no se relajan los límites para fabricar actividad. No demuestra rentabilidad live.",
   ];
@@ -72,7 +74,14 @@ export function writePaperReport(
     metrics: s.metrics,
     observation: s.observation,
     runtime: s.runtime,
-    activity: s.activity,
+    strategies: s.strategy,
+    footballPolicy: s.footballPolicy,
+    football: s.football,
+    footballEvidence: s.footballEvidence,
+    positions: s.positions,
+    orders: [...orders.values()],
+    settlements: ledger.store.all<{timestamp:number}>("settlements").filter(x=>x.timestamp >= from && x.timestamp <= to),
+    activity: ledger.store.all<import("../engine/ledger.js").DailyStatistics>("activity").filter(h=>h.lastAt >= from && h.firstAt <= to),
     totals,
     recordedBooks: Number(recorded),
     statistics,
@@ -82,13 +91,13 @@ export function writePaperReport(
     limitations: limits,
   };
   const usd = (n: number) => `US$${n.toFixed(4)}`;
-  const html = `<!doctype html><html lang="es"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'"><title>Botpoly · Seguimiento paper</title><style>body{background:#101018;color:#eee;font:16px/1.6 system-ui;margin:0}main{max-width:1050px;margin:auto;padding:24px}table{border-collapse:collapse;width:100%}td,th{padding:8px;border-bottom:1px solid #454552;text-align:left}h1,h2,strong{color:#b9a9ff}svg{width:100%;height:auto}figure{margin:20px 0}.notice{padding:16px;background:#252132}pre{white-space:pre-wrap;overflow-wrap:anywhere}</style><main><h1>Seguimiento paper · YES / NO</h1><p class="notice">Resultados simulados sobre mercados observados. Gas modelado; no prueba rentabilidad real.</p><p>Informe generado: ${new Date(to).toISOString()}. Actividad desde ${new Date(from).toISOString()}.</p><p>Inicio de las observaciones incluidas: ${result.startedAt ? new Date(result.startedAt).toISOString() : "sin observaciones"}.</p><p><strong>PnL acumulado: ${usd(s.metrics.netPnl)}</strong> · Capital: ${usd(s.metrics.equity)} · Comisiones: ${usd(s.account.fees)} · Gas: ${usd(s.account.gas)}</p><p>Libros evaluados: ${totals.evaluated ?? 0} · Pares autorizados: ${totals.accepted ?? 0} · Fills del periodo: ${fills.length} · Libros archivados: ${recorded}</p><p>Estado: ${escapeHtml(s.account.stop ?? (s.account.connected ? "activo" : "sin conexión"))}</p>${chart(
+  const html = `<!doctype html><html lang="es"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'"><title>Botpoly · Seguimiento paper</title><style>body{background:#101018;color:#eee;font:16px/1.6 system-ui;margin:0}main{max-width:1050px;margin:auto;padding:24px}table{border-collapse:collapse;width:100%}td,th{padding:8px;border-bottom:1px solid #454552;text-align:left}h1,h2,strong{color:#b9a9ff}svg{width:100%;height:auto}figure{margin:20px 0}.notice{padding:16px;background:#252132}pre{white-space:pre-wrap;overflow-wrap:anywhere}</style><main><h1>Seguimiento paper · YES/NO y fútbol</h1><p class="notice">Resultados simulados sobre mercados observados. Gas modelado; no prueba rentabilidad real.</p><p>Informe generado: ${new Date(to).toISOString()}. Actividad desde ${new Date(from).toISOString()}.</p><p>Inicio de las observaciones incluidas: ${result.startedAt ? new Date(result.startedAt).toISOString() : "sin observaciones"}.</p><p><strong>PnL acumulado: ${usd(s.metrics.netPnl)}</strong> · Capital: ${usd(s.metrics.equity)} · Comisiones: ${usd(s.account.fees)} · Gas: ${usd(s.account.gas)}</p><p>Libros evaluados: ${totals.evaluated ?? 0} · Reservas autorizadas: ${totals.accepted ?? 0} · Fills del periodo: ${fills.length} · Libros archivados: ${recorded}</p><p>Estado: ${escapeHtml(s.account.stop ?? (s.account.connected ? "activo" : "sin conexión"))}</p>${chart(
     curve.map((v) => v.equity),
     "Capital (USD)",
   )}${chart(
     curve.map((v) => v.drawdown * 100),
     "Drawdown (%)",
-  )}<h2>Motivos de rechazo</h2><table><thead><tr><th>Motivo</th><th>Cantidad</th></tr></thead><tbody>${
+  )}<h2>Cobertura y estrategias</h2><pre>${escapeHtml(JSON.stringify({runtime:s.runtime,coverage:s.observation?.coverage,feed:s.observation?.feed,football:s.football?.leagues},null,2))}</pre><h2>Posiciones abiertas</h2><pre>${escapeHtml(s.positions.length ? JSON.stringify(s.positions,null,2) : "Sin posiciones abiertas.")}</pre><h2>Motivos de rechazo</h2><table><thead><tr><th>Motivo</th><th>Cantidad</th></tr></thead><tbody>${
     Object.entries(totals)
       .filter(([k]) => k.startsWith("rejected:"))
       .map(
@@ -102,6 +111,8 @@ export function writePaperReport(
         "fill_id",
         "order_id",
         "market",
+        "strategy",
+        "match",
         "side",
         "outcome",
         "quantity",
@@ -115,6 +126,8 @@ export function writePaperReport(
           f.id,
           f.orderId,
           o?.marketId ?? "",
+          o?.strategy ?? "yes-no",
+          o?.football?.matchId ?? "",
           o?.side ?? "",
           o?.outcome ?? "",
           f.quantity,
@@ -155,29 +168,35 @@ export function writePaperReport(
       netPnl: s.metrics.netPnl,
     });
   return resolve(directory, "report.html");
+  });
 }
 
 /** Reuses the report data and the system SVG renderer; no browser or network. */
 export async function writePaperChart(directory: string): Promise<string> {
   const result = JSON.parse(readFileSync(resolve(directory, "result.json"), "utf8"));
   const curve = result.curve as { timestamp: number; equity: number; netPnl: number; drawdown: number }[];
-  const panels: [string, number[], string][] = [
-    ["Capital · USD", curve.map((p) => p.equity), "#b9a9ff"],
-    ["PnL neto · USD", curve.map((p) => p.netPnl), "#83b7ff"],
-    ["Drawdown · %", curve.map((p) => p.drawdown * 100), "#ffa884"],
-    ["Compras y ventas · por hora", (result.activity ?? []).map((p: DailyStatisticsForChart) => (p.counts.buys ?? 0) + (p.counts.sells ?? 0)), "#7fe0b1"],
+  const panels: [string, number[], string, number[]][] = [
+    ["Capital · USD", curve.map((p) => p.equity), "#b9a9ff",curve.map(p=>p.timestamp)],
+    ["PnL neto acumulado · USD", curve.map((p) => p.netPnl), "#83b7ff",curve.map(p=>p.timestamp)],
+    ["Drawdown · %", curve.map((p) => p.drawdown * 100), "#ffa884",curve.map(p=>p.timestamp)],
+    ["Compras y ventas · por hora", (result.activity ?? []).map((p: DailyStatisticsForChart) => (p.counts.buys ?? 0) + (p.counts.sells ?? 0)), "#7fe0b1",(result.activity ?? []).map((p:DailyStatisticsForChart)=>Date.parse(p.day+":00:00.000Z"))],
   ];
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1000" viewBox="0 0 1200 1000"><rect width="1200" height="1000" fill="#101018"/><g font-family="sans-serif" fill="#eee"><text x="40" y="48" font-size="28">Botpoly · seguimiento PAPER</text><text x="40" y="80" font-size="16">${new Date(result.to).toISOString()} · Ejecuciones simuladas · Gas modelado</text>${panels.map(([title, values, color], i) => {
-    if (!values.length) values = [0];
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1000" viewBox="0 0 1200 1000"><rect width="1200" height="1000" fill="#101018"/><g font-family="sans-serif" fill="#eee"><text x="40" y="48" font-size="28">Botpoly · seguimiento PAPER</text><text x="40" y="80" font-size="16">${new Date(result.to).toISOString()} · Ejecuciones simuladas · Gas modelado</text>${panels.map(([title, values, color, times], i) => {
+    if (!values.length) { values = [0]; times=[result.to]; }
     const min = Math.min(...values), max = Math.max(...values), span = Math.max(max - min, 0.01);
+    const from=curve[0].timestamp, to=result.to;
     const top = 115 + i * 195;
-    const points = values.map((v, j) => `${60 + j / Math.max(1, values.length - 1) * 1080},${top + 145 - (v - min) / span * 110}`).join(" ");
-    return `<text x="40" y="${top}" font-size="19">${title} · min ${min.toFixed(2)} / max ${max.toFixed(2)}</text><path d="M60 ${top + 145}H1140" stroke="#454552"/><polyline fill="none" stroke="${color}" stroke-width="3" points="${points}"/>`;
-  }).join("")}<text x="40" y="925" font-size="16">${escapeHtml(new Date(curve[0].timestamp).toISOString())} → ${escapeHtml(new Date(curve.at(-1)!.timestamp).toISOString())}</text><text x="40" y="955" font-size="16">Evaluaciones: ${result.totals.evaluated ?? 0} · Señales: ${result.totals.signals ?? 0} · Reservas: ${result.totals.accepted ?? 0} · Fills: ${result.fills.length}</text></g></svg>`;
+    const points = values.map((v, j) => `${60 + Math.max(0,Math.min(1,(times[j]-from)/Math.max(1,to-from))) * 1080},${top + 145 - (max === min ? 55 : (v - min) / span * 110)}`).join(" ");
+    return `<text x="40" y="${top}" font-size="19">${title} · min ${min.toFixed(2)} / max ${max.toFixed(2)}</text><path d="M60 ${top + 145}H1140" stroke="#454552"/><polyline fill="none" stroke="${color}" stroke-width="3" points="${points}"/>${points.split(" ").map(p=>{const [x,y]=p.split(",");return `<circle cx="${x}" cy="${y}" r="2" fill="${color}"/>`;}).join("")}`;
+  }).join("")}<text x="40" y="925" font-size="16">${escapeHtml(new Date(curve[0].timestamp).toISOString())} → ${escapeHtml(new Date(curve.at(-1)!.timestamp).toISOString())}</text><text x="40" y="955" font-size="16">Evaluaciones: ${result.totals.evaluated ?? 0} · Señales: ${result.totals.signals ?? 0} · Reservas: ${result.totals.accepted ?? 0} · Fills: ${result.fills.length} · Costes: US$${(result.account.fees+result.account.gas).toFixed(4)}</text></g></svg>`;
   const input = resolve(directory, "chart.svg"), output = resolve(directory, "chart.png");
   writeFileSync(input, svg, { mode: 0o600 });
   await promisify(execFile)("rsvg-convert", ["-o", output + ".tmp", input], { timeout: 15000 });
   renameSync(output + ".tmp", output);
+  const manifestPath=resolve(directory,"manifest.json");
+  const manifest=JSON.parse(readFileSync(manifestPath,"utf8"));
+  for (const name of ["chart.svg","chart.png"]) manifest.files[name]=createHash("sha256").update(readFileSync(resolve(directory,name))).digest("hex");
+  writeFileSync(manifestPath+".tmp",JSON.stringify(manifest,null,2),{mode:0o600});renameSync(manifestPath+".tmp",manifestPath);
   return output;
 }
-interface DailyStatisticsForChart { counts: Record<string, number> }
+interface DailyStatisticsForChart { day:string; counts: Record<string, number> }

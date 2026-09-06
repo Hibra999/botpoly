@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, realpathSync } from "node:fs";
 import { resolve, sep, basename } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 import { writePaperReport, writePaperChart } from "../research/paper-report.js";
@@ -41,6 +41,7 @@ export class Telegram {
     return this.controller.engine.ledger.store;
   }
   enqueue(id: string, text: string, document?: string, photo = false): void {
+    if (document && (!existsSync(document) || !realpathSync(document).startsWith(realpathSync(this.reports) + sep))) throw new Error("Documento fuera de informes o no disponible");
     if (this.store.get("meta", `telegram:sent:${id}`)) return;
     this.store.insert("outbox", id, {
       id,
@@ -60,7 +61,7 @@ export class Telegram {
         ? l.positions
             .map(
               (p) =>
-                `${p.outcome}: ${p.quantity} · coste US$${p.cost.toFixed(2)} · salida US$${p.mark.toFixed(2)}`,
+                `${p.strategy ?? "yes-no"} · ${p.title ?? p.marketId} · ${p.outcome}: ${p.quantity} · coste US$${p.cost.toFixed(2)} · salida US$${p.mark.toFixed(2)} · valoración ${p.stale ? "obsoleta" : "verificada"} · ${p.strategy === "football-value" ? "+10% neto o resolución oficial" : "fusión o recuperación"}`,
             )
             .join("\n")
         : "Sin posiciones abiertas.";
@@ -72,7 +73,7 @@ export class Telegram {
       for (const [key, n] of Object.entries(hour.counts)) counts[key] = (counts[key] ?? 0) + n;
     const reasons = Object.entries(counts).filter(([key]) => key.startsWith("rejected:")).sort((a, b) => b[1] - a[1]).slice(0, 3);
     const uptime = Math.max(0, this.now() - (snapshot.runtime?.startedAt ?? this.now()));
-    const detail = `\nTiempo ejecutándose: ${Math.floor(uptime / 3600000)} h ${Math.floor(uptime / 60000) % 60} min\nMercados: ${snapshot.observation?.markets ?? 0}\nÚltimos bloques horarios: ${counts.evaluated ?? 0} evaluaciones · ${counts.signals ?? 0} señales · ${counts.accepted ?? 0} reservas\nCompras: ${counts.buys ?? 0} · Ventas: ${counts.sells ?? 0} · Liquidaciones: ${counts.settled ?? 0}\nÚltimo dato: ${a.lastDataAt ? new Date(a.lastDataAt).toISOString() : "sin datos"}\n${reasons.map(([key, n]) => `${key.slice(9)}: ${n}`).join("\n")}`;
+    const detail = `\nTiempo ejecutándose: ${Math.floor(uptime / 3600000)} h ${Math.floor(uptime / 60000) % 60} min\nMercados: ${snapshot.observation?.markets ?? 0} · Fútbol: ${snapshot.observation?.coverage?.football ?? 0} · Con pronóstico: ${snapshot.observation?.coverage?.forecast ?? 0}\nÚltima evaluación: ${snapshot.runtime?.lastEvaluationAt ? new Date(snapshot.runtime.lastEvaluationAt).toISOString() : "pendiente"}\nÚltimos bloques horarios: ${counts.evaluated ?? 0} evaluaciones · ${counts.signals ?? 0} señales · ${counts.accepted ?? 0} reservas\nCompras: ${counts.buys ?? 0} · Ventas: ${counts.sells ?? 0} · Liquidaciones: ${counts.settled ?? 0}\nÚltimo dato: ${a.lastDataAt ? new Date(a.lastDataAt).toISOString() : "sin datos"}\n${reasons.map(([key, n]) => `${key.slice(9)}: ${n}`).join("\n")}`;
     return `Botpoly · ${l.mode}\nEstado: ${a.stop ?? (a.connected ? "activo" : "sin conexión")}\nCapital: US$${m.equity.toFixed(2)}\nPnL neto: US$${m.netPnl.toFixed(4)}\nRealizado: US$${a.realized.toFixed(4)}\nNo realizado: US$${m.unrealized.toFixed(4)}\nCostes: US$${(a.fees + a.gas).toFixed(4)}${detail}`;
   }
   async process(update: Update): Promise<void> {
@@ -108,7 +109,8 @@ export class Telegram {
       } else if (["/status", "/pnl", "/positions", "/risk"].includes(command))
         this.enqueue(id, this.summary(command));
       else if (command === "/report") {
-        await this.report(id, "Informe solicitado", true);
+        this.store.put("meta", `telegram:report-request:${id}`, {id});
+        this.enqueue(id + ":queued", "Informe solicitado. Se enviará con su gráfica al terminar de generarlo.");
       } else
         this.enqueue(
           id,
@@ -176,6 +178,11 @@ export class Telegram {
   }
   async scheduleReports(): Promise<void> {
     const hour = new Date(this.now()).toISOString().slice(0, 13);
+    for (const item of this.store.all<Outgoing>("outbox")) if (item.id.startsWith("hourly:") && !item.id.startsWith(`hourly:${hour}`)) {
+      this.store.delete("outbox",item.id); this.controller.engine.ledger.count("telegram:expired-hourly");
+    }
+    const job=this.store.db.prepare("SELECT id,data FROM meta WHERE id LIKE 'telegram:report-request:%' LIMIT 1").get() as {id:string;data:string}|undefined;
+    if (job) { await this.report(JSON.parse(job.data).id,"Informe solicitado",true); this.store.delete("meta",job.id); }
     if (this.store.get<string>("meta", "telegram:hour") !== hour) {
       const daily = hour.endsWith("T00");
       await this.report(`hourly:${hour}`, `Estado horario UTC · ${hour}:00`, daily);
@@ -201,6 +208,11 @@ export class Telegram {
       .all<Outgoing>("outbox")
       .find((o) => o.nextAt <= this.now());
     if (!item) return;
+    if (item.document && (!existsSync(item.document) || !realpathSync(item.document).startsWith(realpathSync(this.reports)+sep))) {
+      this.store.delete("outbox",item.id);
+      this.enqueue(item.id+":failed","No se pudo enviar el archivo: ruta de informe inválida o archivo ausente.");
+      return;
+    }
     let method = "sendMessage",
       body: string | FormData,
       headers: Record<string, string> = {};
@@ -269,10 +281,14 @@ export class Telegram {
     while (!this.stopped) {
       try {
         this.collectAlerts();
-        await this.scheduleReports();
         await this.flush();
+        await this.scheduleReports();
       } catch {
-        // A failed report or send must not interrupt command processing.
+        const last=this.store.get<number>("meta","telegram:report-error") ?? 0;
+        if (this.now()-last >= 60000) {
+          this.store.put("meta","telegram:report-error",this.now());
+          this.enqueue(`report-error:${Math.floor(this.now()/60000)}`,"Error al preparar informe; se reintentará. Los comandos siguen disponibles.");
+        }
       }
       if (!this.stopped) await delay(1000, undefined, { signal: this.abort.signal }).catch(() => {});
     }
