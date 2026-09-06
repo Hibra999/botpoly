@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { defaults, footballPolicy, strategyBinding, validateConfig, type Mode, type RiskConfig } from "../engine/model.js";
+import { defaults, footballPolicy, strategyBinding, validateConfig, type Fill, type Mode, type RiskConfig } from "../engine/model.js";
 import { checksum } from "../research/dataset.js";
 import { PaperGas } from "../research/paper-gas.js";
 
@@ -76,13 +76,15 @@ export function authorizeLive(env: NodeJS.ProcessEnv = process.env, config: Risk
     readFileSync(env.LIVE_EVIDENCE_FILE, "utf8"),
   ) as Record<string, unknown>;
   if (
+    !approval ||
     approval.schema !== 1 ||
     approval.outOfSampleReviewed !== true ||
     approval.executionAndCostsReviewed !== true ||
     approval.securityReviewed !== true ||
     typeof approval.approvedBy !== "string" ||
-    !approval.approvedBy ||
+    !approval.approvedBy.trim() ||
     typeof approval.reportPath !== "string" ||
+    !approval.reportPath.trim() ||
     typeof approval.reportSha256 !== "string"
   )
     throw new Error("Revisión de live incompleta");
@@ -90,29 +92,52 @@ export function authorizeLive(env: NodeJS.ProcessEnv = process.env, config: Risk
   if (JSON.stringify(approval.strategies) !== JSON.stringify(strategies)) throw new Error("La evidencia live debe vincular ambas estrategias, versiones y configuración exacta");
   const raw = readFileSync(approval.reportPath),
     result = JSON.parse(raw.toString());
+  const coverage = result?.manifest?.coverage;
   if (
     checksum(raw) !== approval.reportSha256 ||
-    JSON.stringify(result.strategies) !== JSON.stringify(strategies) ||
-    result.manifest?.kind !== "events" ||
-    result.manifest?.coverage?.maxGapMs > 1000 ||
-    result.manifest?.coverage?.frames < 1000
+    JSON.stringify(result?.strategies) !== JSON.stringify(strategies) ||
+    result?.manifest?.kind !== "events" ||
+    !Number.isFinite(coverage?.maxGapMs) ||
+    !(coverage.maxGapMs >= 0 && coverage.maxGapMs <= 1000) ||
+    !Number.isSafeInteger(coverage?.frames) ||
+    !(coverage.frames >= 1000)
   )
     throw new Error(
       "Evidencia insuficiente: se requieren eventos del libro y cobertura revisada",
     );
-  const validation = result.trials?.find(
+  const validations = Array.isArray(result.trials) ? result.trials.filter(
     (t: { label: string; period: string }) =>
-      t.label === "Riesgo mejorado" && t.period === "evaluación",
-  );
+      t?.label === "Riesgo mejorado" && t?.period === "evaluación",
+  ) : [];
+  const validation = validations.length === 1 ? validations[0] : undefined;
+  const positiveInterval = (value: unknown) => Array.isArray(value) && value.length === 2 &&
+    value.every(Number.isFinite) && value[0] > 0 && value[1] >= value[0];
   if (
+    !Number.isFinite(validation?.metrics?.netPnl) ||
     !(validation?.metrics?.netPnl > 0) ||
-    !(validation?.bootstrap95?.[0] > 0) ||
-    validation?.fills?.length < 100
+    !positiveInterval(validation?.bootstrap95) ||
+    !Array.isArray(validation?.fills) ||
+    !(validation.fills.length >= 100) ||
+    !validation.fills.every((f: Fill) => f && typeof f.id === "string" && f.id.trim() &&
+      typeof f.orderId === "string" && f.orderId.trim() &&
+      [f.quantity, f.gross, f.fees, f.timestamp].every(Number.isFinite) &&
+      f.quantity > 0 && f.gross > 0 && f.fees >= 0 && f.timestamp >= 0) ||
+    new Set(validation.fills.map((f: Fill) => f.id)).size !== validation.fills.length
   )
     throw new Error(
       "Evidencia fuera de muestra insuficiente después de costes",
     );
   const football = result.footballProspective;
-  if (approval.footballProspectiveReviewed !== true || football?.strategy !== "football-value" || football?.version !== footballPolicy.version || football?.configSha256 !== strategies[1].configSha256 || !(football?.netPnl > 0) || !(football?.bootstrap95?.[0] > 0) || !(football?.confirmedFills >= 100) || !(football?.officialSettlements > 0) || football?.kind !== "prospective-paper") throw new Error("Fútbol live requiere evidencia prospectiva revisada propia, después de costes");
+  if (
+    approval.footballProspectiveReviewed !== true ||
+    football?.strategy !== "football-value" ||
+    football?.version !== footballPolicy.version ||
+    football?.configSha256 !== strategies[1].configSha256 ||
+    !Number.isFinite(football?.netPnl) || !(football?.netPnl > 0) ||
+    !positiveInterval(football?.bootstrap95) ||
+    !Number.isSafeInteger(football?.confirmedFills) || !(football?.confirmedFills >= 100) ||
+    !Number.isSafeInteger(football?.officialSettlements) || !(football?.officialSettlements > 0) ||
+    football?.kind !== "prospective-paper"
+  ) throw new Error("Fútbol live requiere evidencia prospectiva revisada propia, después de costes");
   return { key: env.POLYMARKET_PRIVATE_KEY, rpc: env.POLYGON_RPC_URL, strategies };
 }
