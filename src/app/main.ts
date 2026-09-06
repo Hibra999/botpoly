@@ -25,6 +25,8 @@ export async function main(): Promise<void> {
   const approval = config.mode === "live" ? authorizeLive() : undefined;
   const store = new Store(config.database),
     ledger = new Ledger(store, config.mode, config.risk);
+  const runtime = { startedAt: Date.now(), experimentStartedAt: store.get<{ experimentStartedAt: number }>("meta", "runtime")?.experimentStartedAt ?? Date.now(), version: "botpoly-v2", lastEvaluationAt: 0 };
+  store.put("meta", "runtime", runtime);
   let live: LiveExecutor | undefined, data: MarketData, executor: Executor;
   if (approval) {
     const { LiveExecutor } = await import("../engine/live.js");
@@ -188,6 +190,8 @@ export async function main(): Promise<void> {
           a.lastDataAt = frame.timestamp;
           ledger.save(a);
           await engine.process(frame);
+          runtime.lastEvaluationAt = Date.now();
+          store.put("meta", "runtime", runtime);
           ledger.mark(frame);
           if (Date.now() - equityAt >= 60000) {
             engine.recordEquity();

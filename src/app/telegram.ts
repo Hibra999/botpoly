@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
-import { resolve, sep } from "node:path";
+import { resolve, sep, basename } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
+import { writePaperReport, writePaperChart } from "../research/paper-report.js";
 import type { AuditEvent } from "../engine/model.js";
 import { Controller, type CommandName } from "./control.js";
 
@@ -17,6 +18,7 @@ interface Outgoing {
   id: string;
   text: string;
   document?: string;
+  photo?: boolean;
   attempts: number;
   nextAt: number;
 }
@@ -30,6 +32,7 @@ export class Telegram {
     private request: typeof fetch = fetch,
     private now = Date.now,
     private reports = resolve("reports"),
+    private renderChart = writePaperChart,
   ) {
     if (!/^\d+:[A-Za-z0-9_-]+$/.test(token) || !/^\d+$/.test(chatId))
       throw new Error("Configura un bot y un chat privado de Telegram");
@@ -37,12 +40,13 @@ export class Telegram {
   private get store() {
     return this.controller.engine.ledger.store;
   }
-  enqueue(id: string, text: string, document?: string): void {
+  enqueue(id: string, text: string, document?: string, photo = false): void {
     if (this.store.get("meta", `telegram:sent:${id}`)) return;
     this.store.insert("outbox", id, {
       id,
       text: text.slice(0, 3900),
       document,
+      photo,
       attempts: 0,
       nextAt: this.now(),
     } satisfies Outgoing);
@@ -62,7 +66,14 @@ export class Telegram {
         : "Sin posiciones abiertas.";
     if (kind === "/risk")
       return `Riesgo: ${a.stop ?? "activo"}\nDrawdown: ${(m.drawdown * 100).toFixed(2)}%\nExposición: US$${m.exposure.toFixed(2)}\nReservado: US$${m.reserved.toFixed(2)}\nLímite diario: ${(l.config.dailyLossPct * 100).toFixed(1)}%`;
-    return `Botpoly · ${l.mode}\nEstado: ${a.stop ?? (a.connected ? "activo" : "sin conexión")}\nCapital: US$${m.equity.toFixed(2)}\nPnL neto: US$${m.netPnl.toFixed(4)}\nRealizado: US$${a.realized.toFixed(4)}\nNo realizado: US$${m.unrealized.toFixed(4)}\nCostes: US$${(a.fees + a.gas).toFixed(4)}`;
+    const snapshot = l.snapshot();
+    const counts: Record<string, number> = {};
+    for (const hour of snapshot.activity.filter((h) => h.lastAt >= this.now() - 3600000))
+      for (const [key, n] of Object.entries(hour.counts)) counts[key] = (counts[key] ?? 0) + n;
+    const reasons = Object.entries(counts).filter(([key]) => key.startsWith("rejected:")).sort((a, b) => b[1] - a[1]).slice(0, 3);
+    const uptime = Math.max(0, this.now() - (snapshot.runtime?.startedAt ?? this.now()));
+    const detail = `\nTiempo ejecutándose: ${Math.floor(uptime / 3600000)} h ${Math.floor(uptime / 60000) % 60} min\nMercados: ${snapshot.observation?.markets ?? 0}\nÚltimos bloques horarios: ${counts.evaluated ?? 0} evaluaciones · ${counts.signals ?? 0} señales · ${counts.accepted ?? 0} reservas\nCompras: ${counts.buys ?? 0} · Ventas: ${counts.sells ?? 0} · Liquidaciones: ${counts.settled ?? 0}\nÚltimo dato: ${a.lastDataAt ? new Date(a.lastDataAt).toISOString() : "sin datos"}\n${reasons.map(([key, n]) => `${key.slice(9)}: ${n}`).join("\n")}`;
+    return `Botpoly · ${l.mode}\nEstado: ${a.stop ?? (a.connected ? "activo" : "sin conexión")}\nCapital: US$${m.equity.toFixed(2)}\nPnL neto: US$${m.netPnl.toFixed(4)}\nRealizado: US$${a.realized.toFixed(4)}\nNo realizado: US$${m.unrealized.toFixed(4)}\nCostes: US$${(a.fees + a.gas).toFixed(4)}${detail}`;
   }
   async process(update: Update): Promise<void> {
     if (!Number.isSafeInteger(update.update_id) || update.update_id < 0) return;
@@ -97,18 +108,7 @@ export class Telegram {
       } else if (["/status", "/pnl", "/positions", "/risk"].includes(command))
         this.enqueue(id, this.summary(command));
       else if (command === "/report") {
-        const report = this.store.all<{ id: string }>("reports").at(-1);
-        const document =
-          report && /^[a-zA-Z0-9_-]+$/.test(report.id)
-            ? resolve(this.reports, report.id, "report.html")
-            : undefined;
-        this.enqueue(
-          id,
-          document && existsSync(document)
-            ? "Informe del último backtest. Consulta sus limitaciones."
-            : "Todavía no hay un informe de backtest disponible.",
-          document && existsSync(document) ? document : undefined,
-        );
+        await this.report(id, "Informe solicitado", true);
       } else
         this.enqueue(
           id,
@@ -139,6 +139,9 @@ export class Telegram {
         const e = JSON.parse(row.data) as AuditEvent;
         if (
           [
+            "signal",
+            "reserved",
+            "settled",
             "fill",
             "stop",
             "error",
@@ -147,26 +150,52 @@ export class Telegram {
             "merge",
           ].includes(e.type)
         )
-          this.enqueue(`event:${e.id}`, `${e.mode} · ${e.type}\n${e.message}`);
+          this.enqueue(`event:${e.id}`, `${e.mode} · ${e.strategy} · ${e.type}\n${e.message}`);
       }
       if (events.length)
         this.store.put("meta", "telegram:eventRow", events.at(-1)!.rowid);
     });
-    const day = new Date(this.now()).toISOString().slice(0, 10);
-    const lastDay = this.store.get<string>("meta", "telegram:daily");
-    if (lastDay && lastDay !== day)
-      this.enqueue(
-        `daily:${lastDay}`,
-        `Resumen UTC al cierre de ${lastDay}\n${this.summary("/pnl")}`,
-      );
-    this.store.put("meta", "telegram:daily", day);
+  }
+  private async report(id: string, label: string, document: boolean): Promise<void> {
+    const ledger = this.controller.engine.ledger;
+    if (ledger.mode !== "paper") {
+      this.enqueue(id, this.summary("/status"));
+      return;
+    }
+    const safe = id.replace(/[^a-zA-Z0-9_-]/g, "-");
+    const directory = resolve(this.reports, `paper-${safe}`);
+    const html = writePaperReport(ledger, directory);
+    this.enqueue(id, `${label}\n${this.summary("/status")}`);
+    try {
+      const png = await this.renderChart(directory);
+      this.enqueue(`${id}:photo`, `${label} · PAPER · Resultados simulados`, png, true);
+    } catch {
+      this.enqueue(`${id}:chart-error`, "No se pudo generar la gráfica. El informe HTML conserva los datos y gráficos.");
+    }
+    if (document) this.enqueue(`${id}:document`, `${label} · incluye costes, procedencia y limitaciones`, html);
+  }
+  async scheduleReports(): Promise<void> {
+    const hour = new Date(this.now()).toISOString().slice(0, 13);
+    if (this.store.get<string>("meta", "telegram:hour") !== hour) {
+      const daily = hour.endsWith("T00");
+      await this.report(`hourly:${hour}`, `Estado horario UTC · ${hour}:00`, daily);
+      this.store.put("meta", "telegram:hour", hour);
+    }
+    const runtime = this.store.get<{ experimentStartedAt: number }>("meta", "runtime");
+    for (const hours of [24, 72]) {
+      const id = `followup:${runtime?.experimentStartedAt}:${hours}`;
+      if (runtime && this.now() - runtime.experimentStartedAt >= hours * 3600000 && !this.store.get("meta", id)) {
+        await this.report(id, `Seguimiento a ${hours} horas`, true);
+        this.store.put("meta", id, true);
+      }
+    }
     for (const r of this.store.all<{ id: string; status: string }>("reports")) {
-      if (!/^[a-zA-Z0-9_-]+$/.test(r.id)) continue;
+      if (!/^[a-zA-Z0-9_-]+$/.test(r.id) || r.id.startsWith("paper-")) continue;
       const doc = resolve(this.reports, r.id, "report.html");
-      if (existsSync(doc))
-        this.enqueue(`report:${r.id}`, `Backtest ${r.id}: ${r.status}`, doc);
+      if (existsSync(doc)) this.enqueue(`report:${r.id}`, `Evaluación ${r.id}: ${r.status}`, doc);
     }
   }
+
   async flush(): Promise<void> {
     const item = this.store
       .all<Outgoing>("outbox")
@@ -180,14 +209,14 @@ export class Telegram {
       item.document.startsWith(this.reports + sep) &&
       existsSync(item.document)
     ) {
-      method = "sendDocument";
+      method = item.photo ? "sendPhoto" : "sendDocument";
       const form = new FormData();
       form.set("chat_id", this.chatId);
       form.set("caption", item.text.slice(0, 900));
       form.set(
-        "document",
-        new Blob([readFileSync(item.document)], { type: "text/html" }),
-        "botpoly-backtest.html",
+        item.photo ? "photo" : "document",
+        new Blob([readFileSync(item.document)], { type: item.photo ? "image/png" : "text/html" }),
+        basename(item.document),
       );
       body = form;
     } else {
@@ -234,6 +263,21 @@ export class Telegram {
     this.store.put("outbox", item.id, item);
   }
   async run(): Promise<void> {
+    await Promise.all([this.receive(), this.send()]);
+  }
+  private async send(): Promise<void> {
+    while (!this.stopped) {
+      try {
+        this.collectAlerts();
+        await this.scheduleReports();
+        await this.flush();
+      } catch {
+        // A failed report or send must not interrupt command processing.
+      }
+      if (!this.stopped) await delay(1000, undefined, { signal: this.abort.signal }).catch(() => {});
+    }
+  }
+  private async receive(): Promise<void> {
     while (!this.stopped) {
       let retryMs = 1000;
       try {
@@ -268,10 +312,6 @@ export class Telegram {
           retryMs = Math.min(86400000, Math.max(1000, retryAfter * 1000));
         if (response.ok && data.ok && Array.isArray(data.result))
           for (const update of data.result) await this.process(update);
-        if (!this.stopped) {
-          this.collectAlerts();
-          await this.flush();
-        }
       } catch {
         /* Never log Telegram URLs: they contain credentials. */
       }

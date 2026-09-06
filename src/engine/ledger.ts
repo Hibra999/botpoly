@@ -163,6 +163,13 @@ export class Ledger {
     row.lastAt = now;
     row.counts[name] = (row.counts[name] ?? 0) + 1;
     this.store.put("statistics", day, row);
+    const hour = new Date(now).toISOString().slice(0, 13);
+    const activity = this.store.get<DailyStatistics>("activity", hour) ?? {
+      day: hour, firstAt: now, lastAt: now, counts: {},
+    };
+    activity.lastAt = now;
+    activity.counts[name] = (activity.counts[name] ?? 0) + 1;
+    this.store.put("activity", hour, activity);
   }
   stop(reason: string): void {
     const a = this.account;
@@ -274,6 +281,7 @@ export class Ledger {
     p.timestamp = fill.timestamp;
     this.store.put("positions", p.tokenId, p);
     this.store.insert("fills", fill.id, fill);
+    this.count(order.side === "BUY" ? "buys" : "sells");
     this.save(a);
     this.event(
       "fill",
@@ -322,6 +330,8 @@ export class Ledger {
   }
   snapshot() {
     return {
+      runtime: this.store.get<{ startedAt: number; experimentStartedAt: number; lastEvaluationAt?: number; version?: string }>("meta", "runtime"),
+      activity: this.store.recent<DailyStatistics>("activity", 168).reverse(),
       statistics: this.store.all<DailyStatistics>("statistics"),
       observation: this.store.get<{
         markets: number;

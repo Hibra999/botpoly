@@ -1,4 +1,7 @@
-import { mkdirSync, renameSync, writeFileSync } from "node:fs";
+import { mkdirSync, renameSync, writeFileSync, readFileSync } from "node:fs";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
+import { createHash } from "node:crypto";
 import { basename, resolve } from "node:path";
 import type { Ledger } from "../engine/ledger.js";
 import type { Fill, Order } from "../engine/model.js";
@@ -68,6 +71,8 @@ export function writePaperReport(
     config: s.config,
     metrics: s.metrics,
     observation: s.observation,
+    runtime: s.runtime,
+    activity: s.activity,
     totals,
     recordedBooks: Number(recorded),
     statistics,
@@ -131,6 +136,12 @@ export function writePaperReport(
     writeFileSync(path + ".tmp", body, { mode: 0o600 });
     renameSync(path + ".tmp", path);
   }
+  const files = ["report.html", "result.json", "trades.csv"];
+  writeFileSync(resolve(directory, "manifest.json"), JSON.stringify({
+    schema: 1, generatedAt: to, kind: "paper", from, to,
+    source: "SQLite persistente: libros observados, órdenes, fills simulados y contabilidad",
+    files: Object.fromEntries(files.map((name) => [name, createHash("sha256").update(readFileSync(resolve(directory, name))).digest("hex")])),
+  }, null, 2), { mode: 0o600 });
   const id = basename(resolve(directory));
   if (
     /^[a-zA-Z0-9_-]+$/.test(id) &&
@@ -145,3 +156,28 @@ export function writePaperReport(
     });
   return resolve(directory, "report.html");
 }
+
+/** Reuses the report data and the system SVG renderer; no browser or network. */
+export async function writePaperChart(directory: string): Promise<string> {
+  const result = JSON.parse(readFileSync(resolve(directory, "result.json"), "utf8"));
+  const curve = result.curve as { timestamp: number; equity: number; netPnl: number; drawdown: number }[];
+  const panels: [string, number[], string][] = [
+    ["Capital · USD", curve.map((p) => p.equity), "#b9a9ff"],
+    ["PnL neto · USD", curve.map((p) => p.netPnl), "#83b7ff"],
+    ["Drawdown · %", curve.map((p) => p.drawdown * 100), "#ffa884"],
+    ["Compras y ventas · por hora", (result.activity ?? []).map((p: DailyStatisticsForChart) => (p.counts.buys ?? 0) + (p.counts.sells ?? 0)), "#7fe0b1"],
+  ];
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1000" viewBox="0 0 1200 1000"><rect width="1200" height="1000" fill="#101018"/><g font-family="sans-serif" fill="#eee"><text x="40" y="48" font-size="28">Botpoly · seguimiento PAPER</text><text x="40" y="80" font-size="16">${new Date(result.to).toISOString()} · Ejecuciones simuladas · Gas modelado</text>${panels.map(([title, values, color], i) => {
+    if (!values.length) values = [0];
+    const min = Math.min(...values), max = Math.max(...values), span = Math.max(max - min, 0.01);
+    const top = 115 + i * 195;
+    const points = values.map((v, j) => `${60 + j / Math.max(1, values.length - 1) * 1080},${top + 145 - (v - min) / span * 110}`).join(" ");
+    return `<text x="40" y="${top}" font-size="19">${title} · min ${min.toFixed(2)} / max ${max.toFixed(2)}</text><path d="M60 ${top + 145}H1140" stroke="#454552"/><polyline fill="none" stroke="${color}" stroke-width="3" points="${points}"/>`;
+  }).join("")}<text x="40" y="925" font-size="16">${escapeHtml(new Date(curve[0].timestamp).toISOString())} → ${escapeHtml(new Date(curve.at(-1)!.timestamp).toISOString())}</text><text x="40" y="955" font-size="16">Evaluaciones: ${result.totals.evaluated ?? 0} · Señales: ${result.totals.signals ?? 0} · Reservas: ${result.totals.accepted ?? 0} · Fills: ${result.fills.length}</text></g></svg>`;
+  const input = resolve(directory, "chart.svg"), output = resolve(directory, "chart.png");
+  writeFileSync(input, svg, { mode: 0o600 });
+  await promisify(execFile)("rsvg-convert", ["-o", output + ".tmp", input], { timeout: 15000 });
+  renameSync(output + ".tmp", output);
+  return output;
+}
+interface DailyStatisticsForChart { counts: Record<string, number> }
