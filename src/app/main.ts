@@ -2,9 +2,9 @@ import { Store } from "../engine/store.js";
 import { Ledger } from "../engine/ledger.js";
 import { Engine } from "../engine/engine.js";
 import { PaperExecutor, simulationDefaults } from "../engine/paper.js";
-import type { Executor, Frame } from "../engine/model.js";
+import type { Executor, Frame, Reservation } from "../engine/model.js";
 import type { LiveExecutor } from "../engine/live.js";
-import { MarketData } from "../research/market-data.js";
+import { MarketData, retainMarkets } from "../research/market-data.js";
 import { Controller } from "./control.js";
 import { Telegram } from "./telegram.js";
 import { loadConfig, authorizeLive } from "./config.js";
@@ -25,7 +25,7 @@ export async function main(): Promise<void> {
   const approval = config.mode === "live" ? authorizeLive() : undefined;
   const store = new Store(config.database),
     ledger = new Ledger(store, config.mode, config.risk);
-  const runtime = { startedAt: Date.now(), experimentStartedAt: store.get<{ experimentStartedAt: number }>("meta", "runtime")?.experimentStartedAt ?? Date.now(), version: "botpoly-v2", lastEvaluationAt: 0 };
+  const runtime = { startedAt: Date.now(), experimentStartedAt: store.get<{ experimentStartedAt: number }>("meta", "runtime")?.experimentStartedAt ?? Date.now(), version: "botpoly-v3-football", lastEvaluationAt: 0 };
   store.put("meta", "runtime", runtime);
   let live: LiveExecutor | undefined, data: MarketData, executor: Executor;
   if (approval) {
@@ -42,7 +42,7 @@ export async function main(): Promise<void> {
         const market = markets.find((m) => m.conditionId === conditionId);
         if (!market) return undefined;
         await new Promise((resolve) =>
-          setTimeout(resolve, Math.max(0, time - Date.now())),
+          setTimeout(resolve, Math.max(0, time - Date.now()) + Number(market.trading.secondsDelay ?? 0) * 1000),
         );
         const frame = await data.frame(market);
         store.recordBook(frame);
@@ -81,6 +81,7 @@ export async function main(): Promise<void> {
     config.telegramToken && config.telegramChat
       ? new Telegram(controller, config.telegramToken, config.telegramChat)
       : undefined;
+  telegram?.enqueue(`deployment:${runtime.startedAt}`, "Despliegue PAPER · estrategias YES/NO y fútbol · cuenta persistente conservada. No hay activación live.");
   const telegramLoop = telegram?.run();
   let heartbeatBusy = false;
   const heartbeat = live
@@ -107,11 +108,14 @@ export async function main(): Promise<void> {
   let refreshedAt = 0,
     equityAt = 0,
     reportAt = 0,
-    diskAt = 0;
+    diskAt = 0,
+    resolutionAt = 0;
   let diskAvailable = true;
   const recordedAt = new Map<string, number>();
   const observation = {
     markets: 0,
+    coverage: data.coverage,
+    feed: data.stream.status,
     refreshedAt: 0,
     recorded:
       store.get<{ recorded: number }>("meta", "paper:observation")?.recorded ??
@@ -136,33 +140,51 @@ export async function main(): Promise<void> {
         }
         if (!diskAvailable)
           throw new Error("Archivo de libros bloqueado por falta de espacio");
-        if (!markets.length || Date.now() - refreshedAt >= 15 * 60000) {
+        if (!markets.length || Date.now() - refreshedAt >= 5 * 60000) {
           const selected = await data.markets(config.markets);
           if (!selected.length) throw new Error("Sin mercados compatibles");
-          const held = new Set(ledger.positions.map((p) => p.marketId));
-          markets = [
-            ...selected,
-            ...markets.filter(
-              (m) =>
-                held.has(m.conditionId!) &&
-                !selected.some((s) => s.conditionId === m.conditionId),
-            ),
-          ];
+          const reservations = store.all<Reservation>("reservations");
+          const held = new Set([...ledger.positions.map(p=>p.marketId),...reservations.flatMap(r=>{
+            const f=store.get<Frame>("meta",`signal:${r.id}`);return f ? [f.marketId] : [];
+          })]);
+          for (const id of held) if (!markets.some(m=>m.conditionId === id)) {
+            const saved=store.get<(typeof markets)[number]>("meta",`market:${id}`);
+            if (saved) markets.push(saved);
+            else {
+              const original=reservations.map(r=>store.get<Frame>("meta",`signal:${r.id}`)).find(f=>f?.marketId === id);
+              const recovered=await data.restore(id,original?.football);
+              if (recovered) markets.push(recovered); else ledger.stop("Mercado pendiente no reconstruido");
+            }
+          }
+          markets = retainMarkets(selected, markets, held);
+          for (const market of markets) store.put("meta",`market:${market.conditionId}`,market);
+          data.coverage.retained=markets.length-selected.length;
+          store.put("meta","football:status",{leagues:data.football.status,coverage:data.coverage,sources:[...data.football.datasets].map(([league,d])=>({league,checksum:d.checksum,verifiedAt:d.verifiedAt,sources:d.sources,matches:d.matches.length}))});
           refreshedAt = Date.now();
           recordedAt.clear();
           observation.markets = markets.length;
           observation.refreshedAt = refreshedAt;
           ledger.event(
             "markets",
-            `${markets.length} mercados binarios estándar seleccionados`,
+            `${markets.length} mercados observados · ${data.coverage.football} fútbol · ${data.coverage.inspected} inspeccionados`,
           );
         }
+        if (Date.now()-resolutionAt >= 60000) {
+          for (const r of store.all<Reservation>("reservations").filter(r=>r.strategy === "football-value")) {
+            const original=store.get<Frame>("meta",`signal:${r.id}`), market=markets.find(m=>m.conditionId === original?.marketId);
+            if (!original || !market) continue;
+            try { const resolved=await data.resolvedFrame(market,original); if (resolved) await engine.process(resolved); }
+            catch { ledger.count("resolution_failed"); }
+          }
+          resolutionAt=Date.now();
+        }
+        await data.prepare(markets);
         let successful = 0;
         for (const market of markets) {
           if (stopping) break;
           let frame: Frame;
           try {
-            frame = await data.frame(market);
+            frame = await data.frame(market, false);
           } catch {
             ledger.count("fetch_failed");
             continue;
@@ -198,6 +220,9 @@ export async function main(): Promise<void> {
             equityAt = Date.now();
           }
         }
+        observation.coverage=data.coverage; observation.feed=data.stream.status;
+        store.put("meta", "paper:observation", observation);
+        data.stream.changed.clear();
         if (!successful) throw new Error();
         if (config.mode === "paper" && Date.now() - reportAt >= 300000) {
           writePaperReport(ledger, resolve(config.reports, "paper-actual"));
@@ -227,6 +252,7 @@ export async function main(): Promise<void> {
     }
     await stopDashboard();
     await telegramLoop;
+    await data.stream.close();
     await live?.close();
     store.close();
     process.removeListener("SIGINT", stop);

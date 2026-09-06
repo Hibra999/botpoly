@@ -19,6 +19,12 @@ const market = (id: string, negRisk = false) =>
   ({
     id,
     conditionId: id,
+    tags: [],
+    events: [],
+    metrics: {},
+    sports: {},
+    trading: {},
+    resolution: {},
     state: {
       active: true,
       closed: false,
@@ -108,6 +114,7 @@ describe("paper durante varios días", () => {
   });
   it("pagina más allá de mercados incompatibles y verifica los IDs explícitos", async () => {
     const data = new MarketData();
+    vi.spyOn(data.football, "refresh").mockResolvedValue();
     const listMarkets = vi.fn(() => ({
       async *[Symbol.asyncIterator]() {
         yield { items: [market("bad", true)] };
@@ -119,6 +126,8 @@ describe("paper durante varios días", () => {
     Object.assign(data, {
       client: {
         listMarkets,
+        listSports: async () => [],
+        listEvents: async function* () {},
         fetchMarket: async ({ id }: { id: string }) => market(id, id === "bad"),
       },
     });

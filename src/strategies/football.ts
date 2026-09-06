@@ -76,9 +76,12 @@ export function deduplicate(matches: Match[]): Match[] {
   return [...unique.values()].sort((a, b) => a.date - b.date || a.home.localeCompare(b.home) || a.away.localeCompare(b.away));
 }
 const aliases: Record<string, string> = {
+  parma1913: "parma", bologna1909: "bologna", ussassuolo: "sassuolo", uslecce: "lecce", sslazio: "lazio", acffiorentina: "fiorentina", genoacfc: "genoa",
+ estroyes: "troyes", staderennais1901: "rennes", olympiquedemarseille: "marseille", hamburgersv: "hamburg", "1fsvmainz05": "mainz", "1unionberlin": "unionberlin", tsg1899hoffenheim: "hoffenheim", bvborussia09dortmund: "dortmund", paderborn07: "paderborn",
+  levanteud: "levante", rcdespanyoldebarcelona: "espanol", celtadevigo: "celta", realsociedaddefutbol: "sociedad", realracing: "santander", pumasdelaunam: "unampumas",
   wolverhamptonwanderers: "wolves", manchesterunited: "manunited", manchestercity: "mancity", nottinghamforest: "nottmforest", tottenhamhotspur: "tottenham", newcastleunited: "newcastle", westhamunited: "westham", brightonhovealbion: "brighton", leedsunited: "leeds", leicestercity: "leicester", ipswichtown: "ipswich",
   athleticbilbao: "athbilbao", atleticomadrid: "athmadrid", realbetis: "betis", realsociedad: "sociedad", rayovallecano: "vallecano", celta: "celta", celtavigo: "celta", realoviedo: "oviedo", osasuna: "osasuna",
-  borussiadortmund: "dortmund", borussiamonchengladbach: "mgladbach", bayernmunich: "bayernmunich", bayernmunchen: "bayernmunich", bayerleverkusen: "leverkusen", eintrachtfrankfurt: "frankfurt", rbleipzig: "rbleipzig", mainz05: "mainz", stpauli: "stpauli", vflwolfsburg: "wolfsburg", vfbstuttgart: "stuttgart", vflbochum: "bochum",
+  borussiadortmund: "dortmund", borussiamonchengladbach: "mgladbach", bayernmunich: "bayernmunich", bayernmunchen: "bayernmunich", bayerleverkusen: "leverkusen", eintrachtfrankfurt: "einfrankfurt", rbleipzig: "rbleipzig", mainz05: "mainz", stpauli: "stpauli", vflwolfsburg: "wolfsburg", vfbstuttgart: "stuttgart", vflbochum: "bochum",
   internazionale: "inter", intermilano: "inter", milan: "milan", hellasverona: "verona", parissaintgermain: "parissg", olympiquelyonnais: "lyon", olympiquemarseille: "marseille", stadebrestois29: "brest", staderennais: "rennes", strasbourgalsace: "strasbourg", ogcnice: "nice", saintetienne: "stetienne",
   americacf: "america", guadalajara: "guadalajarachivas", unampumas: "unampumas", pumasunam: "unampumas", tigresuanl: "tigresuanl", uanltigres: "tigresuanl", atleticosanluis: "atlsanluis", queretaro: "queretaro",
 };
@@ -182,4 +185,30 @@ export class FootballData {
     this.forecasts.set(key, result);
     return result;
   }
+}
+
+/** Competition, teams, proposition and 90-minute rules must agree. */
+export function footballMarket(event: import('@polymarket/client').Event, market: import('@polymarket/client').Market, series: ReadonlyMap<string, string>): FootballMarket | undefined {
+  const sport = event.sports.sport;
+  const league = leagues.find((l) => l.id === sport?.sport);
+  const expected = league && series.get(league.id);
+  if (!league || !expected || String(sport?.series) !== expected || !event.series.some((s) => s.id === expected) || excludedCompetition(event) || excludedCompetition(market)) return undefined;
+  if (!event.state.active || event.state.closed || event.state.archived || !market.state.active || market.state.closed || market.state.archived || !market.state.acceptingOrders || !market.state.enableOrderBook || market.version !== 'v1') return undefined;
+  const teams = event.sports.teams;
+  if (teams.length !== 2 || teams.some((t) => t.league !== league.id)) return undefined;
+  const home = teams.filter((t) => t.ordering === 'home'), away = teams.filter((t) => t.ordering === 'away');
+  if (home.length !== 1 || away.length !== 1 || !home[0].name || !away[0].name || teamKey(home[0].name) === teamKey(away[0].name)) return undefined;
+  const startAt = Date.parse(event.schedule.startTime ?? '');
+  if (!Number.isFinite(startAt) || Date.parse(market.sports.gameStartTime ?? '') !== startAt || market.sports.sportsMarketType !== 'moneyline' || market.outcomes.yes?.label?.toLowerCase() !== 'yes' || market.outcomes.no?.label?.toLowerCase() !== 'no') return undefined;
+  const desc = market.description ?? '', group = market.groupItemTitle;
+  if (!desc.includes('first 90 minutes of regular play plus stoppage time')) return undefined;
+  let result: FootballMarket['result'] | undefined;
+  if (group === home[0].name && desc.includes(`If ${home[0].name} wins, this market will resolve to "Yes"`)) result = 'home';
+  if (group === away[0].name && desc.includes(`If ${away[0].name} wins, this market will resolve to "Yes"`)) result = 'away';
+  if (group === `Draw (${home[0].name} vs. ${away[0].name})` && desc.includes('If the game ends in a draw, this market will resolve to "Yes"')) result = 'draw';
+  if (!result) return undefined;
+  return {matchId: `${league.id}:${event.sports.gameId ?? event.parentEventId ?? event.id}`, league: league.id, home: home[0].name, away: away[0].name, startAt, result};
+}
+export function excludedCompetition(value: {tags: {slug?: string | null; label?: string | null}[]; title?: string | null; question?: string | null; series?: {slug?: string | null; title?: string | null}[]}): boolean {
+  return /world.?cup|fifa|mundial|wc.?qualif/i.test([value.title,value.question,...value.tags.flatMap(t=>[t.slug,t.label]),...(value.series ?? []).flatMap(s=>[s.slug,s.title])].join(' '));
 }
