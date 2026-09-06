@@ -108,7 +108,7 @@ export function createDashboard(
         }
         if (
           req.method === "GET" &&
-          /^\/reports\/[a-zA-Z0-9_-]+\/(report\.html|result\.json|trades\.csv)$/.test(
+          /^\/reports\/[a-zA-Z0-9_-]+\/(report\.html|result\.json|trades\.csv|predictions\.csv)$/.test(
             url.pathname,
           )
         ) {

@@ -75,6 +75,17 @@ export function deduplicate(matches: Match[]): Match[] {
   }
   return [...unique.values()].sort((a, b) => a.date - b.date || a.home.localeCompare(b.home) || a.away.localeCompare(b.away));
 }
+export function restoreSources(source: Pick<FootballDataset,"sources"|"checksum"|"verifiedAt">, directory: string): FootballDataset {
+  if (!Array.isArray(source.sources) || !source.sources.length || !Number.isFinite(source.verifiedAt)) throw new Error("Manifiesto de fútbol inválido");
+  const matches=deduplicate(source.sources.flatMap(s=>{
+    if (!/^https:\/\/football-data\.co\.uk\//.test(s.url) || !/^[a-f0-9]{64}$/.test(s.sha256)) throw new Error("Fuente inválida");
+    const raw=readFileSync(resolve(directory,s.sha256+".csv"),"utf8");
+    if (hash(raw) !== s.sha256) throw new Error("Checksum de fuente incorrecto");
+    return parseMatches(raw);
+  }));
+  if (hash(JSON.stringify({matches,sources:source.sources})) !== source.checksum) throw new Error("Checksum del historial incorrecto");
+  return {...source,matches};
+}
 const aliases: Record<string, string> = {
   parma1913: "parma", bologna1909: "bologna", ussassuolo: "sassuolo", uslecce: "lecce", sslazio: "lazio", acffiorentina: "fiorentina", genoacfc: "genoa",
  estroyes: "troyes", staderennais1901: "rennes", olympiquedemarseille: "marseille", hamburgersv: "hamburg", "1fsvmainz05": "mainz", "1unionberlin": "unionberlin", tsg1899hoffenheim: "hoffenheim", bvborussia09dortmund: "dortmund", paderborn07: "paderborn",
@@ -129,15 +140,16 @@ export class FootballData {
   private checkedAt = -Infinity;
   private forecasts = new Map<string, Forecast | undefined>();
   constructor(private directory = resolve(".runtime/football"), private request: typeof fetch = fetch, private now = Date.now) {}
-  async refresh(): Promise<void> {
+  async refresh(firstSeason?: number): Promise<void> {
     if (this.now() - this.checkedAt < 6 * 3600000) return;
     this.checkedAt = this.now();
     mkdirSync(this.directory, { recursive: true, mode: 0o700 });
     const year = new Date(this.now()).getUTCFullYear() - (new Date(this.now()).getUTCMonth() < 6 ? 1 : 0);
+    if (firstSeason !== undefined && (!Number.isInteger(firstSeason) || firstSeason < 2000 || firstSeason > year)) throw new Error("Temporada inválida");
     await Promise.all(leagues.map(async (league) => {
       const file = resolve(this.directory, `${league.id}.json`);
       try {
-        const urls = league.code === "MEX" ? ["https://football-data.co.uk/new/MEX.csv"] : [year - 2, year - 1, year].map((y) => `https://football-data.co.uk/mmz4281/${String(y).slice(-2)}${String(y + 1).slice(-2)}/${league.code}.csv`);
+        const urls = league.code === "MEX" ? ["https://football-data.co.uk/new/MEX.csv"] : Array.from({length:year-(firstSeason ?? year-2)+1},(_,i)=>(firstSeason ?? year-2)+i).map((y) => `https://football-data.co.uk/mmz4281/${String(y).slice(-2)}${String(y + 1).slice(-2)}/${league.code}.csv`);
         const matches: Match[] = [], sources: FootballDataset["sources"] = [];
         for (const url of urls) {
           const response = await this.request(url, { signal: AbortSignal.timeout(15000) });
@@ -155,14 +167,7 @@ export class FootballData {
       } catch {
         if (!this.datasets.has(league.id) && existsSync(file)) {
           try { const cached = JSON.parse(readFileSync(file, "utf8")) as FootballDataset; if (!Number.isFinite(cached.verifiedAt) || cached.verifiedAt > this.now() || cached.checksum !== hash(JSON.stringify({ matches: cached.matches, sources: cached.sources }))) throw new Error();
-            const restored = deduplicate(cached.sources.flatMap((source) => {
-              if (!/^https:\/\/football-data\.co\.uk\//.test(source.url) || !/^[a-f0-9]{64}$/.test(source.sha256)) throw new Error();
-              const raw = readFileSync(resolve(this.directory, source.sha256 + ".csv"), "utf8");
-              if (hash(raw) !== source.sha256) throw new Error();
-              return parseMatches(raw);
-            }));
-            if (JSON.stringify(restored) !== JSON.stringify(cached.matches)) throw new Error();
-            this.datasets.set(league.id, cached); } catch { this.status[league.id] = "Caché inválida"; }
+            this.datasets.set(league.id, restoreSources(cached,this.directory)); } catch { this.status[league.id] = "Caché inválida"; }
         }
         this.status[league.id] = "Fuente no disponible; comprobar antigüedad del historial";
       }

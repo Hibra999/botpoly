@@ -379,7 +379,7 @@ export class Ledger {
       strategy: "yes-no + football-value",
       footballPolicy,
       football: this.store.get<{leagues: Record<string,string>; sources: {league:string;checksum:string;verifiedAt:number;sources:{url:string;sha256:string}[];matches:number}[]}>("meta", "football:status"),
-      footballEvidence: this.store.get("meta", "football:evidence"),
+      footballEvidence: this.store.get<{report:string}>("meta", "football:evidence"),
       config: this.config,
       account: this.account,
       metrics: this.metrics(),

@@ -32,7 +32,8 @@
     "auth:setup": "node --import tsx src/app/auth-setup.ts",
     "paper:status": "node --import tsx src/app/paper-cli.ts",
     "paper:resume": "node --import tsx src/app/paper-cli.ts --resume",
-    "paper:report": "node --import tsx src/app/paper-cli.ts --report"
+    "paper:report": "node --import tsx src/app/paper-cli.ts --report",
+    "football:evaluate": "node --import tsx src/research/football-evaluation-cli.ts"
   },
   "keywords": [
     "polymarket",

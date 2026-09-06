@@ -55,6 +55,7 @@ export function Overview({ data }: { data: Snapshot }) {
         </dl>
         <p className="muted">Compras al precio disponible con profundidad. Una apuesta por partido, máximo 1% por partido y 10% agregado en fútbol. Sin Mundial ni apuestas durante el juego.</p>
         {data.football && <details><summary>Fuentes y disponibilidad de fútbol</summary><ul>{Object.entries(data.football.leagues).map(([league,status])=><li key={league}>{({epl:"Premier League",lal:"LaLiga",bun:"Bundesliga",sea:"Serie A",fl1:"Ligue 1",mex:"Liga MX"} as Record<string,string>)[league] ?? league}: {status}</li>)}</ul></details>}
+        {data.footballEvidence && <p><a href={`/reports/${encodeURIComponent(data.footballEvidence.report)}/report.html`}>Evaluación cronológica del modelo de fútbol</a> · calidad predictiva, sin PnL ni prueba de ejecución.</p>}
         <p className="muted">Libros en tiempo real: {data.observation?.feed?.connected ? "conectados" : "pendientes de conexión"} · {data.observation?.feed?.invalid ?? 0} invalidaciones · {data.observation?.feed?.coalesced ?? 0} cambios agrupados. Se conserva el último libro completo; el archivo contiene muestras.</p>
       </section>
       {data.mode === "paper" && data.observation && (
