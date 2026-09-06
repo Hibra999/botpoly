@@ -18,6 +18,7 @@ export class BookStream {
   private handle?: SubscriptionHandle<MarketEvent>;
   private reading?: Promise<void>;
   private generation = 0;
+  private metadata=new Map<string,Pick<Book,"minSize"|"tickSize"|"timestamp">>();
   constructor(private client: PublicClient, private now=Date.now) {}
   private invalid(condition: string): void {
     for (const [token,id] of this.identities) if (id === condition) this.books.delete(token);
@@ -30,12 +31,13 @@ export class BookStream {
   snapshot(b: OrderBook, receivedAt=this.now()): void {
     const id=this.identities.get(b.assetId), timestamp=Number(b.timestamp);
     if (!id || id !== b.conditionId || !Number.isFinite(timestamp) || timestamp <= 0 || timestamp > receivedAt) throw new Error('Snapshot con identidad o tiempo inválido');
-    const current=this.books.get(b.assetId);
+    const current=this.books.get(b.assetId) ?? this.metadata.get(b.assetId);
     // A response may race a newer websocket update. Never roll depth backwards.
     if (current && timestamp < current.timestamp) return;
     const next:Book={tokenId:b.assetId,hash:b.hash,timestamp,receivedAt,verifiedAt:receivedAt,minSize:Number(b.minOrderSize),tickSize:Number(b.tickSize),bids:levels(b.bids,'BUY'),asks:levels(b.asks,'SELL')};
     if (!Number.isFinite(next.minSize) || next.minSize <= 0 || !Number.isFinite(next.tickSize) || next.tickSize <= 0 || next.tickSize > .1) throw new Error('Metadatos de snapshot inválidos');
     next.hash ||= createHash('sha256').update(JSON.stringify([next.bids,next.asks])).digest('hex');
+    this.metadata.set(b.assetId,{minSize:next.minSize,tickSize:next.tickSize,timestamp:next.timestamp});
     this.books.set(b.assetId,next); this.status.snapshots++; this.changedMarket(id);
   }
   ingest(event: MarketEvent): void {
@@ -64,13 +66,16 @@ export class BookStream {
           next.hash ||= createHash('sha256').update(JSON.stringify([next.bids,next.asks])).digest('hex');
           updates.set(change.assetId,next);
         }
-        for (const [token,b] of updates) this.books.set(token,b);
+        for (const [token,b] of updates) {this.books.set(token,b);this.metadata.set(token,{minSize:b.minSize,tickSize:b.tickSize,timestamp:b.timestamp});}
       } else if (event.type === 'book') {
-        const p=event.payload, old=this.books.get(p.assetId);
-        if (this.identities.get(p.assetId) !== id || !old || time < old.timestamp) throw new Error();
-        this.books.set(p.assetId,{...old,hash:p.hash ?? undefined,timestamp:time,receivedAt,verifiedAt:undefined,bids:levels(p.bids,'BUY'),asks:levels(p.asks,'SELL')});
+        const p=event.payload, old=this.books.get(p.assetId), metadata=this.metadata.get(p.assetId);
+        if (this.identities.get(p.assetId) !== id || !metadata || (time < metadata.timestamp)) throw new Error();
+        const next:Book={...metadata,tokenId:p.assetId,hash:p.hash ?? undefined,timestamp:time,receivedAt,bids:levels(p.bids,'BUY'),asks:levels(p.asks,'SELL')};
+        next.hash ||= createHash('sha256').update(JSON.stringify([next.bids,next.asks])).digest('hex');
+        this.books.set(p.assetId,next);this.metadata.set(p.assetId,{minSize:next.minSize,tickSize:next.tickSize,timestamp:time});
       } else if (event.type === 'tick_size_change') {
-        // A tick message does not verify depth. Require a new complete snapshot.
+        // A tick message does not verify depth. Require a new complete REST snapshot.
+        for (const [token,condition] of this.identities) if (condition === id) this.metadata.delete(token);
         this.invalid(id); return;
       }
       this.changedMarket(id);
@@ -94,14 +99,18 @@ export class BookStream {
       const batch=assetIds.slice(i,i+100);
       try {
         const snapshots=await this.client.fetchOrderBooks(batch.map(assetId=>({assetId})));
-        if (new Set(snapshots.map(b=>b.assetId)).size !== batch.length || snapshots.some(b=>!batch.includes(b.assetId))) throw new Error();
-        for (const b of snapshots) this.snapshot(b);
+        if (new Set(snapshots.map(b=>b.assetId)).size !== snapshots.length || snapshots.some(b=>!batch.includes(b.assetId))) throw new Error();
+        // The API omits assets with no book. Keep valid neighbours and invalidate only missing conditions.
+        for (const token of batch) if (!snapshots.some(b=>b.assetId === token)) this.invalid(this.identities.get(token)!);
+        for (const b of snapshots) {
+          try { this.snapshot(b); } catch { this.invalid(this.identities.get(b.assetId)!); }
+        }
       } catch { for (const token of batch) this.books.delete(token); this.status.invalid++; }
     }
   }
   async close(): Promise<void> {
     this.generation++; this.status.connected=false;
     await this.handle?.close(); await this.reading;
-    this.handle=undefined; this.reading=undefined; this.books.clear(); this.changed.clear();
+    this.handle=undefined; this.reading=undefined; this.books.clear(); this.changed.clear(); this.metadata.clear();
   }
 }

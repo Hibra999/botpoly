@@ -55,3 +55,10 @@ describe('libros completos y flujo acotado',()=>{
     await b.connect(new Map([['y','m']]));expect(b.books.size).toBe(0);b.snapshot(raw());expect(b.books.size).toBe(1);await b.close();expect(b.books.size).toBe(0);
   });
 });
+it('conserva vecinos válidos cuando el lote omite un token y acepta un snapshot WS completo tras invalidación',async()=>{
+ const c={fetchOrderBooks:async()=>[raw()]} as unknown as PublicClient;
+ const b=new BookStream(c,()=>now);b.identities=new Map([['y','m'],['missing','other']]);await b.sync();expect(b.books.has('y')).toBe(true);expect(b.books.has('missing')).toBe(false);
+ b.ingest(change(now+1));expect(b.books.has('y')).toBe(false);
+ b.ingest({topic:'market',type:'book',payload:{conditionId:'m',assetId:'y',timestamp:now,bids:[{price:'.4',size:'3'}],asks:[{price:'.5',size:'4'}],hash:'full'}} as unknown as MarketEvent);
+ expect(b.books.get('y')?.bids[0].size).toBe(3);expect(b.books.get('y')?.verifiedAt).toBeUndefined();
+});

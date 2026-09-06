@@ -71,3 +71,19 @@ describe('fútbol dentro del motor compartido',()=>{
     expect((await paper.execute(o)).status).toBe('confirmed');f.yes.hash='new';expect((await paper.execute({...o,id:'2'})).status).toBe('confirmed');f.yes.hash='yeshash';expect((await paper.execute({...o,id:'3'})).status).toBe('rejected');
   });
 });
+it('una posición histórica cerrada adopta los metadatos de la nueva estrategia',async()=>{
+ const {s,e,f,l}=setup();s.put('positions','yes',{tokenId:'yes',marketId:'m',eventId:'old',underlying:'old',outcome:'YES',quantity:0,cost:0,mark:0,timestamp:f.timestamp,strategy:'yes-no'});
+ await e.process(f);expect(l.positions[0].strategy).toBe('football-value');expect(l.positions[0].football?.matchId).toBe('match');expect(l.metrics().reserved).toBeGreaterThan(0);
+});
+it('una salida incierta retiene posición y reserva durante conciliación, sin reenviar',async()=>{
+ const {f,l,paper,s}=setup();let sells=0;
+ const ex:Executor={mode:'paper',execute:async(o)=>{if(o.side==='BUY')return paper.execute(o);sells++;return {status:'uncertain',fills:[]}},reconcile:async(o)=>o.side==='BUY'?paper.reconcile(o):{status:'uncertain',fills:[]},cancel:async(o)=>paper.cancel(o),merge:(...a)=>paper.merge(...a)};
+ const e=new Engine(l,ex);await e.process(f);const quantity=l.positions[0].quantity;f.yes.hash='sale';f.yes.bids=[{price:.5,size:1000}];await e.process(f);await e.reconcile();await e.process(f);
+ expect(sells).toBe(1);expect(l.positions[0].quantity).toBe(quantity);expect(l.metrics().reserved).toBeGreaterThan(0);expect(s.all('settlements')).toHaveLength(0);expect(()=>e.resume()).toThrow();
+});
+it('retiene canje incierto y lo confirma una sola vez después de reiniciar el motor',async()=>{
+ const {f,l,paper,s}=setup();let submissions=0;
+ const ex:Executor={mode:'paper',execute:o=>paper.execute(o),reconcile:o=>paper.reconcile(o),cancel:o=>paper.cancel(o),merge:(...a)=>paper.merge(...a),redeem:async()=>{submissions++;throw new Error('timeout')},reconcileRedeem:(...a)=>paper.redeem(...a)};
+ const e=new Engine(l,ex);await e.process(f);f.resolution={payouts:[.5,.5],verifiedAt:f.timestamp,source:'mock official source',evidence:'fixed block'};await e.process(f);expect(l.positions).toHaveLength(1);expect(l.account.stop).toContain('Canje');
+ const restarted=new Engine(l,ex);await restarted.process(f);await restarted.process(f);expect(submissions).toBe(1);expect(l.positions).toHaveLength(0);expect(s.all('settlements')).toHaveLength(1);
+});

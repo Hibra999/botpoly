@@ -1,6 +1,6 @@
 import { createPublicClient, type Market, type PublicClient } from '@polymarket/client';
 import { fetchMarketInfo } from '@polymarket/client/actions';
-import { type Frame, type FootballMarket, type Resolution, validateFrame, validateResolution } from '../engine/model.js';
+import { type Frame, type FootballMarket, type Resolution, validateFrame, validateResolution, freshBook } from '../engine/model.js';
 import { FootballData, excludedCompetition, footballMarket, leagues } from '../strategies/football.js';
 import { BookStream } from './book-stream.js';
 export interface GasQuote {
@@ -32,7 +32,7 @@ export function retainMarkets(selected: WatchedMarket[], previous: WatchedMarket
 export class MarketData {
   readonly stream: BookStream;
   readonly football: FootballData;
-  coverage = {inspected:0, selected:0, football:0, forecast:0, retained:0, discoveryErrors:0, metadataFailures:0, limit:5000, activeLimit:200, refreshMs:300000};
+  coverage = {inspected:0, selected:0, football:0, forecast:0, retained:0, discoveryErrors:0, metadataFailures:0, ready:0, limit:5000, activeLimit:200, refreshMs:300000};
   private info = new Map<string,{at:number;data:Awaited<ReturnType<typeof fetchMarketInfo>>}>();
   constructor(private gas: (market: Market)=>Promise<GasQuote|undefined> = async()=>undefined, readonly client: PublicClient = createPublicClient(), football = new FootballData()) {
     this.stream=new BookStream(client); this.football=football;
@@ -98,6 +98,7 @@ export class MarketData {
     for (let i=0;i<markets.length;i+=8) await Promise.all(markets.slice(i,i+8).map(m=>this.marketInfo(m).catch(()=>{this.info.delete(m.conditionId!);this.coverage.metadataFailures++;} )));
     await this.stream.connect(ids);
     await this.stream.sync();
+    this.coverage.ready=markets.filter(m=>[m.outcomes.yes,m.outcomes.no].every(o=>{const b=o?.tokenId && this.stream.books.get(o.tokenId);return b && freshBook(b,Date.now(),5000);})).length;
     for (const id of this.info.keys()) if (!markets.some(m=>m.conditionId === id)) this.info.delete(id);
   }
   async frame(market: WatchedMarket, refresh=true): Promise<Frame> {

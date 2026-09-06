@@ -265,6 +265,7 @@ export class Ledger {
     };
     if (p.quantity > 1e-7 && (p.strategy ?? "yes-no") !== (order.strategy ?? "yes-no")) throw new Error("Posición de otra estrategia");
     if (order.side === "BUY") {
+      if (p.quantity <= 1e-7) Object.assign(p,{strategy:order.strategy ?? "yes-no",pairId:order.pairId,football:order.football,forecast:order.forecast,takeProfit:order.takeProfit,title:order.title,eventId:order.eventId,underlying:order.underlying});
       const cost = money(fill.gross + fill.fees);
       if (cost > a.cash + 1e-6) throw new Error("Saldo inconsistente");
       a.cash = money(a.cash - cost);
@@ -366,7 +367,7 @@ export class Ledger {
       statistics: this.store.all<DailyStatistics>("statistics"),
       observation: this.store.get<{
         markets: number;
-        coverage?: {inspected:number;selected:number;football:number;forecast:number;retained:number;discoveryErrors:number;metadataFailures:number;limit:number;activeLimit:number;refreshMs:number};
+        coverage?: {inspected:number;selected:number;football:number;forecast:number;retained:number;discoveryErrors:number;metadataFailures:number;ready?:number;limit:number;activeLimit:number;refreshMs:number};
         feed?: {connected:boolean;updates:number;coalesced:number;invalid:number;reconnects:number;snapshots:number};
         refreshedAt: number;
         recorded: number;
