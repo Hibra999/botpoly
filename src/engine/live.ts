@@ -15,6 +15,8 @@ import {
   fetchBalanceAllowance,
   prepareMergePositions,
   mergePositions,
+  redeemPositions,
+  prepareRedeemPositions,
 } from "@polymarket/client/actions";
 import { Ledger } from "./ledger.js";
 import {
@@ -25,6 +27,8 @@ import {
   type Settlement,
   fee,
   money,
+  strategyBinding,
+  validateResolution,
 } from "./model.js";
 import type { GasQuote } from "../research/market-data.js";
 
@@ -186,6 +190,8 @@ export class LiveExecutor implements Executor {
     }
   }
   async execute(order: Order): Promise<Execution> {
+    const approved=this.ledger.store.get<ReturnType<typeof strategyBinding>[]>("meta","live:strategies");
+    if (!approved?.some(binding=>JSON.stringify(binding) === JSON.stringify(strategyBinding(order.strategy ?? "yes-no",this.ledger.config)))) throw new Error("Estrategia live sin evidencia vinculada a esta configuración");
     if (Date.now() - this.heartbeatAt > 5000) return uncertain();
     if (this.ledger.store.get("meta", `live:signed:${order.id}`))
       return this.reconcile(order);
@@ -299,7 +305,8 @@ export class LiveExecutor implements Executor {
     if (!market.conditionId) return undefined;
     try {
       // This only advances to the unsigned request; it never signs or submits.
-      const workflow = await prepareMergePositions(this.client, {
+      const directional = this.ledger.positions.some(p=>p.marketId === market.conditionId && p.strategy === "football-value");
+      const workflow = directional ? await prepareRedeemPositions(this.client,{conditionId:market.conditionId}) : await prepareMergePositions(this.client, {
         conditionId: market.conditionId,
         amount: BigInt(
           Math.ceil(Number(market.trading.minimumOrderSize ?? 5) * 1e6),
@@ -308,8 +315,9 @@ export class LiveExecutor implements Executor {
       let step = await workflow.next();
       if (!step.done && step.value.kind === "requestAddress")
         step = await workflow.next(await this.signer.getAddress());
-      if (step.done || step.value.kind !== "sendMergePositionsTransaction")
+      if (step.done || !["sendMergePositionsTransaction", "sendRedeemPositionsTransaction"].includes(step.value.kind))
         return undefined;
+      if (step.done || (step.value.kind !== "sendMergePositionsTransaction" && step.value.kind !== "sendRedeemPositionsTransaction")) return undefined;
       const req = step.value.request;
       const [gas, gasPrice, native] = await Promise.all([
         this.provider.estimateGas({
@@ -354,6 +362,21 @@ export class LiveExecutor implements Executor {
       }
     }
     return this.reconcileMerge(id, frame, quantity);
+  }
+  async redeem(id: string, frame: Frame, quantity: number): Promise<Settlement> {
+    if (!frame.resolution) throw new Error("Canje sin resolución oficial");
+    validateResolution(frame.resolution,Date.now());
+    const approved=this.ledger.store.get<ReturnType<typeof strategyBinding>[]>("meta","live:strategies");
+    if (!approved?.some(b=>JSON.stringify(b) === JSON.stringify(strategyBinding("football-value",this.ledger.config)))) throw new Error("Canje live sin evidencia de fútbol");
+    if (!this.ledger.store.get("meta",`live:tx:${id}`)) {
+      this.mergePermit=id;
+      try { const handle=await redeemPositions(this.client,{conditionId:frame.marketId}); await handle.wait(); }
+      finally { this.mergePermit=null; }
+    }
+    return this.reconcileRedeem(id,frame,quantity);
+  }
+  async reconcileRedeem(id: string, frame: Frame, quantity: number): Promise<Settlement> {
+    return this.reconcileMerge(id,frame,quantity);
   }
   async reconcileMerge(
     id: string,

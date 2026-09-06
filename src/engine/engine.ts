@@ -8,6 +8,7 @@ import {
   type Quote,
   type Reservation,
   money,
+  strategyBinding,
   quote,
   validateFrame,
   freshBook,
@@ -62,6 +63,7 @@ export class Engine {
         m = l.metrics();
       const reject = (reason: string) => this.rejection(reason, frame);
       if (a.stop) return reject(a.stop);
+      if (l.mode === "live" && !s.get<ReturnType<typeof strategyBinding>[]>("meta","live:strategies")?.some(b=>JSON.stringify(b) === JSON.stringify(strategyBinding(frame.football ? "football-value" : "yes-no",c)))) return reject("Estrategia live sin evidencia para esta configuración");
       if (!a.connected) return reject("Sin conexión de mercado");
       if (l.positions.some((p) => p.stale)) return reject("Valoración de posiciones obsoleta");
       if (

@@ -3,7 +3,11 @@ import { LiveExecutor } from "./live.js";
 import { Store } from "./store.js";
 import { Ledger } from "./ledger.js";
 import { defaults, type Order } from "./model.js";
-import { authorizeLive, loadConfig } from "../app/config.js";
+import { authorizeLive, loadConfig, strategyBinding } from "../app/config.js";
+import { mkdtempSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+import { tmpdir } from "node:os";
+import { BigNumber } from "ethers";
 import { OrderType } from "@polymarket/client";
 
 describe("frontera live", () => {
@@ -60,6 +64,7 @@ describe("frontera live", () => {
         mode: "live",
         strategy: "yes-no",
       };
+      store.put("meta", "live:strategies", [strategyBinding("yes-no", defaults)]);
       store.put("orders", order.id, order);
       await expect(live.execute(order)).rejects.toThrow("timeout");
       expect((await live.execute(order)).status).toBe("uncertain");
@@ -71,4 +76,26 @@ describe("frontera live", () => {
       store.close();
     }
   });
+  it("una revisión YES/NO no habilita fútbol ni otra configuración", () => {
+    const directory=mkdtempSync(join(tmpdir(),"botpoly-live-")),file=join(directory,"approval.json");
+    writeFileSync(file,JSON.stringify({schema:1,outOfSampleReviewed:true,executionAndCostsReviewed:true,securityReviewed:true,approvedBy:"test",reportPath:"not-read",reportSha256:"test",strategies:[strategyBinding("yes-no",defaults)]}));
+    expect(()=>authorizeLive({LIVE_ACK:"ACTIVAR_LIVE_CON_RIESGO_REAL",LIVE_EVIDENCE_FILE:file,POLYMARKET_PRIVATE_KEY:"test",POLYGON_RPC_URL:"http://127.0.0.1:1"})).toThrow("ambas estrategias");
+    expect(strategyBinding("football-value",{...defaults,capitalUsd:500})).not.toEqual(strategyBinding("football-value",defaults));
+  });
+  it("canje solo confirma tras recibo con dos confirmaciones y no reenvía", async () => {
+    const store=new Store(":memory:"),ledger=new Ledger(store,"live",defaults);
+    try {
+      const live=Reflect.construct(LiveExecutor,[ledger,"0x"+"1".repeat(64),"http://127.0.0.1:1"]) as LiveExecutor;
+      const receipt={status:1,confirmations:1,gasUsed:BigNumber.from(100000),effectiveGasPrice:BigNumber.from(1000000000)};
+      Object.assign(live,{provider:{getTransactionReceipt:vi.fn(async()=>receipt)},nativeUsd:async()=>1});
+      store.put("meta","live:tx:redeem:test",{hash:"test"});
+      store.put("meta","live:strategies",[strategyBinding("football-value",defaults)]);
+      const frame={marketId:"market",resolution:{payouts:[.5,.5],verifiedAt:Date.now(),source:"test",evidence:"mock-block"}} as import('./model.js').Frame;
+      expect((await live.redeem("redeem:test",frame,5)).status).toBe("uncertain");
+      receipt.confirmations=2;
+      expect((await live.redeem("redeem:test",frame,5)).status).toBe("confirmed");
+      receipt.status=0;expect((await live.reconcileRedeem("redeem:test",frame,5)).status).toBe("rejected");
+    } finally {store.close();}
+  });
+
 });

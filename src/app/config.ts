@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { defaults, validateConfig, type Mode } from "../engine/model.js";
+import { defaults, footballPolicy, strategyBinding, validateConfig, type Mode, type RiskConfig } from "../engine/model.js";
 import { checksum } from "../research/dataset.js";
 import { PaperGas } from "../research/paper-gas.js";
 
@@ -57,9 +57,11 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env) {
     gasMultiplier,
   };
 }
-export function authorizeLive(env: NodeJS.ProcessEnv = process.env): {
+export {strategyBinding} from "../engine/model.js";
+export function authorizeLive(env: NodeJS.ProcessEnv = process.env, config: RiskConfig = defaults): {
   key: string;
   rpc: string;
+  strategies: ReturnType<typeof strategyBinding>[];
 } {
   if (
     env.LIVE_ACK !== "ACTIVAR_LIVE_CON_RIESGO_REAL" ||
@@ -84,10 +86,13 @@ export function authorizeLive(env: NodeJS.ProcessEnv = process.env): {
     typeof approval.reportSha256 !== "string"
   )
     throw new Error("Revisión de live incompleta");
+  const strategies = (["yes-no","football-value"] as const).map(id=>strategyBinding(id,config));
+  if (JSON.stringify(approval.strategies) !== JSON.stringify(strategies)) throw new Error("La evidencia live debe vincular ambas estrategias, versiones y configuración exacta");
   const raw = readFileSync(approval.reportPath),
     result = JSON.parse(raw.toString());
   if (
     checksum(raw) !== approval.reportSha256 ||
+    JSON.stringify(result.strategies) !== JSON.stringify(strategies) ||
     result.manifest?.kind !== "events" ||
     result.manifest?.coverage?.maxGapMs > 1000 ||
     result.manifest?.coverage?.frames < 1000
@@ -107,5 +112,7 @@ export function authorizeLive(env: NodeJS.ProcessEnv = process.env): {
     throw new Error(
       "Evidencia fuera de muestra insuficiente después de costes",
     );
-  return { key: env.POLYMARKET_PRIVATE_KEY, rpc: env.POLYGON_RPC_URL };
+  const football = result.footballProspective;
+  if (approval.footballProspectiveReviewed !== true || football?.strategy !== "football-value" || football?.version !== footballPolicy.version || football?.configSha256 !== strategies[1].configSha256 || !(football?.netPnl > 0) || !(football?.bootstrap95?.[0] > 0) || !(football?.confirmedFills >= 100) || !(football?.officialSettlements > 0) || football?.kind !== "prospective-paper") throw new Error("Fútbol live requiere evidencia prospectiva revisada propia, después de costes");
+  return { key: env.POLYMARKET_PRIVATE_KEY, rpc: env.POLYGON_RPC_URL, strategies };
 }

@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { gunzipSync } from "node:zlib";
 import type { Market } from "@polymarket/client";
+import { strategyBinding } from "../app/config.js";
 import { PaperGas } from "./paper-gas.js";
 import { MarketData, eligibleMarket } from "./market-data.js";
 import { Store } from "../engine/store.js";
@@ -237,6 +238,7 @@ describe("paper durante varios días", () => {
       ) as unknown as Executor;
       const engine = new Engine(ledger, executor);
       engine.health(true);
+      store.put("meta", "live:strategies", [strategyBinding("yes-no", ledger.config)]);
       expect(engine.reserve(f)).toBeNull();
       expect(store.all("orders")).toHaveLength(0);
       expect(ledger.snapshot().events[0].message).toBe("Costes sin verificar");

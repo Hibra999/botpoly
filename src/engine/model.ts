@@ -1,3 +1,4 @@
+import {createHash} from "node:crypto";
 export type Mode = "paper" | "backtest" | "live";
 export type Outcome = "YES" | "NO";
 export type Strategy = "yes-no" | "football-value";
@@ -412,4 +413,8 @@ export interface Metrics {
   dailyPnl: number;
   operationalCapital: number;
   sizeFactor: number;
+}
+
+export function strategyBinding(strategy: Strategy, config: RiskConfig) {
+  return {id:strategy,version:strategy === "football-value" ? footballPolicy.version : "yes-no-depth-v2",configSha256:createHash("sha256").update(JSON.stringify({risk:validateConfig(config),...(strategy === "football-value" ? {footballPolicy} : {})})).digest("hex")};
 }

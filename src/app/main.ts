@@ -22,9 +22,10 @@ export async function main(): Promise<void> {
   if (config.mode === "backtest")
     throw new Error("Usa pnpm backtest con periodo y datos explícitos");
   // Validate live gates before creating any client capable of signing.
-  const approval = config.mode === "live" ? authorizeLive() : undefined;
   const store = new Store(config.database),
     ledger = new Ledger(store, config.mode, config.risk);
+  const approval = config.mode === "live" ? authorizeLive(process.env, ledger.config) : undefined;
+  if (approval) store.put("meta", "live:strategies", approval.strategies);
   const runtime = { startedAt: Date.now(), experimentStartedAt: store.get<{ experimentStartedAt: number }>("meta", "runtime")?.experimentStartedAt ?? Date.now(), version: "botpoly-v3-football", lastEvaluationAt: 0 };
   store.put("meta", "runtime", runtime);
   let live: LiveExecutor | undefined, data: MarketData, executor: Executor;
