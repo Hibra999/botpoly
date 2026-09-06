@@ -26,8 +26,7 @@ export async function main(): Promise<void> {
     ledger = new Ledger(store, config.mode, config.risk);
   const approval = config.mode === "live" ? authorizeLive(process.env, ledger.config) : undefined;
   if (approval) store.put("meta", "live:strategies", approval.strategies);
-  const runtime = { startedAt: Date.now(), experimentStartedAt: store.get<{ experimentStartedAt: number }>("meta", "runtime")?.experimentStartedAt ?? Date.now(), version: "botpoly-v3-football", lastEvaluationAt: 0 };
-  store.put("meta", "runtime", runtime);
+  const runtime = ledger.startRuntime("botpoly-v3-football");
   let live: LiveExecutor | undefined, data: MarketData, executor: Executor;
   if (approval) {
     const { LiveExecutor } = await import("../engine/live.js");

@@ -66,6 +66,15 @@ export class Ledger {
   save(a: Account): void {
     this.store.put("meta", "account", a);
   }
+  startRuntime(version: string) {
+    const startedAt=this.now(), previous=this.store.get<{experimentStartedAt:number}>("meta","runtime");
+    // Old accounts predate runtime metadata. Anchor follow-ups to their first recorded observation.
+    const row=this.store.db.prepare("SELECT MIN(at) AS at FROM (SELECT json_extract(data,'$.timestamp') AS at FROM equity UNION ALL SELECT json_extract(data,'$.timestamp') FROM events UNION ALL SELECT json_extract(data,'$.firstAt') FROM statistics) WHERE at > 0 AND at <= ?").get(startedAt) as {at:number|null};
+    const candidates=[startedAt,row.at,previous?.experimentStartedAt].filter((n):n is number=>typeof n === 'number' && Number.isFinite(n) && n>0 && n<=startedAt);
+    const runtime={startedAt,experimentStartedAt:Math.min(...candidates),lastEvaluationAt:0,version};
+    this.store.put("meta","runtime",runtime);
+    return runtime;
+  }
   cashflow(id: string, amount: number, kind: "deposit" | "withdrawal"): void {
     this.store.transaction(() => {
       if (!id || !Number.isFinite(amount) || amount <= 0)

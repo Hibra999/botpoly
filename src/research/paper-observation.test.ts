@@ -52,6 +52,17 @@ const response = (now: number) =>
   ) as unknown as typeof fetch;
 
 describe("paper durante varios días", () => {
+  it("ancla seguimientos al historial anterior a runtime y conserva el origen al reiniciar",()=>{
+    const s=new Store(':memory:');let now=Date.UTC(2026,8,6);
+    try {
+      const l=new Ledger(s,'paper',defaults,()=>now);
+      expect(l.startRuntime('v3').experimentStartedAt).toBe(now);
+      const original=now-86400000;
+      s.put('events','first',{timestamp:original});s.put('equity','later',{timestamp:original+100});s.put('events','future',{timestamp:now+86400000});
+      expect(l.startRuntime('v3').experimentStartedAt).toBe(original);
+      now+=3600000;const restarted=l.startRuntime('v4');expect(restarted.startedAt).toBe(now);expect(restarted.experimentStartedAt).toBe(original);expect(l.account.initialCapital).toBe(1000);
+    } finally {s.close()}
+  });
   it("no reutiliza liquidez del mismo libro ni repite fills después de reiniciar", async () => {
     const store = new Store(":memory:");
     try {
