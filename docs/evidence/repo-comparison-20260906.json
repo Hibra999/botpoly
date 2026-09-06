@@ -1,0 +1,119 @@
+{
+  "schema": 1,
+  "kind": "static-repository-comparison",
+  "reviewedAt": "2026-09-06T05:04:07.213931+00:00",
+  "botpolyRevision": "39a3fbe3025c022d4590c530bd027abc23c3bf4e",
+  "externalFiles": [
+    {
+      "repo": "warproxxx/poly-maker",
+      "commit": "4f32103591c9582ccd012bdf10f77d86e5879444",
+      "file": "src/polymaker/strategy/estimators.py",
+      "sha256": "545a0d8dcf9febe60f1e25b72af46326990abc0f1870adfac4c2bc1d7eb33b5e",
+      "bytes": 6310
+    },
+    {
+      "repo": "warproxxx/poly-maker",
+      "commit": "4f32103591c9582ccd012bdf10f77d86e5879444",
+      "file": "src/polymaker/strategy/quoting.py",
+      "sha256": "f62427525f7e41ee84b9294c55a96a2a6e9c83dd21615cf5a6a5e6c520e2b141",
+      "bytes": 9661
+    },
+    {
+      "repo": "pontiggia/poly-bot",
+      "commit": "d335edd9c3ce8f1d14968aa2245028d6f9780683",
+      "file": "src/strategy/arbitrage.rs",
+      "sha256": "427e2b5f52d10bb56314253ff5cc2fe1ae2fefd3e75c7c7e0a9b08914611a37a",
+      "bytes": 19627
+    },
+    {
+      "repo": "pontiggia/poly-bot",
+      "commit": "d335edd9c3ce8f1d14968aa2245028d6f9780683",
+      "file": "src/strategy/edge_calculator.rs",
+      "sha256": "ccec3b457eb26cd24459327faf88b320fc9b54934f20b18ced93ae481cc4a7f6",
+      "bytes": 15660
+    },
+    {
+      "repo": "jpmouracodex/football-mle",
+      "commit": "51494de7912e3b7135ed9491f07c937b9466ea44",
+      "file": "README.md",
+      "sha256": "a9082debe71808f98c3d4546a1eb8f8945348e619ba58c2e81365c11a3f1f28c",
+      "bytes": 8413
+    },
+    {
+      "repo": "jpmouracodex/football-mle",
+      "commit": "51494de7912e3b7135ed9491f07c937b9466ea44",
+      "file": "football_mle/dixon_coles.py",
+      "sha256": "5ed541b727c1967997b535150d3db3e0554d39bc9c54b9c9e84d311f9577f97d",
+      "bytes": 2575
+    }
+  ],
+  "paper": {
+    "source": "reports/paper-performance-request-20260906T0452/result.json",
+    "sha256": "549a5c217172c93ba59cd49289f30d93ebece20c7d10174f58d2b4853316fbc2",
+    "manifestSha256": "cca6dd0f33be2d8f99a611c42d00257396cf3eda04ece2c16dba57980a218505",
+    "from": 1788307200000,
+    "to": 1788670371789,
+    "observationStartedAt": 1788590543983,
+    "initialCapitalUsd": 1000,
+    "config": {
+      "capitalUsd": 1000,
+      "dailyLossPct": 0.02,
+      "maxDrawdownPct": 0.1,
+      "eventExposurePct": 0.1,
+      "totalExposurePct": 0.3,
+      "unhedgedLossPct": 0.01,
+      "minNetProfitUsd": 0.02,
+      "maxSlippageBps": 50,
+      "maxDataAgeMs": 5000,
+      "maxErrors": 3,
+      "maxCostUsd": 1
+    },
+    "footballPolicy": {
+      "version": "poisson-clubs-v1",
+      "minEdge": 0.05,
+      "kelly": 0.25,
+      "matchExposure": 0.01,
+      "totalExposure": 0.1,
+      "takeProfit": 0.1,
+      "minMatches": 10,
+      "shrinkMatches": 5,
+      "historyDays": 730
+    },
+    "metrics": {
+      "equity": 990.87866,
+      "available": 901.260272,
+      "reserved": 0.203958,
+      "exposure": 98.739728,
+      "unrealized": -9.12134,
+      "netPnl": -9.12134,
+      "drawdown": 0.00912134,
+      "dailyPnl": -9.12134,
+      "operationalCapital": 990.87866,
+      "sizeFactor": 0.9087866
+    },
+    "feesUsd": 2.67237,
+    "gasUsd": 0,
+    "fills": 11,
+    "openPositions": 11,
+    "settlements": 0,
+    "limitations": [
+      "Evaluación prospectiva paper. Los fills son simulados sobre profundidad observada; no se enviaron órdenes reales.",
+      "Gas: unidades supuestas × precio fast de Polygon Gas Station × POL/USD × margen. No es eth_estimateGas ni una confirmación on-chain.",
+      "Descubrimiento de hasta 5.000 mercados y observación de hasta 200, hasta 100 de fútbol; renovación cada cinco minutos. Las posiciones pendientes conservan cobertura adicional.",
+      "Snapshots completos REST y cambios WebSocket con coalescencia. Se archivan muestras cada 10 segundos por mercado y snapshots usados para ejecución; no es un archivo completo de eventos ni una prueba de prioridad de cola.",
+      "Fútbol: Poisson con datos gratuitos por lotes, 1/4 Kelly, ventaja neta mínima 5 pp, 1% por partido y 10% agregado. Salida al 10% neto ejecutable o resolución oficial CTF. No hay nuevas apuestas durante el juego ni probabilidades in-play.",
+      "El PnL y los costes mostrados son acumulados de esta cuenta. Las observaciones, fills y motivos de rechazo corresponden a los días UTC seleccionados.",
+      "Cero operaciones es un resultado posible; no se relajan los límites para fabricar actividad. No demuestra rentabilidad live."
+    ]
+  },
+  "predictiveEvidence": {
+    "docs/evidence/football-20260906.json": "b049edf94d2dd484e1cfe55602f9cf5b06640bde259f892b5af8e53a76f79ed7",
+    "docs/evidence/football-20260906-manifest.json": "eca61cdfa18eadb75a9cee8795e61cc4ccade0da0475e22f8fae711300823b50"
+  },
+  "limitations": [
+    "Lectura estática de archivos; no se ejecutaron ni auditaron integralmente los proyectos externos.",
+    "Las ideas propuestas no se han evaluado como nuevas variantes ni demuestran mejora de rendimiento.",
+    "El periodo histórico de evaluación ya fue observado; una selección nueva requiere nueva evidencia independiente.",
+    "Datos de paper simulados sobre libros públicos; no hay órdenes reales ni beneficios realizados en esta muestra."
+  ]
+}
