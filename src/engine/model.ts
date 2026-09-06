@@ -8,6 +8,8 @@ export interface Book {
   tokenId: string;
   hash?: string;
   timestamp: number;
+  /** Time of a complete, validated REST snapshot. Does not replace source time. */
+  verifiedAt?: number;
   bids: Level[];
   asks: Level[];
   minSize: number;
@@ -108,6 +110,9 @@ export function validateConfig(input: unknown): RiskConfig {
   return cfg;
 }
 export const money = (n: number): number => Math.round(n * 1e6) / 1e6;
+export const bookTime = (book: Book): number => book.verifiedAt ?? book.timestamp;
+export const freshBook = (book: Book, now: number, age: number): boolean =>
+  book.timestamp <= now && bookTime(book) <= now && now - bookTime(book) <= age;
 export const fee = (q: number, p: number, rate: number): number =>
   Math.round(q * rate * p * (1 - p) * 1e5) / 1e5;
 export interface Quote {
@@ -202,6 +207,9 @@ export function validateFrame(input: unknown): Frame {
   ] as const)
     if (typeof f[key] !== "boolean") throw new Error(`Dato inválido: ${key}`);
   for (const book of [f.yes, f.no]) {
+    if (book?.verifiedAt !== undefined &&
+      (!Number.isFinite(book.verifiedAt) || book.verifiedAt < book.timestamp || book.verifiedAt > f.timestamp))
+      throw new Error("Verificación de libro inválida");
     if (
       book?.hash !== undefined &&
       (typeof book.hash !== "string" || !book.hash || book.hash.length > 256)
@@ -279,6 +287,7 @@ export interface Position {
   cost: number;
   mark: number;
   timestamp: number;
+  stale?: boolean;
 }
 export interface Execution {
   status: "confirmed" | "rejected" | "uncertain" | "not_found";

@@ -7,6 +7,7 @@ import {
   quote,
   money,
   validateFrame,
+  freshBook,
 } from "./model.js";
 import type { Store } from "./store.js";
 type Consumed = { hash: string; quantities: Record<string, number> };
@@ -80,8 +81,7 @@ export class PaperExecutor implements Executor {
     }
     const book = order.outcome === "YES" ? frame.yes : frame.no;
     if (
-      book.timestamp > this.now() ||
-      this.now() - book.timestamp > this.maxDataAgeMs
+      !freshBook(book, this.now(), this.maxDataAgeMs)
     ) {
       this.remember(order.id, reject);
       return reject;

@@ -10,6 +10,7 @@ import {
   money,
   quote,
   validateFrame,
+  freshBook,
 } from "./model.js";
 
 const terminal = (o: Order) =>
@@ -60,6 +61,7 @@ export class Engine {
       const reject = (reason: string) => this.rejection(reason, frame);
       if (a.stop) return reject(a.stop);
       if (!a.connected) return reject("Sin conexión de mercado");
+      if (l.positions.some((p) => p.stale)) return reject("Valoración de posiciones obsoleta");
       if (
         s
           .all<Order>("orders")
@@ -75,9 +77,8 @@ export class Engine {
       )
         return reject("Costes sin verificar");
       if (
-        [frame.timestamp, frame.yes.timestamp, frame.no.timestamp].some(
-          (t) => l.now() < t || l.now() - t > c.maxDataAgeMs,
-        )
+        frame.timestamp > l.now() || l.now() - frame.timestamp > c.maxDataAgeMs ||
+        [frame.yes, frame.no].some((b) => !freshBook(b, l.now(), c.maxDataAgeMs))
       )
         return reject("Datos obsoletos o futuros");
       if (m.available < -1e-6 || !Number.isFinite(m.equity)) {
@@ -154,8 +155,25 @@ export class Engine {
         if (quotes(mid)) lo = mid;
         else hi = mid;
       }
-      const quantity = Math.floor(lo * 100) / 100,
-        q = quotes(quantity);
+      // Net return is piecewise linear between depth boundaries. Inspect these
+      // boundaries as well as the maximum affordable size, not just the latter.
+      const candidates = new Set([minimum, Math.floor(lo * 100) / 100]);
+      for (const b of [frame.yes, frame.no]) {
+        let depth = 0;
+        for (const level of [...b.asks].sort((a, b) => a.price - b.price)) {
+          depth += level.size;
+          const size = Math.floor(Math.min(depth, lo) * 100) / 100;
+          if (size >= minimum) candidates.add(size);
+        }
+      }
+      let quantity = minimum, best = -Infinity;
+      for (const size of candidates) {
+        const pair = quotes(size);
+        if (!pair) continue;
+        const net = size - pair[0].gross - pair[1].gross - pair[0].fees - pair[1].fees - frame.mergeGasUsd;
+        if (net > best) { best = net; quantity = size; }
+      }
+      const q = quotes(quantity);
       if (!q || quantity < minimum) return reject("Tamaño inferior al mínimo");
       const cost = money(q[0].gross + q[1].gross + q[0].fees + q[1].fees);
       if (quantity - cost - frame.mergeGasUsd < c.minNetProfitUsd)
@@ -186,6 +204,7 @@ export class Engine {
       } satisfies Reservation);
       s.put("meta", `signal:${pairId}`, frame);
       orders.forEach((o) => s.put("orders", o.id, o));
+      l.count("accepted");
       l.event(
         "reserved",
         `Reserva conjunta US$${money(cost + gasReserve)}`,
@@ -193,7 +212,6 @@ export class Engine {
       );
       return orders;
     });
-    l.count("accepted");
   }
   private apply(order: Order, result: Execution): Order {
     const l = this.ledger;
@@ -340,7 +358,7 @@ export class Engine {
         l.metrics().operationalCapital * l.config.unhedgedLossPct;
       if (
         !exit ||
-        l.now() - book.timestamp > l.config.maxDataAgeMs ||
+        !freshBook(book, l.now(), l.config.maxDataAgeMs) ||
         p.cost - exit.gross + exit.fees + frame.recoveryGasUsd > lossBudget
       ) {
         l.stop("Pata sin cobertura: salida fuera del presupuesto");

@@ -12,6 +12,8 @@ import {
   type RiskConfig,
   money,
   quote,
+  bookTime,
+  freshBook,
 } from "./model.js";
 import { Store } from "./store.js";
 export interface DailyStatistics {
@@ -184,12 +186,14 @@ export class Ledger {
     for (const p of this.positions) {
       if (frame && p.marketId === frame.marketId) {
         const b = p.outcome === "YES" ? frame.yes : frame.no;
-        const exit = quote(b.bids, p.quantity, frame.feeRate, "SELL");
-        // No executable depth means no assumed salvage value.
-        p.mark = exit ? money(exit.gross - exit.fees) : 0;
-        p.timestamp = b.timestamp;
+        if (freshBook(b, this.now(), this.config.maxDataAgeMs)) {
+          const exit = quote(b.bids, p.quantity, frame.feeRate, "SELL");
+          // A verified empty book has no executable salvage value.
+          p.mark = exit ? money(exit.gross - exit.fees) : 0;
+          p.timestamp = bookTime(b);
+        }
       }
-      if (this.now() - p.timestamp > this.config.maxDataAgeMs) p.mark = 0;
+      p.stale = p.timestamp > this.now() || this.now() - p.timestamp > this.config.maxDataAgeMs;
       this.store.put("positions", p.tokenId, p);
     }
     const a = this.account;
@@ -249,6 +253,7 @@ export class Ledger {
       if (cost > a.cash + 1e-6) throw new Error("Saldo inconsistente");
       a.cash = money(a.cash - cost);
       p.cost = money(p.cost + cost);
+      p.mark = money(p.mark + cost);
       p.quantity = money(p.quantity + fill.quantity);
       const r = this.store.get<Reservation>("reservations", order.pairId);
       if (!r || cost > r.remaining + 1e-6)

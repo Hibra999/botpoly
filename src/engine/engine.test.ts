@@ -91,6 +91,35 @@ function setup(
   };
 }
 describe("reservas, ejecuciones y contabilidad", () => {
+  it("cuenta aceptaciones una sola vez dentro de la reserva", () => {
+    const { f, engine, s } = setup();
+    expect(engine.reserve(f)).toHaveLength(2);
+    expect(engine.reserve(f)).toBeNull();
+    expect(s.all<{ counts: Record<string, number> }>("statistics")[0].counts.accepted).toBe(1);
+  });
+  it("conserva un tamaño rentable aunque agotar el presupuesto pierda dinero", () => {
+    const { f, engine, l, s } = setup();
+    s.put("meta", "config", { ...l.config, maxSlippageBps: 1000 });
+    f.feeRate = 0;
+    for (const b of [f.yes, f.no]) b.asks = [{ price: 0.49, size: 5 }, { price: 0.51, size: 1000 }];
+    expect(engine.reserve(f)?.map((o) => o.quantity)).toEqual([5, 5]);
+  });
+  it("conserva la última valoración obsoleta y bloquea nuevas entradas", () => {
+    const { f, engine, l, advance } = setup();
+    const order = engine.reserve(f)![0];
+    l.store.transaction(() => l.fill(order, { id: "stale-fill", orderId: order.id, quantity: 5, gross: 2.2, fees: 0.01, timestamp: f.timestamp }));
+    l.mark(f);
+    const pnl = l.metrics().netPnl;
+    advance(10000);
+    l.mark();
+    expect(l.metrics().netPnl).toBe(pnl);
+    expect(l.positions[0].stale).toBe(true);
+    expect(engine.reserve({ ...f, id: "later" })).toBeNull();
+    f.timestamp += 10000;
+    for (const book of [f.yes, f.no]) book.verifiedAt = f.timestamp;
+    l.mark(f);
+    expect(l.positions[0].stale).toBe(false);
+  });
   it("no atribuye beneficios a una señal; contabiliza solo fills y fusión", async () => {
     const { f, l, engine } = setup();
     const orders = engine.reserve(f)!;
