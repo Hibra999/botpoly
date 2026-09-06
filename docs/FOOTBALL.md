@@ -101,3 +101,7 @@ El dashboard en español muestra cobertura, fuentes, última evaluación, uptime
 Live exige activación explícita, revisión humana, checksum del informe y vínculos exactos `strategyBinding` de ambas estrategias/configuraciones. Se rechazan cobertura/fills ausentes, tipos incorrectos, números no finitos, conteos no enteros, intervalos incompletos/invertidos y fills inválidos o duplicados. Fútbol requiere evidencia propia `prospective-paper`, 100 fills confirmados como mínimo, liquidaciones oficiales y resultado/intervalo netos positivos. Ni esta evaluación retrospectiva ni un fixture sintético lo cumplen.
 
 El adaptador live solo tiene pruebas de frontera simuladas. Continúa pendiente su revisión operativa independiente de firmas, recibos, comisiones, heartbeat y gas; no se han realizado pruebas con fondos. Paper y backtest no importan el adaptador de firma. No existe activación live en dashboard o Telegram.
+
+## Comparación de modelos y calibración por liga
+
+La [comparación cronológica y su protocolo](IMPROVEMENTS.md) evalúan Poisson, recencia y corrección Dixon–Coles condicional, con calibración por liga y cobertura de cada variante. La mejora agregada observada es pequeña y sigue por detrás de las cuotas de cierre. El modelo de producción y sus límites paper permanecen en `poisson-clubs-v1`; la evidencia predictiva no aprueba un nuevo dimensionamiento ni live. Reproducción: `pnpm football:compare --manifest docs/evidence/football-20260906-manifest.json --out reports/NOMBRE-NUEVO`.

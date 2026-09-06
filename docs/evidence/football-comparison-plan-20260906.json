@@ -1,0 +1,47 @@
+{
+  "schema": 1,
+  "kind": "fixed-football-comparison-plan",
+  "declaredOn": "2026-09-06",
+  "sourceManifest": "docs/evidence/football-20260906-manifest.json",
+  "trials": [
+    {
+      "id": "poisson-clubs-v1",
+      "halfLifeDays": null,
+      "correction": false
+    },
+    {
+      "id": "poisson-recency-365",
+      "halfLifeDays": 365,
+      "correction": false
+    },
+    {
+      "id": "poisson-dc-correction",
+      "halfLifeDays": null,
+      "correction": true
+    },
+    {
+      "id": "poisson-recency-365-dc",
+      "halfLifeDays": 365,
+      "correction": true
+    }
+  ],
+  "historyDays": 730,
+  "minimumMatchesPerTeam": 10,
+  "shrinkMatches": 5,
+  "rhoBounds": [
+    -0.2,
+    0.2
+  ],
+  "rhoFit": "Conditional weighted likelihood with fixed shrunk Poisson rates; bisection to 1e-10, positive tau cells required. Refit using only dates strictly before each prediction day.",
+  "calibration": "League, model, period, outcome and fixed probability deciles; sample sizes and Wilson intervals. Bins below 30 observations flagged descriptive-only.",
+  "comparison": "All four declared variants retained. Primary comparison uses identical matches across variants; own coverage and paired closing-odds coverage also retained.",
+  "limitations": [
+    "The original baseline evaluation for 2025/26 was already observed before this comparison. This is chronological retrospective research, not an untouched selection holdout.",
+    "Dixon-Coles correction is conditional on existing Poisson rate estimates; this does not reproduce the external repository's joint maximum-likelihood attack/defence fit.",
+    "No hyperparameter search or automatic production model selection. Probabilities are not PnL; no Polymarket execution, fees or gas are measured by these result CSVs.",
+    "Candidate calibration and sizing are unapproved; production retains poisson-clubs-v1 and its existing paper limits."
+  ],
+  "liveEligible": false,
+  "candidateSizingApproved": false,
+  "minimumLowScoresForCorrection": 20
+}

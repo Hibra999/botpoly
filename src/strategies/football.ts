@@ -105,24 +105,40 @@ export function matchTeam(name: string, teams: string[]): string | undefined {
   return matches.length === 1 ? matches[0] : undefined;
 }
 export function poisson(matches: Match[], home: string, away: string, before: number): { home: number; draw: number; away: number; sampleSize: number } | undefined {
+  const rates = fitGoalRates(matches, before)(home, away);
+  return rates ? {...scoreProbabilities(rates.lh, rates.la)!, sampleSize: rates.sampleSize} : undefined;
+}
+/** Optional recency is used by offline research; production retains uniform weights. */
+export function fitGoalRates(matches: Match[], before: number, halfLifeDays = Infinity) {
+  if (!Number.isFinite(before) || !(halfLifeDays > 0)) throw new Error('Ventana de ajuste inválida');
   const played = matches.filter((m) => m.date < before && m.date >= before - footballPolicy.historyDays * 86400000);
-  const totals = new Map<string, { n: number; scored: number; conceded: number }>();
-  let homeGoals = 0, awayGoals = 0;
+  const totals = new Map<string, { n: number; weight: number; scored: number; conceded: number }>();
+  let homeGoals = 0, awayGoals = 0, weight = 0;
   for (const m of played) {
-    homeGoals += m.hg; awayGoals += m.ag;
+    const w = Math.exp(-Math.LN2 * (before - m.date) / (halfLifeDays * 86400000));
+    homeGoals += w * m.hg; awayGoals += w * m.ag; weight += w;
     for (const [team, scored, conceded] of [[m.home, m.hg, m.ag], [m.away, m.ag, m.hg]] as const) {
-      const t = totals.get(team) ?? { n: 0, scored: 0, conceded: 0 };
-      t.n++; t.scored += scored; t.conceded += conceded; totals.set(team, t);
+      const t = totals.get(team) ?? { n: 0, weight: 0, scored: 0, conceded: 0 };
+      t.n++; t.weight += w; t.scored += w * scored; t.conceded += w * conceded; totals.set(team, t);
     }
   }
+  return (home: string, away: string) => {
   const h = totals.get(home), a = totals.get(away);
   if (!h || !a || Math.min(h.n, a.n) < footballPolicy.minMatches || !homeGoals || !awayGoals) return undefined;
-  const base = (homeGoals + awayGoals) / (2 * played.length), k = footballPolicy.shrinkMatches;
-  const rate = (t: typeof h, kind: "scored" | "conceded") => (t[kind] + k * base) / ((t.n + k) * base);
+  const base = (homeGoals + awayGoals) / (2 * weight), k = footballPolicy.shrinkMatches;
+  const rate = (t: typeof h, kind: "scored" | "conceded") => (t[kind] + k * base) / ((t.weight + k) * base);
   const local = Math.sqrt(homeGoals / awayGoals);
   const lh = base * rate(h, "scored") * rate(a, "conceded") * local;
   const la = base * rate(a, "scored") * rate(h, "conceded") / local;
   if (![lh, la].every((n) => Number.isFinite(n) && n > 0 && n <= 10)) return undefined;
+  return {lh, la, sampleSize: Math.min(h.n, a.n)};
+  };
+}
+/** Dixon–Coles low-score correction; reject impossible cells instead of clipping them. */
+export function scoreProbabilities(lh: number, la: number, rho = 0) {
+  if (![lh, la].every(n => Number.isFinite(n) && n > 0 && n <= 10) || !Number.isFinite(rho)) return undefined;
+  const tau = [1-lh*la*rho, 1+lh*rho, 1+la*rho, 1-rho];
+  if (tau.some(t => t <= 0)) return undefined;
   const probabilities = (lambda: number) => {
     const p = [Math.exp(-lambda)]; let sum = p[0];
     for (let n = 1; n < 100 && 1 - sum > 1e-10; n++) { p.push(p[n - 1] * lambda / n); sum += p[n]; }
@@ -130,9 +146,9 @@ export function poisson(matches: Match[], home: string, away: string, before: nu
   };
   const ph = probabilities(lh), pa = probabilities(la);
   let homeP = 0, draw = 0, awayP = 0;
-  ph.forEach((h, i) => pa.forEach((a, j) => { if (i > j) homeP += h * a; else if (i === j) draw += h * a; else awayP += h * a; }));
+  ph.forEach((h, i) => pa.forEach((a, j) => { const p = h * a * (i < 2 && j < 2 ? tau[i*2+j] : 1); if (i > j) homeP += p; else if (i === j) draw += p; else awayP += p; }));
   const total = homeP + draw + awayP;
-  return { home: homeP / total, draw: draw / total, away: awayP / total, sampleSize: Math.min(h.n, a.n) };
+  return { home: homeP / total, draw: draw / total, away: awayP / total };
 }
 export class FootballData {
   datasets = new Map<string, FootballDataset>();

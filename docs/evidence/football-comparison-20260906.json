@@ -1,0 +1,2761 @@
+{
+  "schema": 1,
+  "kind": "football-model-comparison",
+  "capturedAt": 1788675696382,
+  "status": "exploratorio",
+  "liveEligible": false,
+  "candidateSizingApproved": false,
+  "policy": {
+    "version": "poisson-clubs-v1",
+    "selection": "best-net-executable-v1",
+    "minEdge": 0.05,
+    "kelly": 0.25,
+    "matchExposure": 0.01,
+    "totalExposure": 0.1,
+    "takeProfit": 0.1,
+    "minMatches": 10,
+    "shrinkMatches": 5,
+    "historyDays": 730
+  },
+  "periods": {
+    "development": {
+      "from": 1688169600000,
+      "to": 1751328000000
+    },
+    "evaluation": {
+      "from": 1751328000000,
+      "to": 1782864000000
+    }
+  },
+  "trials": [
+    {
+      "id": "poisson-clubs-v1",
+      "halfLifeDays": null,
+      "correction": false
+    },
+    {
+      "id": "poisson-recency-365",
+      "halfLifeDays": 365,
+      "correction": false
+    },
+    {
+      "id": "poisson-dc-correction",
+      "halfLifeDays": null,
+      "correction": true
+    },
+    {
+      "id": "poisson-recency-365-dc",
+      "halfLifeDays": 365,
+      "correction": true
+    }
+  ],
+  "coverage": [
+    {
+      "league": "mex",
+      "period": "development",
+      "model": "poisson-clubs-v1",
+      "eligible": 680,
+      "predicted": 680,
+      "insufficientHistory": 0,
+      "insufficientCorrection": 0,
+      "invalidCorrection": 0
+    },
+    {
+      "league": "mex",
+      "period": "development",
+      "model": "poisson-dc-correction",
+      "eligible": 680,
+      "predicted": 680,
+      "insufficientHistory": 0,
+      "insufficientCorrection": 0,
+      "invalidCorrection": 0
+    },
+    {
+      "league": "mex",
+      "period": "development",
+      "model": "poisson-recency-365",
+      "eligible": 680,
+      "predicted": 680,
+      "insufficientHistory": 0,
+      "insufficientCorrection": 0,
+      "invalidCorrection": 0
+    },
+    {
+      "league": "mex",
+      "period": "development",
+      "model": "poisson-recency-365-dc",
+      "eligible": 680,
+      "predicted": 680,
+      "insufficientHistory": 0,
+      "insufficientCorrection": 0,
+      "invalidCorrection": 0
+    },
+    {
+      "league": "mex",
+      "period": "evaluation",
+      "model": "poisson-clubs-v1",
+      "eligible": 336,
+      "predicted": 336,
+      "insufficientHistory": 0,
+      "insufficientCorrection": 0,
+      "invalidCorrection": 0
+    },
+    {
+      "league": "mex",
+      "period": "evaluation",
+      "model": "poisson-dc-correction",
+      "eligible": 336,
+      "predicted": 336,
+      "insufficientHistory": 0,
+      "insufficientCorrection": 0,
+      "invalidCorrection": 0
+    },
+    {
+      "league": "mex",
+      "period": "evaluation",
+      "model": "poisson-recency-365",
+      "eligible": 336,
+      "predicted": 336,
+      "insufficientHistory": 0,
+      "insufficientCorrection": 0,
+      "invalidCorrection": 0
+    },
+    {
+      "league": "mex",
+      "period": "evaluation",
+      "model": "poisson-recency-365-dc",
+      "eligible": 336,
+      "predicted": 336,
+      "insufficientHistory": 0,
+      "insufficientCorrection": 0,
+      "invalidCorrection": 0
+    },
+    {
+      "league": "fl1",
+      "period": "development",
+      "model": "poisson-clubs-v1",
+      "eligible": 612,
+      "predicted": 492,
+      "insufficientHistory": 120,
+      "insufficientCorrection": 0,
+      "invalidCorrection": 0
+    },
+    {
+      "league": "fl1",
+      "period": "development",
+      "model": "poisson-dc-correction",
+      "eligible": 612,
+      "predicted": 492,
+      "insufficientHistory": 120,
+      "insufficientCorrection": 0,
+      "invalidCorrection": 0
+    },
+    {
+      "league": "fl1",
+      "period": "development",
+      "model": "poisson-recency-365",
+      "eligible": 612,
+      "predicted": 492,
+      "insufficientHistory": 120,
+      "insufficientCorrection": 0,
+      "invalidCorrection": 0
+    },
+    {
+      "league": "fl1",
+      "period": "development",
+      "model": "poisson-recency-365-dc",
+      "eligible": 612,
+      "predicted": 492,
+      "insufficientHistory": 120,
+      "insufficientCorrection": 0,
+      "invalidCorrection": 0
+    },
+    {
+      "league": "fl1",
+      "period": "evaluation",
+      "model": "poisson-clubs-v1",
+      "eligible": 306,
+      "predicted": 296,
+      "insufficientHistory": 10,
+      "insufficientCorrection": 0,
+      "invalidCorrection": 0
+    },
+    {
+      "league": "fl1",
+      "period": "evaluation",
+      "model": "poisson-dc-correction",
+      "eligible": 306,
+      "predicted": 296,
+      "insufficientHistory": 10,
+      "insufficientCorrection": 0,
+      "invalidCorrection": 0
+    },
+    {
+      "league": "fl1",
+      "period": "evaluation",
+      "model": "poisson-recency-365",
+      "eligible": 306,
+      "predicted": 296,
+      "insufficientHistory": 10,
+      "insufficientCorrection": 0,
+      "invalidCorrection": 0
+    },
+    {
+      "league": "fl1",
+      "period": "evaluation",
+      "model": "poisson-recency-365-dc",
+      "eligible": 306,
+      "predicted": 296,
+      "insufficientHistory": 10,
+      "insufficientCorrection": 0,
+      "invalidCorrection": 0
+    },
+    {
+      "league": "epl",
+      "period": "development",
+      "model": "poisson-clubs-v1",
+      "eligible": 760,
+      "predicted": 633,
+      "insufficientHistory": 127,
+      "insufficientCorrection": 0,
+      "invalidCorrection": 0
+    },
+    {
+      "league": "epl",
+      "period": "development",
+      "model": "poisson-dc-correction",
+      "eligible": 760,
+      "predicted": 633,
+      "insufficientHistory": 127,
+      "insufficientCorrection": 0,
+      "invalidCorrection": 0
+    },
+    {
+      "league": "epl",
+      "period": "development",
+      "model": "poisson-recency-365",
+      "eligible": 760,
+      "predicted": 633,
+      "insufficientHistory": 127,
+      "insufficientCorrection": 0,
+      "invalidCorrection": 0
+    },
+    {
+      "league": "epl",
+      "period": "development",
+      "model": "poisson-recency-365-dc",
+      "eligible": 760,
+      "predicted": 633,
+      "insufficientHistory": 127,
+      "insufficientCorrection": 0,
+      "invalidCorrection": 0
+    },
+    {
+      "league": "epl",
+      "period": "evaluation",
+      "model": "poisson-clubs-v1",
+      "eligible": 380,
+      "predicted": 360,
+      "insufficientHistory": 20,
+      "insufficientCorrection": 0,
+      "invalidCorrection": 0
+    },
+    {
+      "league": "epl",
+      "period": "evaluation",
+      "model": "poisson-dc-correction",
+      "eligible": 380,
+      "predicted": 360,
+      "insufficientHistory": 20,
+      "insufficientCorrection": 0,
+      "invalidCorrection": 0
+    },
+    {
+      "league": "epl",
+      "period": "evaluation",
+      "model": "poisson-recency-365",
+      "eligible": 380,
+      "predicted": 360,
+      "insufficientHistory": 20,
+      "insufficientCorrection": 0,
+      "invalidCorrection": 0
+    },
+    {
+      "league": "epl",
+      "period": "evaluation",
+      "model": "poisson-recency-365-dc",
+      "eligible": 380,
+      "predicted": 360,
+      "insufficientHistory": 20,
+      "insufficientCorrection": 0,
+      "invalidCorrection": 0
+    },
+    {
+      "league": "sea",
+      "period": "development",
+      "model": "poisson-clubs-v1",
+      "eligible": 760,
+      "predicted": 631,
+      "insufficientHistory": 129,
+      "insufficientCorrection": 0,
+      "invalidCorrection": 0
+    },
+    {
+      "league": "sea",
+      "period": "development",
+      "model": "poisson-dc-correction",
+      "eligible": 760,
+      "predicted": 631,
+      "insufficientHistory": 129,
+      "insufficientCorrection": 0,
+      "invalidCorrection": 0
+    },
+    {
+      "league": "sea",
+      "period": "development",
+      "model": "poisson-recency-365",
+      "eligible": 760,
+      "predicted": 631,
+      "insufficientHistory": 129,
+      "insufficientCorrection": 0,
+      "invalidCorrection": 0
+    },
+    {
+      "league": "sea",
+      "period": "development",
+      "model": "poisson-recency-365-dc",
+      "eligible": 760,
+      "predicted": 631,
+      "insufficientHistory": 129,
+      "insufficientCorrection": 0,
+      "invalidCorrection": 0
+    },
+    {
+      "league": "sea",
+      "period": "evaluation",
+      "model": "poisson-clubs-v1",
+      "eligible": 380,
+      "predicted": 360,
+      "insufficientHistory": 20,
+      "insufficientCorrection": 0,
+      "invalidCorrection": 0
+    },
+    {
+      "league": "sea",
+      "period": "evaluation",
+      "model": "poisson-dc-correction",
+      "eligible": 380,
+      "predicted": 360,
+      "insufficientHistory": 20,
+      "insufficientCorrection": 0,
+      "invalidCorrection": 0
+    },
+    {
+      "league": "sea",
+      "period": "evaluation",
+      "model": "poisson-recency-365",
+      "eligible": 380,
+      "predicted": 360,
+      "insufficientHistory": 20,
+      "insufficientCorrection": 0,
+      "invalidCorrection": 0
+    },
+    {
+      "league": "sea",
+      "period": "evaluation",
+      "model": "poisson-recency-365-dc",
+      "eligible": 380,
+      "predicted": 360,
+      "insufficientHistory": 20,
+      "insufficientCorrection": 0,
+      "invalidCorrection": 0
+    },
+    {
+      "league": "bun",
+      "period": "development",
+      "model": "poisson-clubs-v1",
+      "eligible": 612,
+      "predicted": 502,
+      "insufficientHistory": 110,
+      "insufficientCorrection": 0,
+      "invalidCorrection": 0
+    },
+    {
+      "league": "bun",
+      "period": "development",
+      "model": "poisson-dc-correction",
+      "eligible": 612,
+      "predicted": 486,
+      "insufficientHistory": 110,
+      "insufficientCorrection": 16,
+      "invalidCorrection": 0
+    },
+    {
+      "league": "bun",
+      "period": "development",
+      "model": "poisson-recency-365",
+      "eligible": 612,
+      "predicted": 502,
+      "insufficientHistory": 110,
+      "insufficientCorrection": 0,
+      "invalidCorrection": 0
+    },
+    {
+      "league": "bun",
+      "period": "development",
+      "model": "poisson-recency-365-dc",
+      "eligible": 612,
+      "predicted": 486,
+      "insufficientHistory": 110,
+      "insufficientCorrection": 16,
+      "invalidCorrection": 0
+    },
+    {
+      "league": "bun",
+      "period": "evaluation",
+      "model": "poisson-clubs-v1",
+      "eligible": 306,
+      "predicted": 296,
+      "insufficientHistory": 10,
+      "insufficientCorrection": 0,
+      "invalidCorrection": 0
+    },
+    {
+      "league": "bun",
+      "period": "evaluation",
+      "model": "poisson-dc-correction",
+      "eligible": 306,
+      "predicted": 296,
+      "insufficientHistory": 10,
+      "insufficientCorrection": 0,
+      "invalidCorrection": 0
+    },
+    {
+      "league": "bun",
+      "period": "evaluation",
+      "model": "poisson-recency-365",
+      "eligible": 306,
+      "predicted": 296,
+      "insufficientHistory": 10,
+      "insufficientCorrection": 0,
+      "invalidCorrection": 0
+    },
+    {
+      "league": "bun",
+      "period": "evaluation",
+      "model": "poisson-recency-365-dc",
+      "eligible": 306,
+      "predicted": 296,
+      "insufficientHistory": 10,
+      "insufficientCorrection": 0,
+      "invalidCorrection": 0
+    },
+    {
+      "league": "lal",
+      "period": "development",
+      "model": "poisson-clubs-v1",
+      "eligible": 760,
+      "predicted": 631,
+      "insufficientHistory": 129,
+      "insufficientCorrection": 0,
+      "invalidCorrection": 0
+    },
+    {
+      "league": "lal",
+      "period": "development",
+      "model": "poisson-dc-correction",
+      "eligible": 760,
+      "predicted": 631,
+      "insufficientHistory": 129,
+      "insufficientCorrection": 0,
+      "invalidCorrection": 0
+    },
+    {
+      "league": "lal",
+      "period": "development",
+      "model": "poisson-recency-365",
+      "eligible": 760,
+      "predicted": 631,
+      "insufficientHistory": 129,
+      "insufficientCorrection": 0,
+      "invalidCorrection": 0
+    },
+    {
+      "league": "lal",
+      "period": "development",
+      "model": "poisson-recency-365-dc",
+      "eligible": 760,
+      "predicted": 631,
+      "insufficientHistory": 129,
+      "insufficientCorrection": 0,
+      "invalidCorrection": 0
+    },
+    {
+      "league": "lal",
+      "period": "evaluation",
+      "model": "poisson-clubs-v1",
+      "eligible": 380,
+      "predicted": 353,
+      "insufficientHistory": 27,
+      "insufficientCorrection": 0,
+      "invalidCorrection": 0
+    },
+    {
+      "league": "lal",
+      "period": "evaluation",
+      "model": "poisson-dc-correction",
+      "eligible": 380,
+      "predicted": 353,
+      "insufficientHistory": 27,
+      "insufficientCorrection": 0,
+      "invalidCorrection": 0
+    },
+    {
+      "league": "lal",
+      "period": "evaluation",
+      "model": "poisson-recency-365",
+      "eligible": 380,
+      "predicted": 353,
+      "insufficientHistory": 27,
+      "insufficientCorrection": 0,
+      "invalidCorrection": 0
+    },
+    {
+      "league": "lal",
+      "period": "evaluation",
+      "model": "poisson-recency-365-dc",
+      "eligible": 380,
+      "predicted": 353,
+      "insufficientHistory": 27,
+      "insufficientCorrection": 0,
+      "invalidCorrection": 0
+    }
+  ],
+  "sources": [
+    {
+      "league": "mex",
+      "verifiedAt": 1788664748702,
+      "checksum": "1dd33d70392aa99a41793461e2e3d6e2465e447193e7dfcfd182db012ba5f455",
+      "sources": [
+        {
+          "url": "https://football-data.co.uk/new/MEX.csv",
+          "sha256": "b7362c91682fa79572ad3c7a9edde5f9b88affa8dc388813a9f4ec573d2d81d6"
+        }
+      ]
+    },
+    {
+      "league": "fl1",
+      "verifiedAt": 1788664748912,
+      "checksum": "6ffb4bdb261c4e18639f13de2378be8cb79f8d595176a60abb787ef53f7eada7",
+      "sources": [
+        {
+          "url": "https://football-data.co.uk/mmz4281/2324/F1.csv",
+          "sha256": "ca0a4bf51d5b1ccfd0e1558ea41de6bb829df6c96c759888a87248d296d5adb7"
+        },
+        {
+          "url": "https://football-data.co.uk/mmz4281/2425/F1.csv",
+          "sha256": "f1cf48edf42cc28b9675f1aa801f60a74214d672892fc2ee3adc5ea5a5b374fa"
+        },
+        {
+          "url": "https://football-data.co.uk/mmz4281/2526/F1.csv",
+          "sha256": "806b1dd80e002707abd0c01f124c6554522af40ed4e54315f7b034a475c23217"
+        },
+        {
+          "url": "https://football-data.co.uk/mmz4281/2627/F1.csv",
+          "sha256": "7fa9ed3abda5097f4fd40d6cd4d2968bb7f8446ab583fadb1a4e470a18caf95f"
+        }
+      ]
+    },
+    {
+      "league": "epl",
+      "verifiedAt": 1788664749013,
+      "checksum": "c47f1f3498046a0a5a5229d57fb8b2eb5bce747d3a66a4f133ae3af6ad799b92",
+      "sources": [
+        {
+          "url": "https://football-data.co.uk/mmz4281/2324/E0.csv",
+          "sha256": "b2e057b0ed959f198b0f63d2391c01239f3608e6de5db68edab3f88e04d07ff3"
+        },
+        {
+          "url": "https://football-data.co.uk/mmz4281/2425/E0.csv",
+          "sha256": "a0fb4e281b6f0e0fce66ac4c6bca53e54686d2db6054b5eb49b90decf161c12f"
+        },
+        {
+          "url": "https://football-data.co.uk/mmz4281/2526/E0.csv",
+          "sha256": "25b1ecbf34c961fbe9a3a3b3bf906a6c7cf76121d4605ed11a1106cc4d15de7f"
+        },
+        {
+          "url": "https://football-data.co.uk/mmz4281/2627/E0.csv",
+          "sha256": "d785fc0dc1dcd88586103bfa1abb59723e7a1e9d4e349ae7a233e9c46f465dac"
+        }
+      ]
+    },
+    {
+      "league": "sea",
+      "verifiedAt": 1788664749024,
+      "checksum": "7b5d2ae2d18074869938b22884a5f4e284b762bead5e8779723a9e4f36edbae0",
+      "sources": [
+        {
+          "url": "https://football-data.co.uk/mmz4281/2324/I1.csv",
+          "sha256": "343a89db026fe4204ebeabd663cdfee8d02a45457828fc1cb63fa630ca170723"
+        },
+        {
+          "url": "https://football-data.co.uk/mmz4281/2425/I1.csv",
+          "sha256": "0973077b99e9f7cba60fa80b8c2ed0c1326fd4950a6243b3fa213f6b51c0c205"
+        },
+        {
+          "url": "https://football-data.co.uk/mmz4281/2526/I1.csv",
+          "sha256": "bafbf14aacd7e764bc1fd65ec382cfd4c0bf7038523b065a56dd46b4ac477d49"
+        },
+        {
+          "url": "https://football-data.co.uk/mmz4281/2627/I1.csv",
+          "sha256": "20f9e76b93602cf881b32127e18e55e11ba1ad134a52a4e8da080cd6b4ce8901"
+        }
+      ]
+    },
+    {
+      "league": "bun",
+      "verifiedAt": 1788664749374,
+      "checksum": "ba182ac9476210d6ca8e23138deaaa6a81bcb73ab9777c0c5209a3d683a9924f",
+      "sources": [
+        {
+          "url": "https://football-data.co.uk/mmz4281/2324/D1.csv",
+          "sha256": "1de8bc12a133dbbf71bc6ffda62082642f087f61b1b7c15ae9f2d320876fb07e"
+        },
+        {
+          "url": "https://football-data.co.uk/mmz4281/2425/D1.csv",
+          "sha256": "daf239ba83b6fba815a3bd5879e7111f3723e6bb1e64fa484399a20b32c4cb2e"
+        },
+        {
+          "url": "https://football-data.co.uk/mmz4281/2526/D1.csv",
+          "sha256": "db8306fcb4aa2ace9048f0423ef54271c560d58f5381e0591f2bc7b2a1882037"
+        },
+        {
+          "url": "https://football-data.co.uk/mmz4281/2627/D1.csv",
+          "sha256": "291ab012acc2954237452effe54e2776738e2ef0a6b4e3ba7509ff1e5d851590"
+        }
+      ]
+    },
+    {
+      "league": "lal",
+      "verifiedAt": 1788664749387,
+      "checksum": "af1f1493df44f8fa97ab99efa63c0cc6d0b8125273bf07706b3674f243c65488",
+      "sources": [
+        {
+          "url": "https://football-data.co.uk/mmz4281/2324/SP1.csv",
+          "sha256": "5323f596c7ed318e4bce95557a369d809d98501fa499ea5f41350cd45cf3c7d9"
+        },
+        {
+          "url": "https://football-data.co.uk/mmz4281/2425/SP1.csv",
+          "sha256": "caf6feffad03388a5d681c3210130b15f329b5e23195298428d0d0568e922364"
+        },
+        {
+          "url": "https://football-data.co.uk/mmz4281/2526/SP1.csv",
+          "sha256": "5c0e49a163785fcc62fc424942500421d77c8d7c51e7159d1c9c0cad7d1d775f"
+        },
+        {
+          "url": "https://football-data.co.uk/mmz4281/2627/SP1.csv",
+          "sha256": "72e3bfd84ae8d89a5d9766e9bb8d79da42c4fe6156941b2e2ce45119ae70c741"
+        }
+      ]
+    }
+  ],
+  "protocol": {
+    "schema": 1,
+    "kind": "fixed-football-comparison-plan",
+    "declaredOn": "2026-09-06",
+    "sourceManifest": "docs/evidence/football-20260906-manifest.json",
+    "trials": [
+      {
+        "id": "poisson-clubs-v1",
+        "halfLifeDays": null,
+        "correction": false
+      },
+      {
+        "id": "poisson-recency-365",
+        "halfLifeDays": 365,
+        "correction": false
+      },
+      {
+        "id": "poisson-dc-correction",
+        "halfLifeDays": null,
+        "correction": true
+      },
+      {
+        "id": "poisson-recency-365-dc",
+        "halfLifeDays": 365,
+        "correction": true
+      }
+    ],
+    "historyDays": 730,
+    "minimumMatchesPerTeam": 10,
+    "shrinkMatches": 5,
+    "rhoBounds": [
+      -0.2,
+      0.2
+    ],
+    "rhoFit": "Conditional weighted likelihood with fixed shrunk Poisson rates; bisection to 1e-10, positive tau cells required. Refit using only dates strictly before each prediction day.",
+    "calibration": "League, model, period, outcome and fixed probability deciles; sample sizes and Wilson intervals. Bins below 30 observations flagged descriptive-only.",
+    "comparison": "All four declared variants retained. Primary comparison uses identical matches across variants; own coverage and paired closing-odds coverage also retained.",
+    "limitations": [
+      "The original baseline evaluation for 2025/26 was already observed before this comparison. This is chronological retrospective research, not an untouched selection holdout.",
+      "Dixon-Coles correction is conditional on existing Poisson rate estimates; this does not reproduce the external repository's joint maximum-likelihood attack/defence fit.",
+      "No hyperparameter search or automatic production model selection. Probabilities are not PnL; no Polymarket execution, fees or gas are measured by these result CSVs.",
+      "Candidate calibration and sizing are unapproved; production retains poisson-clubs-v1 and its existing paper limits."
+    ],
+    "liveEligible": false,
+    "candidateSizingApproved": false,
+    "minimumLowScoresForCorrection": 20
+  },
+  "protocolSha256": "f77a2715cc8b168ec7fe4cfd9d9e8613db00b66386cea088e6ad745be2402d71",
+  "sourceManifestSha256": "eca61cdfa18eadb75a9cee8795e61cc4ccade0da0475e22f8fae711300823b50",
+  "codeHashes": {
+    "src/strategies/football.ts": "8f8a80afd12009c00e6cbdef920ea5f74a224ac505988b3555f780c596598af1",
+    "src/research/football-comparison.ts": "ab27a0ffcfa2ed720105b705273dae6198d9df84eb76588f7f3822589bdc551c",
+    "src/research/football-comparison-cli.ts": "9fa7ba43b0d82b2158b83655bf26830e57a9ae831f311fb10ff1f878dcd135f7"
+  },
+  "costs": {
+    "pnl": null,
+    "fees": null,
+    "gas": null,
+    "reason": "Solo resultados deportivos; sin órdenes ni costes ejecutables de Polymarket."
+  },
+  "limitations": [
+    "The original baseline evaluation for 2025/26 was already observed before this comparison. This is chronological retrospective research, not an untouched selection holdout.",
+    "Dixon-Coles correction is conditional on existing Poisson rate estimates; this does not reproduce the external repository's joint maximum-likelihood attack/defence fit.",
+    "No hyperparameter search or automatic production model selection. Probabilities are not PnL; no Polymarket execution, fees or gas are measured by these result CSVs.",
+    "Candidate calibration and sizing are unapproved; production retains poisson-clubs-v1 and its existing paper limits.",
+    "Las fechas son días UTC: se excluyen resultados del mismo día y posteriores. El proveedor no acredita publicación histórica intradía ni revisiones.",
+    "Calibración sobre casos comunes; intervalos Wilson marginales descriptivos sin ajuste por comparaciones múltiples ni dependencia entre partidos. Un bin con al menos 30 observaciones tampoco autoriza tamaño de apuestas.",
+    "Rho ajustado por liga y día con al menos 20 marcadores bajos; intensidades fijas del estimador Poisson regularizado. Los casos insuficientes o con corrección imposible quedan en cobertura."
+  ],
+  "attribution": [
+    {
+      "url": "https://football-data.co.uk/data.php",
+      "use": "Resultados y cuotas, sujetos a condiciones del proveedor; CSV originales conservados por checksum."
+    },
+    {
+      "url": "https://github.com/jpmouracodex/football-mle/blob/51494de7912e3b7135ed9491f07c937b9466ea44/football_mle/likelihood.py",
+      "use": "Referencia primaria para tau y pesos temporales. Implementación propia de corrección condicional, sin importar ni ejecutar ese código."
+    }
+  ],
+  "report": "reports/football-comparison-20260906",
+  "manifest": {
+    "schema": 1,
+    "kind": "football-model-comparison",
+    "capturedAt": 1788675696382,
+    "periods": {
+      "development": {
+        "from": 1688169600000,
+        "to": 1751328000000
+      },
+      "evaluation": {
+        "from": 1751328000000,
+        "to": 1782864000000
+      }
+    },
+    "sources": [
+      {
+        "league": "mex",
+        "verifiedAt": 1788664748702,
+        "checksum": "1dd33d70392aa99a41793461e2e3d6e2465e447193e7dfcfd182db012ba5f455",
+        "sources": [
+          {
+            "url": "https://football-data.co.uk/new/MEX.csv",
+            "sha256": "b7362c91682fa79572ad3c7a9edde5f9b88affa8dc388813a9f4ec573d2d81d6"
+          }
+        ]
+      },
+      {
+        "league": "fl1",
+        "verifiedAt": 1788664748912,
+        "checksum": "6ffb4bdb261c4e18639f13de2378be8cb79f8d595176a60abb787ef53f7eada7",
+        "sources": [
+          {
+            "url": "https://football-data.co.uk/mmz4281/2324/F1.csv",
+            "sha256": "ca0a4bf51d5b1ccfd0e1558ea41de6bb829df6c96c759888a87248d296d5adb7"
+          },
+          {
+            "url": "https://football-data.co.uk/mmz4281/2425/F1.csv",
+            "sha256": "f1cf48edf42cc28b9675f1aa801f60a74214d672892fc2ee3adc5ea5a5b374fa"
+          },
+          {
+            "url": "https://football-data.co.uk/mmz4281/2526/F1.csv",
+            "sha256": "806b1dd80e002707abd0c01f124c6554522af40ed4e54315f7b034a475c23217"
+          },
+          {
+            "url": "https://football-data.co.uk/mmz4281/2627/F1.csv",
+            "sha256": "7fa9ed3abda5097f4fd40d6cd4d2968bb7f8446ab583fadb1a4e470a18caf95f"
+          }
+        ]
+      },
+      {
+        "league": "epl",
+        "verifiedAt": 1788664749013,
+        "checksum": "c47f1f3498046a0a5a5229d57fb8b2eb5bce747d3a66a4f133ae3af6ad799b92",
+        "sources": [
+          {
+            "url": "https://football-data.co.uk/mmz4281/2324/E0.csv",
+            "sha256": "b2e057b0ed959f198b0f63d2391c01239f3608e6de5db68edab3f88e04d07ff3"
+          },
+          {
+            "url": "https://football-data.co.uk/mmz4281/2425/E0.csv",
+            "sha256": "a0fb4e281b6f0e0fce66ac4c6bca53e54686d2db6054b5eb49b90decf161c12f"
+          },
+          {
+            "url": "https://football-data.co.uk/mmz4281/2526/E0.csv",
+            "sha256": "25b1ecbf34c961fbe9a3a3b3bf906a6c7cf76121d4605ed11a1106cc4d15de7f"
+          },
+          {
+            "url": "https://football-data.co.uk/mmz4281/2627/E0.csv",
+            "sha256": "d785fc0dc1dcd88586103bfa1abb59723e7a1e9d4e349ae7a233e9c46f465dac"
+          }
+        ]
+      },
+      {
+        "league": "sea",
+        "verifiedAt": 1788664749024,
+        "checksum": "7b5d2ae2d18074869938b22884a5f4e284b762bead5e8779723a9e4f36edbae0",
+        "sources": [
+          {
+            "url": "https://football-data.co.uk/mmz4281/2324/I1.csv",
+            "sha256": "343a89db026fe4204ebeabd663cdfee8d02a45457828fc1cb63fa630ca170723"
+          },
+          {
+            "url": "https://football-data.co.uk/mmz4281/2425/I1.csv",
+            "sha256": "0973077b99e9f7cba60fa80b8c2ed0c1326fd4950a6243b3fa213f6b51c0c205"
+          },
+          {
+            "url": "https://football-data.co.uk/mmz4281/2526/I1.csv",
+            "sha256": "bafbf14aacd7e764bc1fd65ec382cfd4c0bf7038523b065a56dd46b4ac477d49"
+          },
+          {
+            "url": "https://football-data.co.uk/mmz4281/2627/I1.csv",
+            "sha256": "20f9e76b93602cf881b32127e18e55e11ba1ad134a52a4e8da080cd6b4ce8901"
+          }
+        ]
+      },
+      {
+        "league": "bun",
+        "verifiedAt": 1788664749374,
+        "checksum": "ba182ac9476210d6ca8e23138deaaa6a81bcb73ab9777c0c5209a3d683a9924f",
+        "sources": [
+          {
+            "url": "https://football-data.co.uk/mmz4281/2324/D1.csv",
+            "sha256": "1de8bc12a133dbbf71bc6ffda62082642f087f61b1b7c15ae9f2d320876fb07e"
+          },
+          {
+            "url": "https://football-data.co.uk/mmz4281/2425/D1.csv",
+            "sha256": "daf239ba83b6fba815a3bd5879e7111f3723e6bb1e64fa484399a20b32c4cb2e"
+          },
+          {
+            "url": "https://football-data.co.uk/mmz4281/2526/D1.csv",
+            "sha256": "db8306fcb4aa2ace9048f0423ef54271c560d58f5381e0591f2bc7b2a1882037"
+          },
+          {
+            "url": "https://football-data.co.uk/mmz4281/2627/D1.csv",
+            "sha256": "291ab012acc2954237452effe54e2776738e2ef0a6b4e3ba7509ff1e5d851590"
+          }
+        ]
+      },
+      {
+        "league": "lal",
+        "verifiedAt": 1788664749387,
+        "checksum": "af1f1493df44f8fa97ab99efa63c0cc6d0b8125273bf07706b3674f243c65488",
+        "sources": [
+          {
+            "url": "https://football-data.co.uk/mmz4281/2324/SP1.csv",
+            "sha256": "5323f596c7ed318e4bce95557a369d809d98501fa499ea5f41350cd45cf3c7d9"
+          },
+          {
+            "url": "https://football-data.co.uk/mmz4281/2425/SP1.csv",
+            "sha256": "caf6feffad03388a5d681c3210130b15f329b5e23195298428d0d0568e922364"
+          },
+          {
+            "url": "https://football-data.co.uk/mmz4281/2526/SP1.csv",
+            "sha256": "5c0e49a163785fcc62fc424942500421d77c8d7c51e7159d1c9c0cad7d1d775f"
+          },
+          {
+            "url": "https://football-data.co.uk/mmz4281/2627/SP1.csv",
+            "sha256": "72e3bfd84ae8d89a5d9766e9bb8d79da42c4fe6156941b2e2ce45119ae70c741"
+          }
+        ]
+      }
+    ],
+    "protocolSha256": "f77a2715cc8b168ec7fe4cfd9d9e8613db00b66386cea088e6ad745be2402d71",
+    "codeHashes": {
+      "src/strategies/football.ts": "8f8a80afd12009c00e6cbdef920ea5f74a224ac505988b3555f780c596598af1",
+      "src/research/football-comparison.ts": "ab27a0ffcfa2ed720105b705273dae6198d9df84eb76588f7f3822589bdc551c",
+      "src/research/football-comparison-cli.ts": "9fa7ba43b0d82b2158b83655bf26830e57a9ae831f311fb10ff1f878dcd135f7"
+    },
+    "files": {
+      "result.json": "a75cab30aea55c1d775f5d127343c4c774150b3f55ec111009f1d22540f97a82",
+      "predictions.csv": "3ecd87ee8abb08d62ddb777e778035352e67ef1d101d25c6148e912ce0c75c82",
+      "report.html": "0a9d26ee97661cd303530e41339d807db851e1d37dea7c81953cea0fcabaec00"
+    }
+  },
+  "rows": 22248,
+  "fits": 3968,
+  "rhoBoundaryFits": 85,
+  "summary": [
+    {
+      "period": "development",
+      "league": "all",
+      "model": "poisson-clubs-v1",
+      "ownCoverage": {
+        "n": 3569,
+        "brier": 0.5912427795312087,
+        "logLoss": 0.9904028743632336
+      },
+      "commonCases": {
+        "n": 3553,
+        "brier": 0.5914847889615954,
+        "logLoss": 0.9907070211981268
+      },
+      "modelWithClosing": {
+        "n": 3553,
+        "brier": 0.5914847889615954,
+        "logLoss": 0.9907070211981268
+      },
+      "closingReference": {
+        "n": 3553,
+        "brier": 0.5732364540842604,
+        "logLoss": 0.9642780793908996
+      },
+      "sizingApproved": false,
+      "calibrationSummary": {
+        "populatedBins": 23,
+        "binsWithAtLeast30": 21,
+        "meanAbsoluteGap": 0.017105334646483856,
+        "forecastOutsideMarginalWilson95": 1,
+        "maximumAbsoluteGapInBinsWith30": 0.06696930092607374
+      }
+    },
+    {
+      "period": "development",
+      "league": "all",
+      "model": "poisson-recency-365",
+      "ownCoverage": {
+        "n": 3569,
+        "brier": 0.5902411337948522,
+        "logLoss": 0.9892194375278118
+      },
+      "commonCases": {
+        "n": 3553,
+        "brier": 0.5904608786387682,
+        "logLoss": 0.9894910319377627
+      },
+      "modelWithClosing": {
+        "n": 3553,
+        "brier": 0.5904608786387682,
+        "logLoss": 0.9894910319377627
+      },
+      "closingReference": {
+        "n": 3553,
+        "brier": 0.5732364540842604,
+        "logLoss": 0.9642780793908996
+      },
+      "sizingApproved": false,
+      "calibrationSummary": {
+        "populatedBins": 23,
+        "binsWithAtLeast30": 20,
+        "meanAbsoluteGap": 0.0195800961172014,
+        "forecastOutsideMarginalWilson95": 4,
+        "maximumAbsoluteGapInBinsWith30": 0.07309133871878351
+      }
+    },
+    {
+      "period": "development",
+      "league": "all",
+      "model": "poisson-dc-correction",
+      "ownCoverage": {
+        "n": 3553,
+        "brier": 0.5911295064895924,
+        "logLoss": 0.989658297496767
+      },
+      "commonCases": {
+        "n": 3553,
+        "brier": 0.5911295064895924,
+        "logLoss": 0.989658297496767
+      },
+      "modelWithClosing": {
+        "n": 3553,
+        "brier": 0.5911295064895924,
+        "logLoss": 0.989658297496767
+      },
+      "closingReference": {
+        "n": 3553,
+        "brier": 0.5732364540842604,
+        "logLoss": 0.9642780793908996
+      },
+      "sizingApproved": false,
+      "calibrationSummary": {
+        "populatedBins": 24,
+        "binsWithAtLeast30": 20,
+        "meanAbsoluteGap": 0.010942917935934668,
+        "forecastOutsideMarginalWilson95": 0,
+        "maximumAbsoluteGapInBinsWith30": 0.04981653663682961
+      }
+    },
+    {
+      "period": "development",
+      "league": "all",
+      "model": "poisson-recency-365-dc",
+      "ownCoverage": {
+        "n": 3553,
+        "brier": 0.5901928552099598,
+        "logLoss": 0.9884553340226898
+      },
+      "commonCases": {
+        "n": 3553,
+        "brier": 0.5901928552099598,
+        "logLoss": 0.9884553340226898
+      },
+      "modelWithClosing": {
+        "n": 3553,
+        "brier": 0.5901928552099598,
+        "logLoss": 0.9884553340226898
+      },
+      "closingReference": {
+        "n": 3553,
+        "brier": 0.5732364540842604,
+        "logLoss": 0.9642780793908996
+      },
+      "sizingApproved": false,
+      "calibrationSummary": {
+        "populatedBins": 24,
+        "binsWithAtLeast30": 20,
+        "meanAbsoluteGap": 0.011613821940790222,
+        "forecastOutsideMarginalWilson95": 0,
+        "maximumAbsoluteGapInBinsWith30": 0.054220798386961366
+      }
+    },
+    {
+      "period": "development",
+      "league": "mex",
+      "model": "poisson-clubs-v1",
+      "ownCoverage": {
+        "n": 680,
+        "brier": 0.5980430872178127,
+        "logLoss": 1.0021970326818148
+      },
+      "commonCases": {
+        "n": 680,
+        "brier": 0.5980430872178127,
+        "logLoss": 1.0021970326818148
+      },
+      "modelWithClosing": {
+        "n": 680,
+        "brier": 0.5980430872178127,
+        "logLoss": 1.0021970326818148
+      },
+      "closingReference": {
+        "n": 680,
+        "brier": 0.5853592660330958,
+        "logLoss": 0.9827003568263531
+      },
+      "sizingApproved": false,
+      "calibrationSummary": {
+        "populatedBins": 18,
+        "binsWithAtLeast30": 12,
+        "meanAbsoluteGap": 0.033255903818575426,
+        "forecastOutsideMarginalWilson95": 0,
+        "maximumAbsoluteGapInBinsWith30": 0.07494566727211804
+      }
+    },
+    {
+      "period": "development",
+      "league": "mex",
+      "model": "poisson-recency-365",
+      "ownCoverage": {
+        "n": 680,
+        "brier": 0.5955113773532384,
+        "logLoss": 0.9985557673081364
+      },
+      "commonCases": {
+        "n": 680,
+        "brier": 0.5955113773532384,
+        "logLoss": 0.9985557673081364
+      },
+      "modelWithClosing": {
+        "n": 680,
+        "brier": 0.5955113773532384,
+        "logLoss": 0.9985557673081364
+      },
+      "closingReference": {
+        "n": 680,
+        "brier": 0.5853592660330958,
+        "logLoss": 0.9827003568263531
+      },
+      "sizingApproved": false,
+      "calibrationSummary": {
+        "populatedBins": 18,
+        "binsWithAtLeast30": 12,
+        "meanAbsoluteGap": 0.03381506261245391,
+        "forecastOutsideMarginalWilson95": 1,
+        "maximumAbsoluteGapInBinsWith30": 0.1658317663871054
+      }
+    },
+    {
+      "period": "development",
+      "league": "mex",
+      "model": "poisson-dc-correction",
+      "ownCoverage": {
+        "n": 680,
+        "brier": 0.5977432695601173,
+        "logLoss": 1.001464025324635
+      },
+      "commonCases": {
+        "n": 680,
+        "brier": 0.5977432695601173,
+        "logLoss": 1.001464025324635
+      },
+      "modelWithClosing": {
+        "n": 680,
+        "brier": 0.5977432695601173,
+        "logLoss": 1.001464025324635
+      },
+      "closingReference": {
+        "n": 680,
+        "brier": 0.5853592660330958,
+        "logLoss": 0.9827003568263531
+      },
+      "sizingApproved": false,
+      "calibrationSummary": {
+        "populatedBins": 18,
+        "binsWithAtLeast30": 13,
+        "meanAbsoluteGap": 0.026229911382342163,
+        "forecastOutsideMarginalWilson95": 0,
+        "maximumAbsoluteGapInBinsWith30": 0.105373234539824
+      }
+    },
+    {
+      "period": "development",
+      "league": "mex",
+      "model": "poisson-recency-365-dc",
+      "ownCoverage": {
+        "n": 680,
+        "brier": 0.595428921010372,
+        "logLoss": 0.9980982988427316
+      },
+      "commonCases": {
+        "n": 680,
+        "brier": 0.595428921010372,
+        "logLoss": 0.9980982988427316
+      },
+      "modelWithClosing": {
+        "n": 680,
+        "brier": 0.595428921010372,
+        "logLoss": 0.9980982988427316
+      },
+      "closingReference": {
+        "n": 680,
+        "brier": 0.5853592660330958,
+        "logLoss": 0.9827003568263531
+      },
+      "sizingApproved": false,
+      "calibrationSummary": {
+        "populatedBins": 18,
+        "binsWithAtLeast30": 13,
+        "meanAbsoluteGap": 0.024600561428377566,
+        "forecastOutsideMarginalWilson95": 1,
+        "maximumAbsoluteGapInBinsWith30": 0.13227591644778536
+      }
+    },
+    {
+      "period": "development",
+      "league": "fl1",
+      "model": "poisson-clubs-v1",
+      "ownCoverage": {
+        "n": 492,
+        "brier": 0.5932723858599648,
+        "logLoss": 0.9937633824301764
+      },
+      "commonCases": {
+        "n": 492,
+        "brier": 0.5932723858599648,
+        "logLoss": 0.9937633824301764
+      },
+      "modelWithClosing": {
+        "n": 492,
+        "brier": 0.5932723858599648,
+        "logLoss": 0.9937633824301764
+      },
+      "closingReference": {
+        "n": 492,
+        "brier": 0.5748096883738946,
+        "logLoss": 0.9682749629407235
+      },
+      "sizingApproved": false,
+      "calibrationSummary": {
+        "populatedBins": 23,
+        "binsWithAtLeast30": 12,
+        "meanAbsoluteGap": 0.04556356263499953,
+        "forecastOutsideMarginalWilson95": 1,
+        "maximumAbsoluteGapInBinsWith30": 0.07228783274541384
+      }
+    },
+    {
+      "period": "development",
+      "league": "fl1",
+      "model": "poisson-recency-365",
+      "ownCoverage": {
+        "n": 492,
+        "brier": 0.5915759320062345,
+        "logLoss": 0.9913732890949877
+      },
+      "commonCases": {
+        "n": 492,
+        "brier": 0.5915759320062345,
+        "logLoss": 0.9913732890949877
+      },
+      "modelWithClosing": {
+        "n": 492,
+        "brier": 0.5915759320062345,
+        "logLoss": 0.9913732890949877
+      },
+      "closingReference": {
+        "n": 492,
+        "brier": 0.5748096883738946,
+        "logLoss": 0.9682749629407235
+      },
+      "sizingApproved": false,
+      "calibrationSummary": {
+        "populatedBins": 22,
+        "binsWithAtLeast30": 12,
+        "meanAbsoluteGap": 0.04282883047110033,
+        "forecastOutsideMarginalWilson95": 0,
+        "maximumAbsoluteGapInBinsWith30": 0.09002524225420128
+      }
+    },
+    {
+      "period": "development",
+      "league": "fl1",
+      "model": "poisson-dc-correction",
+      "ownCoverage": {
+        "n": 492,
+        "brier": 0.5976454101814721,
+        "logLoss": 1.0011879505169685
+      },
+      "commonCases": {
+        "n": 492,
+        "brier": 0.5976454101814721,
+        "logLoss": 1.0011879505169685
+      },
+      "modelWithClosing": {
+        "n": 492,
+        "brier": 0.5976454101814721,
+        "logLoss": 1.0011879505169685
+      },
+      "closingReference": {
+        "n": 492,
+        "brier": 0.5748096883738946,
+        "logLoss": 0.9682749629407235
+      },
+      "sizingApproved": false,
+      "calibrationSummary": {
+        "populatedBins": 23,
+        "binsWithAtLeast30": 14,
+        "meanAbsoluteGap": 0.05253560302517412,
+        "forecastOutsideMarginalWilson95": 2,
+        "maximumAbsoluteGapInBinsWith30": 0.09697581609139427
+      }
+    },
+    {
+      "period": "development",
+      "league": "fl1",
+      "model": "poisson-recency-365-dc",
+      "ownCoverage": {
+        "n": 492,
+        "brier": 0.5955158323585783,
+        "logLoss": 0.9979206164828328
+      },
+      "commonCases": {
+        "n": 492,
+        "brier": 0.5955158323585783,
+        "logLoss": 0.9979206164828328
+      },
+      "modelWithClosing": {
+        "n": 492,
+        "brier": 0.5955158323585783,
+        "logLoss": 0.9979206164828328
+      },
+      "closingReference": {
+        "n": 492,
+        "brier": 0.5748096883738946,
+        "logLoss": 0.9682749629407235
+      },
+      "sizingApproved": false,
+      "calibrationSummary": {
+        "populatedBins": 23,
+        "binsWithAtLeast30": 14,
+        "meanAbsoluteGap": 0.04781242628425236,
+        "forecastOutsideMarginalWilson95": 2,
+        "maximumAbsoluteGapInBinsWith30": 0.11046334395011281
+      }
+    },
+    {
+      "period": "development",
+      "league": "epl",
+      "model": "poisson-clubs-v1",
+      "ownCoverage": {
+        "n": 633,
+        "brier": 0.5831083153883343,
+        "logLoss": 0.9784061349727965
+      },
+      "commonCases": {
+        "n": 633,
+        "brier": 0.5831083153883343,
+        "logLoss": 0.9784061349727965
+      },
+      "modelWithClosing": {
+        "n": 633,
+        "brier": 0.5831083153883343,
+        "logLoss": 0.9784061349727965
+      },
+      "closingReference": {
+        "n": 633,
+        "brier": 0.5607740425134062,
+        "logLoss": 0.9472185896163633
+      },
+      "sizingApproved": false,
+      "calibrationSummary": {
+        "populatedBins": 23,
+        "binsWithAtLeast30": 16,
+        "meanAbsoluteGap": 0.02712217496395776,
+        "forecastOutsideMarginalWilson95": 0,
+        "maximumAbsoluteGapInBinsWith30": 0.11728621879069279
+      }
+    },
+    {
+      "period": "development",
+      "league": "epl",
+      "model": "poisson-recency-365",
+      "ownCoverage": {
+        "n": 633,
+        "brier": 0.5824852239307021,
+        "logLoss": 0.9779969593305933
+      },
+      "commonCases": {
+        "n": 633,
+        "brier": 0.5824852239307021,
+        "logLoss": 0.9779969593305933
+      },
+      "modelWithClosing": {
+        "n": 633,
+        "brier": 0.5824852239307021,
+        "logLoss": 0.9779969593305933
+      },
+      "closingReference": {
+        "n": 633,
+        "brier": 0.5607740425134062,
+        "logLoss": 0.9472185896163633
+      },
+      "sizingApproved": false,
+      "calibrationSummary": {
+        "populatedBins": 23,
+        "binsWithAtLeast30": 16,
+        "meanAbsoluteGap": 0.023065102343894896,
+        "forecastOutsideMarginalWilson95": 0,
+        "maximumAbsoluteGapInBinsWith30": 0.10018419154482472
+      }
+    },
+    {
+      "period": "development",
+      "league": "epl",
+      "model": "poisson-dc-correction",
+      "ownCoverage": {
+        "n": 633,
+        "brier": 0.5824131512165012,
+        "logLoss": 0.9770540559080976
+      },
+      "commonCases": {
+        "n": 633,
+        "brier": 0.5824131512165012,
+        "logLoss": 0.9770540559080976
+      },
+      "modelWithClosing": {
+        "n": 633,
+        "brier": 0.5824131512165012,
+        "logLoss": 0.9770540559080976
+      },
+      "closingReference": {
+        "n": 633,
+        "brier": 0.5607740425134062,
+        "logLoss": 0.9472185896163633
+      },
+      "sizingApproved": false,
+      "calibrationSummary": {
+        "populatedBins": 23,
+        "binsWithAtLeast30": 16,
+        "meanAbsoluteGap": 0.02311231986432745,
+        "forecastOutsideMarginalWilson95": 0,
+        "maximumAbsoluteGapInBinsWith30": 0.08035083063104487
+      }
+    },
+    {
+      "period": "development",
+      "league": "epl",
+      "model": "poisson-recency-365-dc",
+      "ownCoverage": {
+        "n": 633,
+        "brier": 0.5817157296363417,
+        "logLoss": 0.9765089612631058
+      },
+      "commonCases": {
+        "n": 633,
+        "brier": 0.5817157296363417,
+        "logLoss": 0.9765089612631058
+      },
+      "modelWithClosing": {
+        "n": 633,
+        "brier": 0.5817157296363417,
+        "logLoss": 0.9765089612631058
+      },
+      "closingReference": {
+        "n": 633,
+        "brier": 0.5607740425134062,
+        "logLoss": 0.9472185896163633
+      },
+      "sizingApproved": false,
+      "calibrationSummary": {
+        "populatedBins": 23,
+        "binsWithAtLeast30": 16,
+        "meanAbsoluteGap": 0.02278670815243505,
+        "forecastOutsideMarginalWilson95": 0,
+        "maximumAbsoluteGapInBinsWith30": 0.08700273225798383
+      }
+    },
+    {
+      "period": "development",
+      "league": "sea",
+      "model": "poisson-clubs-v1",
+      "ownCoverage": {
+        "n": 631,
+        "brier": 0.5838999461985046,
+        "logLoss": 0.9774620765332892
+      },
+      "commonCases": {
+        "n": 631,
+        "brier": 0.5838999461985046,
+        "logLoss": 0.9774620765332892
+      },
+      "modelWithClosing": {
+        "n": 631,
+        "brier": 0.5838999461985046,
+        "logLoss": 0.9774620765332892
+      },
+      "closingReference": {
+        "n": 631,
+        "brier": 0.571023493839464,
+        "logLoss": 0.9569424112841252
+      },
+      "sizingApproved": false,
+      "calibrationSummary": {
+        "populatedBins": 23,
+        "binsWithAtLeast30": 16,
+        "meanAbsoluteGap": 0.044672789539318976,
+        "forecastOutsideMarginalWilson95": 3,
+        "maximumAbsoluteGapInBinsWith30": 0.16050676530688673
+      }
+    },
+    {
+      "period": "development",
+      "league": "sea",
+      "model": "poisson-recency-365",
+      "ownCoverage": {
+        "n": 631,
+        "brier": 0.5843298559476419,
+        "logLoss": 0.9785945775154603
+      },
+      "commonCases": {
+        "n": 631,
+        "brier": 0.5843298559476419,
+        "logLoss": 0.9785945775154603
+      },
+      "modelWithClosing": {
+        "n": 631,
+        "brier": 0.5843298559476419,
+        "logLoss": 0.9785945775154603
+      },
+      "closingReference": {
+        "n": 631,
+        "brier": 0.571023493839464,
+        "logLoss": 0.9569424112841252
+      },
+      "sizingApproved": false,
+      "calibrationSummary": {
+        "populatedBins": 23,
+        "binsWithAtLeast30": 16,
+        "meanAbsoluteGap": 0.0476782621505678,
+        "forecastOutsideMarginalWilson95": 4,
+        "maximumAbsoluteGapInBinsWith30": 0.14008012931099084
+      }
+    },
+    {
+      "period": "development",
+      "league": "sea",
+      "model": "poisson-dc-correction",
+      "ownCoverage": {
+        "n": 631,
+        "brier": 0.5824895731626093,
+        "logLoss": 0.973910996385379
+      },
+      "commonCases": {
+        "n": 631,
+        "brier": 0.5824895731626093,
+        "logLoss": 0.973910996385379
+      },
+      "modelWithClosing": {
+        "n": 631,
+        "brier": 0.5824895731626093,
+        "logLoss": 0.973910996385379
+      },
+      "closingReference": {
+        "n": 631,
+        "brier": 0.571023493839464,
+        "logLoss": 0.9569424112841252
+      },
+      "sizingApproved": false,
+      "calibrationSummary": {
+        "populatedBins": 23,
+        "binsWithAtLeast30": 16,
+        "meanAbsoluteGap": 0.03787724389167525,
+        "forecastOutsideMarginalWilson95": 2,
+        "maximumAbsoluteGapInBinsWith30": 0.10879583912239865
+      }
+    },
+    {
+      "period": "development",
+      "league": "sea",
+      "model": "poisson-recency-365-dc",
+      "ownCoverage": {
+        "n": 631,
+        "brier": 0.5830758031932504,
+        "logLoss": 0.9751610551352111
+      },
+      "commonCases": {
+        "n": 631,
+        "brier": 0.5830758031932504,
+        "logLoss": 0.9751610551352111
+      },
+      "modelWithClosing": {
+        "n": 631,
+        "brier": 0.5830758031932504,
+        "logLoss": 0.9751610551352111
+      },
+      "closingReference": {
+        "n": 631,
+        "brier": 0.571023493839464,
+        "logLoss": 0.9569424112841252
+      },
+      "sizingApproved": false,
+      "calibrationSummary": {
+        "populatedBins": 23,
+        "binsWithAtLeast30": 15,
+        "meanAbsoluteGap": 0.041919423659656216,
+        "forecastOutsideMarginalWilson95": 2,
+        "maximumAbsoluteGapInBinsWith30": 0.115621206227431
+      }
+    },
+    {
+      "period": "development",
+      "league": "bun",
+      "model": "poisson-clubs-v1",
+      "ownCoverage": {
+        "n": 502,
+        "brier": 0.6066379965982106,
+        "logLoss": 1.0123033138037887
+      },
+      "commonCases": {
+        "n": 486,
+        "brier": 0.6089140932633063,
+        "logLoss": 1.0152478420659796
+      },
+      "modelWithClosing": {
+        "n": 486,
+        "brier": 0.6089140932633063,
+        "logLoss": 1.0152478420659796
+      },
+      "closingReference": {
+        "n": 486,
+        "brier": 0.5854438189980685,
+        "logLoss": 0.9823333284580587
+      },
+      "sizingApproved": false,
+      "calibrationSummary": {
+        "populatedBins": 23,
+        "binsWithAtLeast30": 16,
+        "meanAbsoluteGap": 0.05803482182228313,
+        "forecastOutsideMarginalWilson95": 3,
+        "maximumAbsoluteGapInBinsWith30": 0.18103247588360633
+      }
+    },
+    {
+      "period": "development",
+      "league": "bun",
+      "model": "poisson-recency-365",
+      "ownCoverage": {
+        "n": 502,
+        "brier": 0.60579754717445,
+        "logLoss": 1.01127426894758
+      },
+      "commonCases": {
+        "n": 486,
+        "brier": 0.6079161810108825,
+        "logLoss": 1.0139858990736537
+      },
+      "modelWithClosing": {
+        "n": 486,
+        "brier": 0.6079161810108825,
+        "logLoss": 1.0139858990736537
+      },
+      "closingReference": {
+        "n": 486,
+        "brier": 0.5854438189980685,
+        "logLoss": 0.9823333284580587
+      },
+      "sizingApproved": false,
+      "calibrationSummary": {
+        "populatedBins": 22,
+        "binsWithAtLeast30": 15,
+        "meanAbsoluteGap": 0.05304661030630521,
+        "forecastOutsideMarginalWilson95": 2,
+        "maximumAbsoluteGapInBinsWith30": 0.16133099262395967
+      }
+    },
+    {
+      "period": "development",
+      "league": "bun",
+      "model": "poisson-dc-correction",
+      "ownCoverage": {
+        "n": 486,
+        "brier": 0.6063557820773585,
+        "logLoss": 1.010874753961637
+      },
+      "commonCases": {
+        "n": 486,
+        "brier": 0.6063557820773585,
+        "logLoss": 1.010874753961637
+      },
+      "modelWithClosing": {
+        "n": 486,
+        "brier": 0.6063557820773585,
+        "logLoss": 1.010874753961637
+      },
+      "closingReference": {
+        "n": 486,
+        "brier": 0.5854438189980685,
+        "logLoss": 0.9823333284580587
+      },
+      "sizingApproved": false,
+      "calibrationSummary": {
+        "populatedBins": 23,
+        "binsWithAtLeast30": 16,
+        "meanAbsoluteGap": 0.04823670342461719,
+        "forecastOutsideMarginalWilson95": 1,
+        "maximumAbsoluteGapInBinsWith30": 0.2025754987591224
+      }
+    },
+    {
+      "period": "development",
+      "league": "bun",
+      "model": "poisson-recency-365-dc",
+      "ownCoverage": {
+        "n": 486,
+        "brier": 0.6058933812673611,
+        "logLoss": 1.0100937212483645
+      },
+      "commonCases": {
+        "n": 486,
+        "brier": 0.6058933812673611,
+        "logLoss": 1.0100937212483645
+      },
+      "modelWithClosing": {
+        "n": 486,
+        "brier": 0.6058933812673611,
+        "logLoss": 1.0100937212483645
+      },
+      "closingReference": {
+        "n": 486,
+        "brier": 0.5854438189980685,
+        "logLoss": 0.9823333284580587
+      },
+      "sizingApproved": false,
+      "calibrationSummary": {
+        "populatedBins": 22,
+        "binsWithAtLeast30": 16,
+        "meanAbsoluteGap": 0.04278243181580014,
+        "forecastOutsideMarginalWilson95": 1,
+        "maximumAbsoluteGapInBinsWith30": 0.1510157389069695
+      }
+    },
+    {
+      "period": "development",
+      "league": "lal",
+      "model": "poisson-clubs-v1",
+      "ownCoverage": {
+        "n": 631,
+        "brier": 0.5855871046137764,
+        "logLoss": 0.9826249999418549
+      },
+      "commonCases": {
+        "n": 631,
+        "brier": 0.5855871046137764,
+        "logLoss": 0.9826249999418549
+      },
+      "modelWithClosing": {
+        "n": 631,
+        "brier": 0.5855871046137764,
+        "logLoss": 0.9826249999418549
+      },
+      "closingReference": {
+        "n": 631,
+        "brier": 0.564258263426573,
+        "logLoss": 0.9518517674945279
+      },
+      "sizingApproved": false,
+      "calibrationSummary": {
+        "populatedBins": 22,
+        "binsWithAtLeast30": 17,
+        "meanAbsoluteGap": 0.033215546067324866,
+        "forecastOutsideMarginalWilson95": 0,
+        "maximumAbsoluteGapInBinsWith30": 0.0625975676330554
+      }
+    },
+    {
+      "period": "development",
+      "league": "lal",
+      "model": "poisson-recency-365",
+      "ownCoverage": {
+        "n": 631,
+        "brier": 0.5848365401487867,
+        "logLoss": 0.9818156194172558
+      },
+      "commonCases": {
+        "n": 631,
+        "brier": 0.5848365401487867,
+        "logLoss": 0.9818156194172558
+      },
+      "modelWithClosing": {
+        "n": 631,
+        "brier": 0.5848365401487867,
+        "logLoss": 0.9818156194172558
+      },
+      "closingReference": {
+        "n": 631,
+        "brier": 0.564258263426573,
+        "logLoss": 0.9518517674945279
+      },
+      "sizingApproved": false,
+      "calibrationSummary": {
+        "populatedBins": 22,
+        "binsWithAtLeast30": 16,
+        "meanAbsoluteGap": 0.035761184800273196,
+        "forecastOutsideMarginalWilson95": 1,
+        "maximumAbsoluteGapInBinsWith30": 0.06665353672257576
+      }
+    },
+    {
+      "period": "development",
+      "league": "lal",
+      "model": "poisson-dc-correction",
+      "ownCoverage": {
+        "n": 631,
+        "brier": 0.5845781552648356,
+        "logLoss": 0.9799964114049944
+      },
+      "commonCases": {
+        "n": 631,
+        "brier": 0.5845781552648356,
+        "logLoss": 0.9799964114049944
+      },
+      "modelWithClosing": {
+        "n": 631,
+        "brier": 0.5845781552648356,
+        "logLoss": 0.9799964114049944
+      },
+      "closingReference": {
+        "n": 631,
+        "brier": 0.564258263426573,
+        "logLoss": 0.9518517674945279
+      },
+      "sizingApproved": false,
+      "calibrationSummary": {
+        "populatedBins": 22,
+        "binsWithAtLeast30": 16,
+        "meanAbsoluteGap": 0.021666996533443058,
+        "forecastOutsideMarginalWilson95": 0,
+        "maximumAbsoluteGapInBinsWith30": 0.051057936101541246
+      }
+    },
+    {
+      "period": "development",
+      "league": "lal",
+      "model": "poisson-recency-365-dc",
+      "ownCoverage": {
+        "n": 631,
+        "brier": 0.5839281882453725,
+        "logLoss": 0.9792958295775609
+      },
+      "commonCases": {
+        "n": 631,
+        "brier": 0.5839281882453725,
+        "logLoss": 0.9792958295775609
+      },
+      "modelWithClosing": {
+        "n": 631,
+        "brier": 0.5839281882453725,
+        "logLoss": 0.9792958295775609
+      },
+      "closingReference": {
+        "n": 631,
+        "brier": 0.564258263426573,
+        "logLoss": 0.9518517674945279
+      },
+      "sizingApproved": false,
+      "calibrationSummary": {
+        "populatedBins": 22,
+        "binsWithAtLeast30": 16,
+        "meanAbsoluteGap": 0.022067814852784924,
+        "forecastOutsideMarginalWilson95": 0,
+        "maximumAbsoluteGapInBinsWith30": 0.056142876593819224
+      }
+    },
+    {
+      "period": "evaluation",
+      "league": "all",
+      "model": "poisson-clubs-v1",
+      "ownCoverage": {
+        "n": 2001,
+        "brier": 0.5938611567831353,
+        "logLoss": 0.996456018889835
+      },
+      "commonCases": {
+        "n": 2001,
+        "brier": 0.5938611567831353,
+        "logLoss": 0.996456018889835
+      },
+      "modelWithClosing": {
+        "n": 2001,
+        "brier": 0.5938611567831353,
+        "logLoss": 0.996456018889835
+      },
+      "closingReference": {
+        "n": 2001,
+        "brier": 0.5797625673308834,
+        "logLoss": 0.974478700455513
+      },
+      "sizingApproved": false,
+      "calibrationSummary": {
+        "populatedBins": 23,
+        "binsWithAtLeast30": 17,
+        "meanAbsoluteGap": 0.023392730105768707,
+        "forecastOutsideMarginalWilson95": 2,
+        "maximumAbsoluteGapInBinsWith30": 0.08066581982794291
+      }
+    },
+    {
+      "period": "evaluation",
+      "league": "all",
+      "model": "poisson-recency-365",
+      "ownCoverage": {
+        "n": 2001,
+        "brier": 0.5932578780552199,
+        "logLoss": 0.9956409789449335
+      },
+      "commonCases": {
+        "n": 2001,
+        "brier": 0.5932578780552199,
+        "logLoss": 0.9956409789449335
+      },
+      "modelWithClosing": {
+        "n": 2001,
+        "brier": 0.5932578780552199,
+        "logLoss": 0.9956409789449335
+      },
+      "closingReference": {
+        "n": 2001,
+        "brier": 0.5797625673308834,
+        "logLoss": 0.974478700455513
+      },
+      "sizingApproved": false,
+      "calibrationSummary": {
+        "populatedBins": 23,
+        "binsWithAtLeast30": 17,
+        "meanAbsoluteGap": 0.021244853292541912,
+        "forecastOutsideMarginalWilson95": 1,
+        "maximumAbsoluteGapInBinsWith30": 0.08252319029310706
+      }
+    },
+    {
+      "period": "evaluation",
+      "league": "all",
+      "model": "poisson-dc-correction",
+      "ownCoverage": {
+        "n": 2001,
+        "brier": 0.5936275023997754,
+        "logLoss": 0.9959424846555515
+      },
+      "commonCases": {
+        "n": 2001,
+        "brier": 0.5936275023997754,
+        "logLoss": 0.9959424846555515
+      },
+      "modelWithClosing": {
+        "n": 2001,
+        "brier": 0.5936275023997754,
+        "logLoss": 0.9959424846555515
+      },
+      "closingReference": {
+        "n": 2001,
+        "brier": 0.5797625673308834,
+        "logLoss": 0.974478700455513
+      },
+      "sizingApproved": false,
+      "calibrationSummary": {
+        "populatedBins": 23,
+        "binsWithAtLeast30": 17,
+        "meanAbsoluteGap": 0.02073379047592048,
+        "forecastOutsideMarginalWilson95": 1,
+        "maximumAbsoluteGapInBinsWith30": 0.06855729293567003
+      }
+    },
+    {
+      "period": "evaluation",
+      "league": "all",
+      "model": "poisson-recency-365-dc",
+      "ownCoverage": {
+        "n": 2001,
+        "brier": 0.5931902035197822,
+        "logLoss": 0.9954169387612611
+      },
+      "commonCases": {
+        "n": 2001,
+        "brier": 0.5931902035197822,
+        "logLoss": 0.9954169387612611
+      },
+      "modelWithClosing": {
+        "n": 2001,
+        "brier": 0.5931902035197822,
+        "logLoss": 0.9954169387612611
+      },
+      "closingReference": {
+        "n": 2001,
+        "brier": 0.5797625673308834,
+        "logLoss": 0.974478700455513
+      },
+      "sizingApproved": false,
+      "calibrationSummary": {
+        "populatedBins": 23,
+        "binsWithAtLeast30": 17,
+        "meanAbsoluteGap": 0.01870924209486979,
+        "forecastOutsideMarginalWilson95": 0,
+        "maximumAbsoluteGapInBinsWith30": 0.057306547961181065
+      }
+    },
+    {
+      "period": "evaluation",
+      "league": "mex",
+      "model": "poisson-clubs-v1",
+      "ownCoverage": {
+        "n": 336,
+        "brier": 0.5929825165940956,
+        "logLoss": 0.9938263601567712
+      },
+      "commonCases": {
+        "n": 336,
+        "brier": 0.5929825165940956,
+        "logLoss": 0.9938263601567712
+      },
+      "modelWithClosing": {
+        "n": 336,
+        "brier": 0.5929825165940956,
+        "logLoss": 0.9938263601567712
+      },
+      "closingReference": {
+        "n": 336,
+        "brier": 0.5817167277179316,
+        "logLoss": 0.9773717433134356
+      },
+      "sizingApproved": false,
+      "calibrationSummary": {
+        "populatedBins": 18,
+        "binsWithAtLeast30": 11,
+        "meanAbsoluteGap": 0.031890647253701665,
+        "forecastOutsideMarginalWilson95": 0,
+        "maximumAbsoluteGapInBinsWith30": 0.07663485908127249
+      }
+    },
+    {
+      "period": "evaluation",
+      "league": "mex",
+      "model": "poisson-recency-365",
+      "ownCoverage": {
+        "n": 336,
+        "brier": 0.5930806057592837,
+        "logLoss": 0.9945066319806519
+      },
+      "commonCases": {
+        "n": 336,
+        "brier": 0.5930806057592837,
+        "logLoss": 0.9945066319806519
+      },
+      "modelWithClosing": {
+        "n": 336,
+        "brier": 0.5930806057592837,
+        "logLoss": 0.9945066319806519
+      },
+      "closingReference": {
+        "n": 336,
+        "brier": 0.5817167277179316,
+        "logLoss": 0.9773717433134356
+      },
+      "sizingApproved": false,
+      "calibrationSummary": {
+        "populatedBins": 17,
+        "binsWithAtLeast30": 11,
+        "meanAbsoluteGap": 0.035585756376967315,
+        "forecastOutsideMarginalWilson95": 0,
+        "maximumAbsoluteGapInBinsWith30": 0.08004560767399163
+      }
+    },
+    {
+      "period": "evaluation",
+      "league": "mex",
+      "model": "poisson-dc-correction",
+      "ownCoverage": {
+        "n": 336,
+        "brier": 0.592601947362952,
+        "logLoss": 0.9931353223690261
+      },
+      "commonCases": {
+        "n": 336,
+        "brier": 0.592601947362952,
+        "logLoss": 0.9931353223690261
+      },
+      "modelWithClosing": {
+        "n": 336,
+        "brier": 0.592601947362952,
+        "logLoss": 0.9931353223690261
+      },
+      "closingReference": {
+        "n": 336,
+        "brier": 0.5817167277179316,
+        "logLoss": 0.9773717433134356
+      },
+      "sizingApproved": false,
+      "calibrationSummary": {
+        "populatedBins": 19,
+        "binsWithAtLeast30": 11,
+        "meanAbsoluteGap": 0.02267663367224365,
+        "forecastOutsideMarginalWilson95": 0,
+        "maximumAbsoluteGapInBinsWith30": 0.05238507538338444
+      }
+    },
+    {
+      "period": "evaluation",
+      "league": "mex",
+      "model": "poisson-recency-365-dc",
+      "ownCoverage": {
+        "n": 336,
+        "brier": 0.5928645847531651,
+        "logLoss": 0.9940151237835667
+      },
+      "commonCases": {
+        "n": 336,
+        "brier": 0.5928645847531651,
+        "logLoss": 0.9940151237835667
+      },
+      "modelWithClosing": {
+        "n": 336,
+        "brier": 0.5928645847531651,
+        "logLoss": 0.9940151237835667
+      },
+      "closingReference": {
+        "n": 336,
+        "brier": 0.5817167277179316,
+        "logLoss": 0.9773717433134356
+      },
+      "sizingApproved": false,
+      "calibrationSummary": {
+        "populatedBins": 18,
+        "binsWithAtLeast30": 11,
+        "meanAbsoluteGap": 0.029953690981693957,
+        "forecastOutsideMarginalWilson95": 0,
+        "maximumAbsoluteGapInBinsWith30": 0.08598650643945033
+      }
+    },
+    {
+      "period": "evaluation",
+      "league": "fl1",
+      "model": "poisson-clubs-v1",
+      "ownCoverage": {
+        "n": 296,
+        "brier": 0.5998468927971133,
+        "logLoss": 1.0017529637530962
+      },
+      "commonCases": {
+        "n": 296,
+        "brier": 0.5998468927971133,
+        "logLoss": 1.0017529637530962
+      },
+      "modelWithClosing": {
+        "n": 296,
+        "brier": 0.5998468927971133,
+        "logLoss": 1.0017529637530962
+      },
+      "closingReference": {
+        "n": 296,
+        "brier": 0.5817991682755249,
+        "logLoss": 0.9746570669270905
+      },
+      "sizingApproved": false,
+      "calibrationSummary": {
+        "populatedBins": 21,
+        "binsWithAtLeast30": 12,
+        "meanAbsoluteGap": 0.036610792430815345,
+        "forecastOutsideMarginalWilson95": 0,
+        "maximumAbsoluteGapInBinsWith30": 0.08453808776574068
+      }
+    },
+    {
+      "period": "evaluation",
+      "league": "fl1",
+      "model": "poisson-recency-365",
+      "ownCoverage": {
+        "n": 296,
+        "brier": 0.5993177679429517,
+        "logLoss": 1.001138829681441
+      },
+      "commonCases": {
+        "n": 296,
+        "brier": 0.5993177679429517,
+        "logLoss": 1.001138829681441
+      },
+      "modelWithClosing": {
+        "n": 296,
+        "brier": 0.5993177679429517,
+        "logLoss": 1.001138829681441
+      },
+      "closingReference": {
+        "n": 296,
+        "brier": 0.5817991682755249,
+        "logLoss": 0.9746570669270905
+      },
+      "sizingApproved": false,
+      "calibrationSummary": {
+        "populatedBins": 20,
+        "binsWithAtLeast30": 11,
+        "meanAbsoluteGap": 0.038105132511131595,
+        "forecastOutsideMarginalWilson95": 0,
+        "maximumAbsoluteGapInBinsWith30": 0.07566336529823153
+      }
+    },
+    {
+      "period": "evaluation",
+      "league": "fl1",
+      "model": "poisson-dc-correction",
+      "ownCoverage": {
+        "n": 296,
+        "brier": 0.5999853050744887,
+        "logLoss": 1.0020535393333252
+      },
+      "commonCases": {
+        "n": 296,
+        "brier": 0.5999853050744887,
+        "logLoss": 1.0020535393333252
+      },
+      "modelWithClosing": {
+        "n": 296,
+        "brier": 0.5999853050744887,
+        "logLoss": 1.0020535393333252
+      },
+      "closingReference": {
+        "n": 296,
+        "brier": 0.5817991682755249,
+        "logLoss": 0.9746570669270905
+      },
+      "sizingApproved": false,
+      "calibrationSummary": {
+        "populatedBins": 21,
+        "binsWithAtLeast30": 12,
+        "meanAbsoluteGap": 0.03922967991588984,
+        "forecastOutsideMarginalWilson95": 0,
+        "maximumAbsoluteGapInBinsWith30": 0.08499178385209671
+      }
+    },
+    {
+      "period": "evaluation",
+      "league": "fl1",
+      "model": "poisson-recency-365-dc",
+      "ownCoverage": {
+        "n": 296,
+        "brier": 0.5995761335073372,
+        "logLoss": 1.001737138343804
+      },
+      "commonCases": {
+        "n": 296,
+        "brier": 0.5995761335073372,
+        "logLoss": 1.001737138343804
+      },
+      "modelWithClosing": {
+        "n": 296,
+        "brier": 0.5995761335073372,
+        "logLoss": 1.001737138343804
+      },
+      "closingReference": {
+        "n": 296,
+        "brier": 0.5817991682755249,
+        "logLoss": 0.9746570669270905
+      },
+      "sizingApproved": false,
+      "calibrationSummary": {
+        "populatedBins": 21,
+        "binsWithAtLeast30": 11,
+        "meanAbsoluteGap": 0.040093883092398204,
+        "forecastOutsideMarginalWilson95": 0,
+        "maximumAbsoluteGapInBinsWith30": 0.07875620641664977
+      }
+    },
+    {
+      "period": "evaluation",
+      "league": "epl",
+      "model": "poisson-clubs-v1",
+      "ownCoverage": {
+        "n": 360,
+        "brier": 0.6192074631198073,
+        "logLoss": 1.0310857390295778
+      },
+      "commonCases": {
+        "n": 360,
+        "brier": 0.6192074631198073,
+        "logLoss": 1.0310857390295778
+      },
+      "modelWithClosing": {
+        "n": 360,
+        "brier": 0.6192074631198073,
+        "logLoss": 1.0310857390295778
+      },
+      "closingReference": {
+        "n": 360,
+        "brier": 0.6057272475334934,
+        "logLoss": 1.0084698991135936
+      },
+      "sizingApproved": false,
+      "calibrationSummary": {
+        "populatedBins": 20,
+        "binsWithAtLeast30": 12,
+        "meanAbsoluteGap": 0.0507601642477979,
+        "forecastOutsideMarginalWilson95": 1,
+        "maximumAbsoluteGapInBinsWith30": 0.10751127355115497
+      }
+    },
+    {
+      "period": "evaluation",
+      "league": "epl",
+      "model": "poisson-recency-365",
+      "ownCoverage": {
+        "n": 360,
+        "brier": 0.6171432720481308,
+        "logLoss": 1.0285724764674529
+      },
+      "commonCases": {
+        "n": 360,
+        "brier": 0.6171432720481308,
+        "logLoss": 1.0285724764674529
+      },
+      "modelWithClosing": {
+        "n": 360,
+        "brier": 0.6171432720481308,
+        "logLoss": 1.0285724764674529
+      },
+      "closingReference": {
+        "n": 360,
+        "brier": 0.6057272475334934,
+        "logLoss": 1.0084698991135936
+      },
+      "sizingApproved": false,
+      "calibrationSummary": {
+        "populatedBins": 19,
+        "binsWithAtLeast30": 12,
+        "meanAbsoluteGap": 0.03294151610161173,
+        "forecastOutsideMarginalWilson95": 0,
+        "maximumAbsoluteGapInBinsWith30": 0.08913108047034146
+      }
+    },
+    {
+      "period": "evaluation",
+      "league": "epl",
+      "model": "poisson-dc-correction",
+      "ownCoverage": {
+        "n": 360,
+        "brier": 0.6174832785054873,
+        "logLoss": 1.0279244141401342
+      },
+      "commonCases": {
+        "n": 360,
+        "brier": 0.6174832785054873,
+        "logLoss": 1.0279244141401342
+      },
+      "modelWithClosing": {
+        "n": 360,
+        "brier": 0.6174832785054873,
+        "logLoss": 1.0279244141401342
+      },
+      "closingReference": {
+        "n": 360,
+        "brier": 0.6057272475334934,
+        "logLoss": 1.0084698991135936
+      },
+      "sizingApproved": false,
+      "calibrationSummary": {
+        "populatedBins": 20,
+        "binsWithAtLeast30": 12,
+        "meanAbsoluteGap": 0.047644428415841704,
+        "forecastOutsideMarginalWilson95": 0,
+        "maximumAbsoluteGapInBinsWith30": 0.11375428747779337
+      }
+    },
+    {
+      "period": "evaluation",
+      "league": "epl",
+      "model": "poisson-recency-365-dc",
+      "ownCoverage": {
+        "n": 360,
+        "brier": 0.6158709788441541,
+        "logLoss": 1.026110267731852
+      },
+      "commonCases": {
+        "n": 360,
+        "brier": 0.6158709788441541,
+        "logLoss": 1.026110267731852
+      },
+      "modelWithClosing": {
+        "n": 360,
+        "brier": 0.6158709788441541,
+        "logLoss": 1.026110267731852
+      },
+      "closingReference": {
+        "n": 360,
+        "brier": 0.6057272475334934,
+        "logLoss": 1.0084698991135936
+      },
+      "sizingApproved": false,
+      "calibrationSummary": {
+        "populatedBins": 20,
+        "binsWithAtLeast30": 11,
+        "meanAbsoluteGap": 0.028461540632158243,
+        "forecastOutsideMarginalWilson95": 0,
+        "maximumAbsoluteGapInBinsWith30": 0.06596581209034358
+      }
+    },
+    {
+      "period": "evaluation",
+      "league": "sea",
+      "model": "poisson-clubs-v1",
+      "ownCoverage": {
+        "n": 360,
+        "brier": 0.5925124711548779,
+        "logLoss": 0.9945742343983699
+      },
+      "commonCases": {
+        "n": 360,
+        "brier": 0.5925124711548779,
+        "logLoss": 0.9945742343983699
+      },
+      "modelWithClosing": {
+        "n": 360,
+        "brier": 0.5925124711548779,
+        "logLoss": 0.9945742343983699
+      },
+      "closingReference": {
+        "n": 360,
+        "brier": 0.5759747049165257,
+        "logLoss": 0.9692012418263712
+      },
+      "sizingApproved": false,
+      "calibrationSummary": {
+        "populatedBins": 21,
+        "binsWithAtLeast30": 13,
+        "meanAbsoluteGap": 0.028865751683153567,
+        "forecastOutsideMarginalWilson95": 0,
+        "maximumAbsoluteGapInBinsWith30": 0.11288877622321214
+      }
+    },
+    {
+      "period": "evaluation",
+      "league": "sea",
+      "model": "poisson-recency-365",
+      "ownCoverage": {
+        "n": 360,
+        "brier": 0.589967929448184,
+        "logLoss": 0.9906800683774686
+      },
+      "commonCases": {
+        "n": 360,
+        "brier": 0.589967929448184,
+        "logLoss": 0.9906800683774686
+      },
+      "modelWithClosing": {
+        "n": 360,
+        "brier": 0.589967929448184,
+        "logLoss": 0.9906800683774686
+      },
+      "closingReference": {
+        "n": 360,
+        "brier": 0.5759747049165257,
+        "logLoss": 0.9692012418263712
+      },
+      "sizingApproved": false,
+      "calibrationSummary": {
+        "populatedBins": 20,
+        "binsWithAtLeast30": 12,
+        "meanAbsoluteGap": 0.027547642364027753,
+        "forecastOutsideMarginalWilson95": 0,
+        "maximumAbsoluteGapInBinsWith30": 0.08267670926724241
+      }
+    },
+    {
+      "period": "evaluation",
+      "league": "sea",
+      "model": "poisson-dc-correction",
+      "ownCoverage": {
+        "n": 360,
+        "brier": 0.5933711104802806,
+        "logLoss": 0.9961914209004137
+      },
+      "commonCases": {
+        "n": 360,
+        "brier": 0.5933711104802806,
+        "logLoss": 0.9961914209004137
+      },
+      "modelWithClosing": {
+        "n": 360,
+        "brier": 0.5933711104802806,
+        "logLoss": 0.9961914209004137
+      },
+      "closingReference": {
+        "n": 360,
+        "brier": 0.5759747049165257,
+        "logLoss": 0.9692012418263712
+      },
+      "sizingApproved": false,
+      "calibrationSummary": {
+        "populatedBins": 21,
+        "binsWithAtLeast30": 13,
+        "meanAbsoluteGap": 0.03465348382872126,
+        "forecastOutsideMarginalWilson95": 1,
+        "maximumAbsoluteGapInBinsWith30": 0.11230474816783376
+      }
+    },
+    {
+      "period": "evaluation",
+      "league": "sea",
+      "model": "poisson-recency-365-dc",
+      "ownCoverage": {
+        "n": 360,
+        "brier": 0.5909899341591068,
+        "logLoss": 0.9925570841441232
+      },
+      "commonCases": {
+        "n": 360,
+        "brier": 0.5909899341591068,
+        "logLoss": 0.9925570841441232
+      },
+      "modelWithClosing": {
+        "n": 360,
+        "brier": 0.5909899341591068,
+        "logLoss": 0.9925570841441232
+      },
+      "closingReference": {
+        "n": 360,
+        "brier": 0.5759747049165257,
+        "logLoss": 0.9692012418263712
+      },
+      "sizingApproved": false,
+      "calibrationSummary": {
+        "populatedBins": 20,
+        "binsWithAtLeast30": 13,
+        "meanAbsoluteGap": 0.028208024300989495,
+        "forecastOutsideMarginalWilson95": 0,
+        "maximumAbsoluteGapInBinsWith30": 0.06831428405481496
+      }
+    },
+    {
+      "period": "evaluation",
+      "league": "bun",
+      "model": "poisson-clubs-v1",
+      "ownCoverage": {
+        "n": 296,
+        "brier": 0.5765695916043707,
+        "logLoss": 0.9755798821329161
+      },
+      "commonCases": {
+        "n": 296,
+        "brier": 0.5765695916043707,
+        "logLoss": 0.9755798821329161
+      },
+      "modelWithClosing": {
+        "n": 296,
+        "brier": 0.5765695916043707,
+        "logLoss": 0.9755798821329161
+      },
+      "closingReference": {
+        "n": 296,
+        "brier": 0.5608922909380668,
+        "logLoss": 0.9500343504619356
+      },
+      "sizingApproved": false,
+      "calibrationSummary": {
+        "populatedBins": 23,
+        "binsWithAtLeast30": 11,
+        "meanAbsoluteGap": 0.04935801913696595,
+        "forecastOutsideMarginalWilson95": 0,
+        "maximumAbsoluteGapInBinsWith30": 0.08771194876895093
+      }
+    },
+    {
+      "period": "evaluation",
+      "league": "bun",
+      "model": "poisson-recency-365",
+      "ownCoverage": {
+        "n": 296,
+        "brier": 0.5779220910381252,
+        "logLoss": 0.9774200782769245
+      },
+      "commonCases": {
+        "n": 296,
+        "brier": 0.5779220910381252,
+        "logLoss": 0.9774200782769245
+      },
+      "modelWithClosing": {
+        "n": 296,
+        "brier": 0.5779220910381252,
+        "logLoss": 0.9774200782769245
+      },
+      "closingReference": {
+        "n": 296,
+        "brier": 0.5608922909380668,
+        "logLoss": 0.9500343504619356
+      },
+      "sizingApproved": false,
+      "calibrationSummary": {
+        "populatedBins": 23,
+        "binsWithAtLeast30": 11,
+        "meanAbsoluteGap": 0.03420032789100642,
+        "forecastOutsideMarginalWilson95": 0,
+        "maximumAbsoluteGapInBinsWith30": 0.06588208129729767
+      }
+    },
+    {
+      "period": "evaluation",
+      "league": "bun",
+      "model": "poisson-dc-correction",
+      "ownCoverage": {
+        "n": 296,
+        "brier": 0.5761045775856887,
+        "logLoss": 0.97417132803688
+      },
+      "commonCases": {
+        "n": 296,
+        "brier": 0.5761045775856887,
+        "logLoss": 0.97417132803688
+      },
+      "modelWithClosing": {
+        "n": 296,
+        "brier": 0.5761045775856887,
+        "logLoss": 0.97417132803688
+      },
+      "closingReference": {
+        "n": 296,
+        "brier": 0.5608922909380668,
+        "logLoss": 0.9500343504619356
+      },
+      "sizingApproved": false,
+      "calibrationSummary": {
+        "populatedBins": 23,
+        "binsWithAtLeast30": 12,
+        "meanAbsoluteGap": 0.041629171012243935,
+        "forecastOutsideMarginalWilson95": 1,
+        "maximumAbsoluteGapInBinsWith30": 0.2675537683623582
+      }
+    },
+    {
+      "period": "evaluation",
+      "league": "bun",
+      "model": "poisson-recency-365-dc",
+      "ownCoverage": {
+        "n": 296,
+        "brier": 0.5774385937903912,
+        "logLoss": 0.9759429220098489
+      },
+      "commonCases": {
+        "n": 296,
+        "brier": 0.5774385937903912,
+        "logLoss": 0.9759429220098489
+      },
+      "modelWithClosing": {
+        "n": 296,
+        "brier": 0.5774385937903912,
+        "logLoss": 0.9759429220098489
+      },
+      "closingReference": {
+        "n": 296,
+        "brier": 0.5608922909380668,
+        "logLoss": 0.9500343504619356
+      },
+      "sizingApproved": false,
+      "calibrationSummary": {
+        "populatedBins": 23,
+        "binsWithAtLeast30": 11,
+        "meanAbsoluteGap": 0.030994096932769496,
+        "forecastOutsideMarginalWilson95": 0,
+        "maximumAbsoluteGapInBinsWith30": 0.06635108004689383
+      }
+    },
+    {
+      "period": "evaluation",
+      "league": "lal",
+      "model": "poisson-clubs-v1",
+      "ownCoverage": {
+        "n": 353,
+        "brier": 0.5797042306677446,
+        "logLoss": 0.9786252803670418
+      },
+      "commonCases": {
+        "n": 353,
+        "brier": 0.5797042306677446,
+        "logLoss": 0.9786252803670418
+      },
+      "modelWithClosing": {
+        "n": 353,
+        "brier": 0.5797042306677446,
+        "logLoss": 0.9786252803670418
+      },
+      "closingReference": {
+        "n": 353,
+        "brier": 0.5694014218318483,
+        "logLoss": 0.9627895285343547
+      },
+      "sizingApproved": false,
+      "calibrationSummary": {
+        "populatedBins": 20,
+        "binsWithAtLeast30": 12,
+        "meanAbsoluteGap": 0.05440986068364135,
+        "forecastOutsideMarginalWilson95": 2,
+        "maximumAbsoluteGapInBinsWith30": 0.18045281144420977
+      }
+    },
+    {
+      "period": "evaluation",
+      "league": "lal",
+      "model": "poisson-recency-365",
+      "ownCoverage": {
+        "n": 353,
+        "brier": 0.5802008488847037,
+        "logLoss": 0.9788640725877068
+      },
+      "commonCases": {
+        "n": 353,
+        "brier": 0.5802008488847037,
+        "logLoss": 0.9788640725877068
+      },
+      "modelWithClosing": {
+        "n": 353,
+        "brier": 0.5802008488847037,
+        "logLoss": 0.9788640725877068
+      },
+      "closingReference": {
+        "n": 353,
+        "brier": 0.5694014218318483,
+        "logLoss": 0.9627895285343547
+      },
+      "sizingApproved": false,
+      "calibrationSummary": {
+        "populatedBins": 19,
+        "binsWithAtLeast30": 12,
+        "meanAbsoluteGap": 0.05324934455621798,
+        "forecastOutsideMarginalWilson95": 1,
+        "maximumAbsoluteGapInBinsWith30": 0.16292112933244451
+      }
+    },
+    {
+      "period": "evaluation",
+      "league": "lal",
+      "model": "poisson-dc-correction",
+      "ownCoverage": {
+        "n": 353,
+        "brier": 0.5798985628490396,
+        "logLoss": 0.9788758700384896
+      },
+      "commonCases": {
+        "n": 353,
+        "brier": 0.5798985628490396,
+        "logLoss": 0.9788758700384896
+      },
+      "modelWithClosing": {
+        "n": 353,
+        "brier": 0.5798985628490396,
+        "logLoss": 0.9788758700384896
+      },
+      "closingReference": {
+        "n": 353,
+        "brier": 0.5694014218318483,
+        "logLoss": 0.9627895285343547
+      },
+      "sizingApproved": false,
+      "calibrationSummary": {
+        "populatedBins": 20,
+        "binsWithAtLeast30": 12,
+        "meanAbsoluteGap": 0.05693946151159009,
+        "forecastOutsideMarginalWilson95": 2,
+        "maximumAbsoluteGapInBinsWith30": 0.18689688927842973
+      }
+    },
+    {
+      "period": "evaluation",
+      "league": "lal",
+      "model": "poisson-recency-365-dc",
+      "ownCoverage": {
+        "n": 353,
+        "brier": 0.5804668804666324,
+        "logLoss": 0.9793956609914208
+      },
+      "commonCases": {
+        "n": 353,
+        "brier": 0.5804668804666324,
+        "logLoss": 0.9793956609914208
+      },
+      "modelWithClosing": {
+        "n": 353,
+        "brier": 0.5804668804666324,
+        "logLoss": 0.9793956609914208
+      },
+      "closingReference": {
+        "n": 353,
+        "brier": 0.5694014218318483,
+        "logLoss": 0.9627895285343547
+      },
+      "sizingApproved": false,
+      "calibrationSummary": {
+        "populatedBins": 19,
+        "binsWithAtLeast30": 12,
+        "meanAbsoluteGap": 0.05394719284184754,
+        "forecastOutsideMarginalWilson95": 1,
+        "maximumAbsoluteGapInBinsWith30": 0.1622892993655909
+      }
+    }
+  ],
+  "baselineReplay": {
+    "predictionsSha256": "ce6d0e6a10c85eefcda97749aa126439f11b9173596ae365aafd6e5465500865",
+    "identicalPredictions": 5570,
+    "signerImportGuard": "passed"
+  },
+  "verification": {
+    "tests": 116,
+    "files": 14,
+    "typecheck": "passed",
+    "build": "passed",
+    "reportDesktopMobileKeyboard": "passed"
+  }
+}
