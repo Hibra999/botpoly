@@ -1,8 +1,20 @@
 # Validación
 
-## 2026-09-06: fútbol, evidencia y comprobación operativa
+## 2026-09-06 04:42 UTC: servicio permanente activo
 
-**Estado al cierre, 04:27 UTC: servicio instalado y habilitado, pero inactivo; puerto 3001 libre.** La instancia temporal de `pnpm start` se detuvo ordenadamente. El despliegue persistente sigue pendiente: `sudo -n systemctl start botpoly.service` requiere contraseña y `systemctl --no-ask-password start botpoly.service` devuelve acceso denegado. Los permisos amplios del cliente no conceden privilegios del sistema. No se usaron unidades ajenas ni se creó un servicio alternativo.
+El bloqueo de permisos anterior quedó resuelto mediante sudo autenticado. **`botpoly.service` está activo y habilitado**, iniciado el 2026-09-06 a las **04:39:37 UTC**, con PID 2100147 en `/system.slice/botpoly.service`, `Result=success` y cero reinicios automáticos durante esta comprobación. Es la unidad permanente instalada, con una única instancia y escucha en `127.0.0.1:3001`. `/health` devuelve 200 y la API sin sesión devuelve 401. No se probó un reinicio completo del servidor.
+
+`pnpm paper:resume` fue aceptado tras conciliación y sincronización. Se conservó `.runtime/paper-observation.sqlite`, capital inicial US$1.000 simulado, las once posiciones con exactamente las mismas cantidades y once fills; no hay órdenes pendientes ni liquidaciones observadas. `stop=null`, `connected=true` y `errors=0`. Las evaluaciones acumuladas crecieron de **398.365** al reanudar a **402.765** en el informe de las **04:42:12.509 UTC**. Esa muestra tenía 5.000 mercados inspeccionados, 200 seleccionados/sincronizados, 100 de fútbol y 76 pronósticos, con las seis fuentes verificadas.
+
+El informe conserva capital valorado **US$990,87866**, PnL neto/no realizado **−US$9,12134**, realizado US$0, comisiones simuladas US$2,67237 y gas contabilizado US$0. Son valores de esa captura; las pérdidas y el historial anteriores permanecen intactos. Artefactos locales: `reports/paper-service-verification-20260906/` (HTML, JSON, CSV, SVG, PNG y manifiesto). SHA-256 de `result.json`: `9c0c0b8d79cd0a6c16b92ddbded3257c5c636e8fcca569743f6d8759802b9efb`; los hashes del resto de archivos están en su manifiesto.
+
+Telegram confirmó el nuevo aviso de arranque (`telegram:sent:deployment:1788669578714`) y el texto, PNG y HTML del informe administrativo (`telegram:sent:service-verification-20260906`, `:photo`, `:document`), con outbox vacía. Se encoló mediante la cola de informes existente para verificar generación y envío dentro de la unidad; **no se simuló un `/report` recibido de un usuario**. Se revisó el PNG generado. Los IDs horarios 03/04 persistieron sin repetir la hora 04 tras este arranque.
+
+El origen histórico sigue en **2026-09-05T06:42:23.706Z**. Los seguimientos 24/72 h y el informe diario continúan programados; sus próximos envíos aún no han vencido en esta comprobación. Live sigue desactivado. El servicio se deja funcionando; el estado detenido y el bloqueo descritos en la sección siguiente son históricos.
+
+## 2026-09-06 04:27 UTC: verificación temporal de fútbol y evidencia
+
+**Estado histórico a las 04:27 UTC: servicio instalado y habilitado, pero inactivo; puerto 3001 libre.** La instancia temporal de `pnpm start` se detuvo ordenadamente. El despliegue persistente quedó pendiente entonces: `sudo -n systemctl start botpoly.service` requería contraseña y `systemctl --no-ask-password start botpoly.service` devolvía acceso denegado. Los permisos amplios del cliente no concedían privilegios del sistema. No se usaron unidades ajenas ni se creó un servicio alternativo.
 
 ### Código y pruebas
 
@@ -68,7 +80,7 @@ El arranque operativo comprobó `experimentStartedAt=1788590543706`, **2026-09-0
 
 Se publican el [resumen de fútbol](evidence/football-20260906.json) y su [manifiesto](evidence/football-20260906-manifest.json), contrastados con los originales locales y reproducidos con los mismos CSV. Desarrollo 2023-07-01–2025-07-01; evaluación 2025-07-01–2026-07-01, con límites finales exclusivos. El modelo obtuvo Brier **0,593861** y log-loss **0,996456** en 2.001 predicciones de evaluación; las cuotas de cierre sin margen obtuvieron **0,579763 / 0,974479**, mejores en ambas métricas. Se conservan calibración y casos excluidos. Calidad predictiva y ejecución paper son evidencias distintas; ninguna acredita rentabilidad live. Fuentes, parámetros, alcance V1/90 minutos y reproducción: [FOOTBALL.md](FOOTBALL.md).
 
-**Pendiente: iniciar la unidad permanente con privilegios legítimos.** La instancia temporal ya está detenida. En este servidor:
+**Intervención pendiente en aquel corte, resuelta a las 04:39 UTC:** iniciar la unidad permanente con privilegios legítimos. La instancia temporal ya estaba detenida. Comandos de arranque y reanudación en este servidor:
 
 ```bash
 cd /home/gabo/portfolio/projects/38-hibraim/botpoly/Polymarket-bot
@@ -79,7 +91,7 @@ pnpm paper:resume
 
 Si la reanudación se deniega por frescura, esperar la sincronización y revisar el motivo; no editar SQLite ni saltarse el control. Después comprobar `systemctl is-active botpoly.service`, `pnpm paper:status`, crecimiento de evaluaciones y Telegram. No iniciar otro `pnpm start` mientras la unidad ocupe el puerto. No hace falta instalar paquetes, rotar credenciales ni activar live.
 
-Live mantiene activación explícita y evidencia revisada vinculada a ambas estrategias. La revisión operativa independiente y evidencia prospectiva suficiente siguen pendientes; las pruebas del adaptador son simuladas. **No se enviaron órdenes ni transacciones reales.** El objetivo de funcionamiento persistente no está cerrado mientras la unidad siga inactiva.
+Live mantiene activación explícita y evidencia revisada vinculada a ambas estrategias. La revisión operativa independiente y evidencia prospectiva suficiente siguen pendientes; las pruebas del adaptador son simuladas. **No se enviaron órdenes ni transacciones reales.** Este tramo temporal no acreditaba funcionamiento persistente; el arranque posterior de la unidad se documenta al principio de este archivo.
 
 ## Historial de validación — 2026-09-05
 

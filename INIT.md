@@ -170,7 +170,7 @@ Los identificadores horarios persisten; no se repite la hora tras reiniciar ni s
 
 `deploy/botpoly.service` está preparado para esta ruta y usuario. Necesita `.runtime/node24/bin/node`, `.env`, `dashboard/dist`, `.runtime` y `reports`. Tiene directorios de escritura acotados, permisos privados y arranque después de la red.
 
-En esta máquina está instalado y habilitado. El 2026-09-06 el inicio del servicio está bloqueado por permisos del sistema: `sudo -n systemctl start botpoly.service` requiere contraseña. Los permisos amplios del cliente no la proporcionan. La validación utilizó `pnpm start` en primer plano, identificado como temporal, y terminó ordenadamente a las 04:27 UTC: servicio inactivo y puerto libre. Consulta [VALIDATION.md](docs/VALIDATION.md) para cifras e instrucciones de intervención. No iniciar otra instancia mientras el puerto esté ocupado.
+En esta máquina está instalado, habilitado y activo en **paper** desde el 2026-09-06 a las 04:39 UTC. El arranque mediante sudo autenticado resolvió el bloqueo de permisos anterior; `pnpm paper:resume` concilió y reanudó la misma cuenta persistente. Se verificaron evaluaciones crecientes, las once posiciones conservadas y el envío de informe/PNG por Telegram desde la unidad. Consulta [VALIDATION.md](docs/VALIDATION.md) para cifras y comprobaciones fechadas. No iniciar otra instancia mientras el servicio ocupe el puerto.
 
 ```bash
 ./deploy/install.sh
