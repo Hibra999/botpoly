@@ -158,7 +158,7 @@ export class Telegram {
     const data=await response.json() as {ok:boolean};
     if (!response.ok || !data.ok) throw new Error("Telegram no disponible");
   }
-  async registerMenu(): Promise<void> { await this.api("setMyCommands",{commands:telegramCommands,scope:{type:"chat",chat_id:this.chatId},language_code:"es"}); }
+  async registerMenu(): Promise<void> { await this.api("setMyCommands",{commands:telegramCommands,scope:{type:"chat",chat_id:this.chatId}}); }
   collectAlerts(): void {
     const last = this.store.get<number>("meta", "telegram:eventRow") ?? 0;
     const events = this.store.db
