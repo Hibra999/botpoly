@@ -27,7 +27,8 @@ export class Store {
   readonly db: DatabaseSync;
   // Fixed SQL shapes only: reuse native statements instead of accumulating them until V8 GC.
   private statements=new Map<string,StatementSync>();
-  private prepare(sql:string):StatementSync {
+  /** Cache only fixed SQL shapes; parameters belong in get/all/run. */
+  prepare(sql:string):StatementSync {
     let statement=this.statements.get(sql);
     if (!statement) {statement=this.db.prepare(sql);this.statements.set(sql,statement);}
     return statement;

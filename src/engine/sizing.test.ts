@@ -63,3 +63,11 @@ it('solo reduce y vuelve a comprobar el mínimo; sin historial no reserva capita
     expect(e.reserve({...frame(),sizing:sizingFixture(start)})).toHaveLength(2);
   }finally{s.close();}
 });
+it('rechaza denominadores cero y separaciones reales superiores a 90 segundos entre muestras',()=>{
+ const s=new Store(':memory:');try {
+  const observed=new ObservedSizing(s),zero=frame(start);zero.yes.bids=zero.yes.asks=[{price:0,size:100}];observed.midpoint(zero);
+  expect(observed.evidence('m',start).midpointTo).toBe(0);
+  observed.midpoint(frame(start));observed.midpoint(frame(start+119000));
+  expect(observed.evidence('m',start+119000).returns).toBe(0);
+ }finally{s.close();}
+});

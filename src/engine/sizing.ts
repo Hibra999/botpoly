@@ -28,7 +28,7 @@ export class ObservedSizing {
   private cache=new Map<string,{minute:number;evidence:SizingEvidence}>();
   constructor(private store:Store) {}
   private insert(market:string,kind:string,at:number,data:Omit<Observation,'sha256'>,period:number):void {
-    if (this.store.db.prepare('INSERT OR IGNORE INTO market_observations(market,kind,bucket,at,data) VALUES (?,?,?,?,?)').run(market,kind,Math.floor(at/period),at,JSON.stringify({...data,sha256:sha(data)})).changes) this.cache.delete(market);
+    if (this.store.prepare('INSERT OR IGNORE INTO market_observations(market,kind,bucket,at,data) VALUES (?,?,?,?,?)').run(market,kind,Math.floor(at/period),at,JSON.stringify({...data,sha256:sha(data)})).changes) this.cache.delete(market);
   }
   gamma(market:string,value:number,at:number,source:string):void {
     if (!Number.isFinite(value) || value < 0 || !Number.isSafeInteger(at) || at < 0 || !source) return;
@@ -38,7 +38,7 @@ export class ObservedSizing {
     const values=[frame.yes,frame.no].map(b=>{
       const bid=Math.max(...b.bids.map(l=>l.price)),ask=Math.min(...b.asks.map(l=>l.price));
       const verified=b.verifiedAt ?? b.timestamp;
-      return Number.isFinite(bid+ask) && bid<=ask && verified<=frame.timestamp && frame.timestamp-verified<=5000 ? (bid+ask)/2 : undefined;
+      return Number.isFinite(bid+ask) && bid>=0 && ask<=1 && bid+ask>0 && bid<=ask && verified<=frame.timestamp && frame.timestamp-verified<=5000 ? (bid+ask)/2 : undefined;
     });
     if (values.some(x=>x===undefined)) return;
     const minute=Math.floor(frame.timestamp/60000)*60000;
@@ -47,12 +47,12 @@ export class ObservedSizing {
   evidence(market:string,now:number):SizingEvidence {
     const minute=Math.floor(now/60000),cached=this.cache.get(market);
     if (cached?.minute===minute && cached.evidence.computedAt<=now) return cached.evidence;
-    const read=(kind:string,from:number)=> (this.store.db.prepare('SELECT data FROM market_observations WHERE market=? AND kind=? AND at>=? AND at<=? ORDER BY at').all(market,kind,from,now) as {data:string}[]).map(r=>JSON.parse(r.data) as Observation);
+    const read=(kind:string,from:number)=> (this.store.prepare('SELECT data FROM market_observations WHERE market=? AND kind=? AND at>=? AND at<=? ORDER BY at').all(market,kind,from,now) as {data:string}[]).map(r=>JSON.parse(r.data) as Observation);
     const gamma=read('gamma',now-86400000), mids=read('midpoint',(minute-60)*60000).filter(m=>(m.capturedAt ?? m.at)<=now);
     const values=gamma.map(g=>g.value!).sort((a,b)=>a-b);
     const index=Math.max(0,(values.length-1)*.1),lo=Math.floor(index),hi=Math.ceil(index);
     const returns:{yes:number;no:number}[]=[];
-    for (let i=1;i<mids.length;i++) if (Math.floor(mids[i].at/60000)-Math.floor(mids[i-1].at/60000)===1 && mids[i].at-mids[i-1].at<=90000) returns.push({yes:(mids[i].yes!/mids[i-1].yes!-1)*10000,no:(mids[i].no!/mids[i-1].no!-1)*10000});
+    for (let i=1;i<mids.length;i++) if (Math.floor(mids[i].at/60000)-Math.floor(mids[i-1].at/60000)===1 && (mids[i].capturedAt ?? mids[i].at)-(mids[i-1].capturedAt ?? mids[i-1].at)<=90000 && mids[i-1].yes!>0 && mids[i-1].no!>0 && mids[i].yes!>0 && mids[i].no!>0) returns.push({yes:(mids[i].yes!/mids[i-1].yes!-1)*10000,no:(mids[i].no!/mids[i-1].no!-1)*10000});
     const std=(key:'yes'|'no')=>{if (!returns.length) return 0;const mean=returns.reduce((n,r)=>n+r[key],0)/returns.length;return Math.sqrt(returns.reduce((n,r)=>n+(r[key]-mean)**2,0)/returns.length);};
     const evidence:SizingEvidence={version:sizingPolicy.version,computedAt:now,gammaCount:gamma.length,recentGamma:gamma.filter(g=>g.at>=now-3600000).length,returns:returns.length,gammaFrom:gamma[0]?.at ?? 0,gammaTo:gamma.at(-1)?.at ?? 0,midpointFrom:mids[0]?.at ?? 0,midpointTo:mids.at(-1)?.at ?? 0,liquidityP10:values.length ? values[lo]+(values[hi]-values[lo])*(index-lo) : 0,volatilityYesBps:std('yes'),volatilityNoBps:std('no'),liquiditySha256:sha(gamma),midpointsSha256:sha(mids),source:'Gamma capturado y puntos medios CLOB verificados; observaciones SQLite, no historial anterior a captura'};
     if (this.cache.size>=500) this.cache.clear();
