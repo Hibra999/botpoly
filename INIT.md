@@ -110,12 +110,12 @@ Hacer copia consistente con SQLite `backup` o `VACUUM INTO`, verificar `integrit
 pnpm test
 pnpm typecheck
 pnpm build
-./deploy/install.sh
+sudo ./deploy/install.sh
 systemctl status botpoly.service
 journalctl -u botpoly.service -n 50
 ```
 
-La unidad exige Node local, `.env`, `dist`, `.runtime` y `reports`. Mantiene permisos privados, `NoNewPrivileges`, protección de sistema/home/kernel y directorios de escritura acotados. El instalador valida la unidad y usa `sudo -n`. Revisar las rutas/usuario en otra máquina. La reanudación corresponde al comando autorizado después de revisar el estado. No ejecutar el arranque antiguo con tsx.
+La unidad exige Node local, `.env`, `dist`, `.runtime` y `reports`. El instalador necesita privilegios root para systemd; ejecuta `sudo ./deploy/install.sh` en una terminal autorizada. Mantiene permisos privados, `NoNewPrivileges`, protección de sistema/home/kernel y directorios de escritura acotados. El instalador valida la unidad y usa `sudo -n`. La copia y migración se ejecutan como el usuario `gabo`, conservando la propiedad privada de los archivos. Detiene el servicio, adquiere el mismo `flock`, crea una copia SQLite consistente, comprueba su integridad completa y hash, y compara cuenta/órdenes/fills/posiciones/reservas/liquidaciones antes y después de las migraciones aditivas. Conserva los parámetros previos y la parada. El manifiesto privado queda en `.runtime/backups/headless-*.json`; si falla una comprobación, mantiene el servicio detenido para revisión, sin sustituir la base. La prueba aislada es `node deploy/migrate.mjs --self-test`. Revisar las rutas/usuario en otra máquina. La reanudación corresponde al comando autorizado después de revisar el estado. No ejecutar el arranque antiguo con tsx.
 
 ## Live separado
 

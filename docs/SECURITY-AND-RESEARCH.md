@@ -18,7 +18,7 @@ La ausencia de avisos altos no equivale a una auditoría de seguridad completa. 
 
 ## Scripts manuales con efectos financieros
 
-`scripts/rescue/rescue-contract.ts` y `scripts/rescue/rescue-erc1155.ts` construyen/despliegan contratos y envían transacciones que pueden transferir fondos o ERC-1155. También existen scripts manuales de depósitos, aprobaciones, redención, swaps y trading archivado. No se eliminaron datos del usuario ni se ejecutaron estos scripts. Ninguno es importado por `src/app/main.ts`, el servicio systemd, el dashboard, Telegram o el backtest.
+`scripts/rescue/rescue-contract.ts` y `scripts/rescue/rescue-erc1155.ts` construyen/despliegan contratos y envían transacciones que pueden transferir fondos o ERC-1155. También existen scripts manuales de depósitos, aprobaciones, redención, swaps y trading archivado. No se eliminaron datos del usuario ni se ejecutaron estos scripts. Ninguno es importado por `src/app/main.ts`, el servicio systemd, Telegram o el backtest.
 
 No ejecutar material histórico siguiendo el README original sin revisar contratos, destinatarios y cantidades. Los archivos de referencia conservan APIs anteriores. Las únicas rutas de operación actuales se documentan en `INIT.md`.
 
@@ -45,7 +45,7 @@ Actualización de seguimiento paper (2026-09-05): se corrigió el selector que t
 - **Liquidez y concentración.** La valoración exige profundidad completa de salida o usa cero. Los subyacentes cripto reconocidos se agrupan conservadoramente; otros activos desconocidos se agrupan por evento. No existe una matriz general de correlaciones ni cobertura entre mercados distintos.
 - **Backtesting.** Snapshots REST no reconstruyen toda la microestructura. Se usa el primer libro observado después de la latencia, sin prioridad de cola. La comparación original es una aproximación de sus límites aplicada al nuevo ejecutor, no una reproducción de beneficios ficticios ni de estrategias desactivadas. Los FOK parciales solo se inyectan como estrés anómalo.
 - **Seguimiento de varios días.** El universo operativo se limita a 20 mercados compatibles, renovado cada 15 minutos. La captura conserva 20 niveles por lado, a intervalos de diez segundos por mercado y en ejecuciones; no registra todos los eventos. La cantidad de gas es un supuesto configurable y necesita calibración antes de interpretar el resultado como estimación de costes reales. El informe paper acumula PnL de la cuenta y separa ese dato de la actividad del periodo seleccionado.
-- **Dashboard.** Las métricas de riesgo son globales al modo de la base. El dashboard presenta las últimas 500 órdenes, 200 eventos y 1.000 observaciones; el historial completo permanece en SQLite. Los filtros se aplican a esas observaciones disponibles. Cada modo debe usar otra base.
+- **Telegram e informes.** Las métricas de riesgo son globales al modo de la base. El snapshot conserva las últimas 500 órdenes, 200 eventos y 1.000 observaciones para visualización; el historial completo permanece en SQLite. El trabajador lee una transacción coherente y no modifica la cuenta. Cada modo debe usar otra base.
 - **Telegram.** Sin token y chat privado no se puede realizar una prueba real de recepción o entrega. Se verificó con transporte simulado, incluyendo rechazos y reintentos.
 - **Operación privada.** El servicio escucha en loopback. El acceso remoto es por túnel SSH. No se preparó exposición pública ni certificados TLS de un dominio.
 
