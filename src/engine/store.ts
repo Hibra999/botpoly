@@ -18,6 +18,7 @@ const tables = [
   "outbox",
   "statistics",
   "activity",
+  "proposals",
 ] as const;
 export type Table = (typeof tables)[number];
 /** Synchronous transactions deliberately never span an await. WAL + BEGIN IMMEDIATE

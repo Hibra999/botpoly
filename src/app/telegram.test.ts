@@ -57,3 +57,52 @@ it("atiende comandos mientras el informe está pendiente y rechaza archivos fuer
   store.put('meta','telegram:hour',new Date(now).toISOString().slice(0,13));finish();await pending;
   expect(store.get('outbox','telegram:1:photo')).toBeDefined();
 });
+
+it('propuestas persistentes: vista previa, alias, remitente, cancelación, caducidad, versión e idempotencia',async()=>{
+  let now=Date.UTC(2026,8,7); const s=new Store(':memory:');stores.push(s);
+  const l=new Ledger(s,'paper',{...defaults,maxDataAgeMs:1200},()=>now);
+  const c=new Controller(new Engine(l,new PaperExecutor('paper',async()=>undefined)));
+  const request=vi.fn(async()=>new Response(JSON.stringify({ok:true}))) as typeof fetch;
+  const bot=()=>new Telegram(c,'123456:test','42',request,()=>now);
+  const msg=(id:number,text:string)=>({update_id:id,message:{date:now/1000,text,chat:{id:42,type:'private'},from:{id:42}}});
+  const click=(id:number,data:string,from=42)=>({update_id:id,callback_query:{id:String(id),data,from:{id:from},message:{date:now/1000,chat:{id:42,type:'private'}}}});
+  l.stop('Límite de pérdida diaria');
+  await bot().process(msg(1,'/start'));expect(l.account.stop).toBe('Límite de pérdida diaria');
+  await bot().process(msg(2,'/setMaxOps 25'));expect(l.config.max_oper_per_hour).toBe(15);
+  await bot().process(click(3,'confirm:telegram:2',17));expect(l.config.max_oper_per_hour).toBe(15);
+  await bot().process(click(4,'confirm:telegram:2'));expect(l.config.max_oper_per_hour).toBe(25);
+  const version=s.get('meta','config:version');
+  await bot().process(click(5,'confirm:telegram:2'));expect(s.get('meta','config:version')).toBe(version);
+  expect(l.config.maxDataAgeMs).toBe(1200);expect(l.account.stop).toBe('Límite de pérdida diaria');
+  await bot().process(msg(6,'/setbudget 200'));await bot().process(click(7,'cancel:telegram:6'));await bot().process(click(8,'confirm:telegram:6'));expect(l.config.capitalUsd).toBe(1000);
+  await bot().process(msg(9,'/config maxDataAgeMs 2000'));now+=120000;
+  await bot().process(click(10,'confirm:telegram:9'));expect(l.config.maxDataAgeMs).toBe(1200);
+  await bot().process(msg(11,'/setbudget 500'));await bot().process(msg(12,'/setmaxops 30'));
+  await bot().process(click(13,'confirm:telegram:12'));await bot().process(click(14,'confirm:telegram:11'));expect(l.config.capitalUsd).toBe(1000);
+  await bot().process(msg(15,'/config capitalUsd 100'));await bot().process(click(16,'confirm:telegram:15'));
+  expect(l.config.capitalUsd).toBe(100);expect(l.account.cash).toBe(1000);expect(l.metrics().netPnl).toBe(0);
+  for(const [i,text] of ['/setmaxops 1.5','/setmaxops 9007199254740992','/config live 1','/setbudget NaN'].entries()) await bot().process(msg(30+i,text));
+  expect(l.config.max_oper_per_hour).toBe(30);expect(l.mode).toBe('paper');
+});
+it('resume confirmado vuelve a comprobar pérdidas; pausa bloquea antes de terminar conciliaciones',async()=>{
+  const s=new Store(':memory:');stores.push(s);const now=Date.UTC(2026,8,7);
+  const l=new Ledger(s,'paper',defaults,()=>now),e=new Engine(l,new PaperExecutor('paper',async()=>undefined)),c=new Controller(e);
+  l.save({...l.account,cash:970,connected:true,lastDataAt:now,stop:'Límite de pérdida diaria'});
+  const p=c.propose('loss','42','42','resume');expect((await c.confirm(p.id,'42','42',true)).ok).toBe(false);expect(l.account.stop).toBeTruthy();
+  l.save({...l.account,cash:1000,stop:null});
+  let release!:()=>void; e.reconcile=async()=>new Promise<void>(r=>release=r);
+  const resume=c.execute({id:'slow',command:'resume'});await new Promise(r=>setTimeout(r,0));
+  const pause=c.execute({id:'pause',command:'pause'});expect(l.account.stop).toBe('Pausa autorizada');
+  release();expect((await resume).ok).toBe(false);await pause;expect(l.account.stop).toBe('Pausa autorizada');
+});
+it('menú minúsculo, paginación sin truncar y auditoría acotada; falla API sin perder salida',async()=>{
+  const s=new Store(':memory:');stores.push(s);const now=Date.UTC(2026,8,7);
+  const l=new Ledger(s,'paper',defaults,()=>now),c=new Controller(new Engine(l,new PaperExecutor('paper',async()=>undefined)));
+  const request=vi.fn(async(_url,init)=>{const body=JSON.parse(String(init?.body));expect(body.commands.every((x:{command:string})=>/^[a-z_]{1,32}$/.test(x.command))).toBe(true);return new Response(JSON.stringify({ok:true}));}) as typeof fetch;
+  const bot=new Telegram(c,'123456:test','42',request,()=>now);await bot.registerMenu();
+  const long='á'.repeat(9000);bot.enqueue('pages',long);
+  const chunks=s.all<{text:string}>('outbox');expect(chunks).toHaveLength(6);expect(chunks.map(c=>c.text.replace(/^\(\d\/\d\) /,'')).join('')).toBe(long);
+  const failing=new Telegram(c,'123456:test','42',async()=>{throw new Error('transport');},()=>now);await failing.flush();expect(s.all('outbox')).toHaveLength(6);
+  const update=(id:number,text:string)=>({update_id:id,message:{date:now/1000,text,chat:{id:42,type:'private'},from:{id:42}}});
+  await bot.process(update(1,'/audit 101'));expect(s.get<{text:string}>('outbox','telegram:1')!.text).toContain('rechazada');
+});

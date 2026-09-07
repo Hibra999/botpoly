@@ -14,4 +14,10 @@ Prueba específica: `pnpm exec vitest run src/engine/operation-slots.test.ts`. L
 
 ## Trabajo en curso
 
-Faltan el control Telegram con propuestas persistentes, eliminación web, lanzador compilado con exclusión, informes en trabajador, parche de continuidad del SDK, captura y dimensionamiento experimental, revisión de las once entradas, investigación, mediciones comparables y despliegue conservando la parada. Ninguna de estas fases se considera validada por las pruebas del cupo.
+Faltan eliminación web, lanzador compilado con exclusión, informes en trabajador, parche de continuidad del SDK, captura y dimensionamiento experimental, revisión de las once entradas, investigación, mediciones comparables y despliegue conservando la parada. Ninguna de estas fases se considera validada por las pruebas del cupo.
+
+## Control confirmado por Telegram
+
+El menú registra comandos en minúsculas según [BotCommand](https://core.telegram.org/bots/api#botcommand); se acepta `/setMaxOps` como alias. `/start` muestra ayuda y estado. `/config clave valor`, `/setmaxops`, `/setbudget` y `/resume` preparan una propuesta SQLite ligada al chat privado y remitente autorizado, comando, versión y dos minutos de caducidad. Confirmar repetidamente conserva el resultado sin repetir efectos; una versión antigua se rechaza también después de conciliar. Pausar impide entradas inmediatamente e invalida una reanudación en curso. Una confirmación nunca autoriza live.
+
+`/audit [n]` admite 1–100, 20 por defecto. Las respuestas largas se dividen en mensajes numerados conservando caracteres completos. API indisponible conserva las salidas para reintentar. Prueba: `pnpm exec vitest run src/app/telegram.test.ts`.
