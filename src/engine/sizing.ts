@@ -15,7 +15,7 @@ export function budgetAdjustment(frame:Frame,before:number,cfg:RiskConfig,now:nu
   if (enabled) {
     if (!e || e.version !== sizingPolicy.version) reason='Falta historial observado para dimensionamiento';
     else if (e.computedAt > now || now-e.computedAt > 60000 || e.gammaTo > now || now-e.gammaTo > 360000 || e.midpointTo > now || now-e.midpointTo > 90000) reason='Historial de dimensionamiento caducado o futuro';
-    else if (e.recentGamma < 12 || e.returns !== 60) reason='Cobertura insuficiente: se exigen 12 Gamma y 60 variaciones válidas';
+    else if (e.recentGamma < 12 || e.gammaCount < e.recentGamma || e.returns !== 60 || e.midpointTo-e.midpointFrom !== 3600000 || e.gammaFrom < now-86400000 || e.gammaFrom > e.gammaTo) reason='Cobertura insuficiente: se exigen 12 Gamma y 60 variaciones válidas';
   }
   const volatilityBps=enabled && e ? Math.max(e.volatilityYesBps,e.volatilityNoBps) : 0;
   const liquidityCap=enabled && e ? .01*e.liquidityP10 : before;
@@ -46,9 +46,9 @@ export class ObservedSizing {
   }
   evidence(market:string,now:number):SizingEvidence {
     const minute=Math.floor(now/60000),cached=this.cache.get(market);
-    if (cached?.minute===minute) return cached.evidence;
+    if (cached?.minute===minute && cached.evidence.computedAt<=now) return cached.evidence;
     const read=(kind:string,from:number)=> (this.store.db.prepare('SELECT data FROM market_observations WHERE market=? AND kind=? AND at>=? AND at<=? ORDER BY at').all(market,kind,from,now) as {data:string}[]).map(r=>JSON.parse(r.data) as Observation);
-    const gamma=read('gamma',now-86400000), mids=read('midpoint',(minute-60)*60000);
+    const gamma=read('gamma',now-86400000), mids=read('midpoint',(minute-60)*60000).filter(m=>(m.capturedAt ?? m.at)<=now);
     const values=gamma.map(g=>g.value!).sort((a,b)=>a-b);
     const index=Math.max(0,(values.length-1)*.1),lo=Math.floor(index),hi=Math.ceil(index);
     const returns:{yes:number;no:number}[]=[];

@@ -3,7 +3,23 @@ import { readDataset } from "./dataset.js";
 import { runBacktest, blockBootstrap } from "./backtest.js";
 import { reportHtml } from "./report.js";
 import { defaults } from "../engine/model.js";
+import {mkdtempSync,readFileSync,writeFileSync,rmSync} from 'node:fs';
+import {join} from 'node:path';
+import {tmpdir} from 'node:os';
+import {checksum} from './dataset.js';
 const data = readDataset("fixtures/demo.jsonl");
+it('valida también el archivo de observaciones declarado y conserva datasets antiguos',()=>{
+  const directory=mkdtempSync(join(tmpdir(),'botpoly-provenance-'));
+  try {
+    const path=join(directory,'data.jsonl'),observations='synthetic observation boundary';
+    writeFileSync(path,readFileSync('fixtures/demo.jsonl'));
+    const manifest={...data.manifest,observations:{file:'observations.sqlite',sha256:checksum(observations),policy:'test-only'}};
+    writeFileSync(join(directory,'observations.sqlite'),observations);writeFileSync(path+'.manifest.json',JSON.stringify(manifest));
+    expect(readDataset(path).frames.length).toBe(data.frames.length);
+    writeFileSync(join(directory,'observations.sqlite'),'tampered');expect(()=>readDataset(path)).toThrow('observaciones');
+    manifest.observations.file='../outside.sqlite';writeFileSync(path+'.manifest.json',JSON.stringify(manifest));expect(()=>readDataset(path)).toThrow('observaciones');
+  }finally{rmSync(directory,{recursive:true,force:true});}
+});
 const options = {
   from: Date.UTC(2026, 0, 1),
   split: Date.UTC(2026, 0, 1, 0, 1),

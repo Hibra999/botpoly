@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
-import { dirname } from "node:path";
+import { basename, dirname, resolve } from "node:path";
 import { type Frame, validateFrame } from "../engine/model.js";
 
 export interface Manifest {
@@ -79,6 +79,11 @@ export function readDataset(path: string): {
     !Array.isArray(manifest.limitations)
   )
     throw new Error("Procedencia o checksum inválido");
+  if (manifest.observations) {
+    const o=manifest.observations;
+    if (typeof o.file !== 'string' || !o.file || basename(o.file)!==o.file || !/^[a-f0-9]{64}$/.test(o.sha256) || !o.policy || checksum(readFileSync(resolve(dirname(path),o.file)))!==o.sha256)
+      throw new Error('Procedencia o checksum de observaciones inválido');
+  }
   const frames = raw
     .toString("utf8")
     .trim()

@@ -37,8 +37,17 @@ it('rechaza un hueco o libro no verificado y no usa Gamma actual como historial 
     const e=observed.evidence('m',start+3600000);expect(e.recentGamma).toBe(1);expect(e.returns).toBe(58);
     expect(budgetAdjustment({...frame(start+3600000),sizing:e},10,defaults,start+3600000).reason).toBeTruthy();
     expect(observed.evidence('m',start).gammaCount).toBe(0);
+    expect(observed.evidence('m',start+3600000-1).returns).toBeLessThan(60);
     const bad=frame(start+61*60000);bad.yes.verifiedAt=start;bad.no.verifiedAt=start;observed.midpoint(bad);
     expect(observed.evidence('m',bad.timestamp).midpointTo).toBe(start+3600000);
+  }finally{s.close();}
+});
+it('no atribuye el punto medio al comienzo del minuto antes de su captura, incluso con caché',()=>{
+  const s=new Store(':memory:');try {
+    const observed=new ObservedSizing(s);observed.midpoint(frame(start+30000));
+    expect(observed.evidence('m',start+30000).midpointTo).toBe(start);
+    expect(observed.evidence('m',start+10000).midpointTo).toBe(0);
+    expect(budgetAdjustment({...frame(),sizing:{...sizingFixture(start),midpointFrom:start-1}},10,defaults,start).reason).toContain('Cobertura');
   }finally{s.close();}
 });
 it('solo reduce y vuelve a comprobar el mínimo; sin historial no reserva capital ni cupo',()=>{
