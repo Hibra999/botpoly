@@ -8,15 +8,13 @@ import { MarketData, retainMarkets, marketsToEvaluate, type ProcessingStats } fr
 import { Controller } from "./control.js";
 import { Telegram } from "./telegram.js";
 import { loadConfig, authorizeLive } from "./config.js";
-import { startDashboard, stopDashboard } from "../dashboard/server.js";
 import { PaperGas } from "../research/paper-gas.js";
-import { writePaperReport } from "../research/paper-report.js";
 import { statfsSync } from "node:fs";
-import { dirname, resolve } from "node:path";
+import { dirname } from "node:path";
 
 export async function main(): Promise<void> {
-  if (Number(process.versions.node.split(".")[0]) !== 24)
-    throw new Error("Se requiere Node 24 LTS");
+  if (process.versions.node !== "24.20.0")
+    throw new Error("Se requiere Node 24.20.0");
   process.umask(0o077);
   const config = loadConfig();
   if (config.mode === "backtest")
@@ -26,7 +24,7 @@ export async function main(): Promise<void> {
     ledger = new Ledger(store, config.mode, config.risk);
   const approval = config.mode === "live" ? authorizeLive(process.env, ledger.config) : undefined;
   if (approval) store.put("meta", "live:strategies", approval.strategies);
-  const runtime = ledger.startRuntime("botpoly-v4-batch-analysis");
+  const runtime = ledger.startRuntime("botpoly-v5-headless");
   let live: LiveExecutor | undefined, data: MarketData, executor: Executor;
   if (approval) {
     const { LiveExecutor } = await import("../engine/live.js");
@@ -70,19 +68,10 @@ export async function main(): Promise<void> {
       ledger.stop("Conciliación live incompleta");
     }
   }
-  await startDashboard(controller, {
-    passwordHash: config.passwordHash,
-    port: config.port,
-    origin: config.origin,
-    reports: config.reports,
-  });
-  console.log(`Botpoly · ${config.mode} · http://127.0.0.1:${config.port}`);
-  const telegram =
-    config.telegramToken && config.telegramChat
-      ? new Telegram(controller, config.telegramToken, config.telegramChat)
-      : undefined;
-  telegram?.enqueue(`deployment:${runtime.startedAt}`, "Despliegue PAPER · estrategias YES/NO y fútbol · cuenta persistente conservada. No hay activación live.");
-  const telegramLoop = telegram?.run();
+  console.log(`Botpoly · ${config.mode} · control por Telegram`);
+  const telegram = new Telegram(controller, config.telegramToken, config.telegramChat);
+  telegram.enqueue(`deployment:${runtime.startedAt}`, `Despliegue ${config.mode.toUpperCase()} · cuenta persistente conservada · estado: ${ledger.account.stop ?? "entradas habilitadas"}`);
+  const telegramLoop = telegram.run();
   let heartbeatBusy = false;
   const heartbeat = live
     ? setInterval(async () => {
@@ -109,7 +98,6 @@ export async function main(): Promise<void> {
   let wasConnected = false;
   let refreshedAt = 0,
     equityAt = 0,
-    reportAt = 0,
     diskAt = 0,
     resolutionAt = 0;
   let diskAvailable = true, evaluatedState = "", fullEvaluationAt = 0;
@@ -231,10 +219,7 @@ export async function main(): Promise<void> {
         observation.coverage=data.coverage; observation.feed=data.stream.status;
         observation.processing={at:now,prepareMs,evaluateMs,cycleMs:performance.now()-cycleAt,changed:changed.size,evaluated:frames.length,skippedUnchanged:markets.length-evaluate.size,framesRead,sourceAgeMaxMs:Math.max(0,...books.map(b=>now-b.timestamp)),verificationAgeMaxMs:Math.max(0,...books.map(b=>now-bookTime(b))),receiveLagMaxMs:Math.max(0,...books.filter(b=>b.verifiedAt === undefined).map(b=>(b.receivedAt ?? b.timestamp)-b.timestamp)),backlog:data.stream.changed.size};
         store.put("meta", "paper:observation", observation); store.put("meta", "runtime", runtime);
-        if (config.mode === "paper" && Date.now() - reportAt >= 300000) {
-          writePaperReport(ledger, resolve(config.reports, "paper-actual"));
-          reportAt = Date.now();
-        }
+
       } catch {
         wasConnected = false;
         engine.health(false);
@@ -250,14 +235,6 @@ export async function main(): Promise<void> {
     stop();
     ledger.stop("Proceso detenido; requiere reanudación autorizada");
     await engine.cancelOrders();
-    if (config.mode === "paper") {
-      try {
-        writePaperReport(ledger, resolve(config.reports, "paper-actual"));
-      } catch {
-        console.error("No se pudo actualizar el informe paper al cerrar");
-      }
-    }
-    await stopDashboard();
     await telegramLoop;
     await data.stream.close();
     await live?.close();

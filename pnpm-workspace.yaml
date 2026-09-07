@@ -1,5 +1,5 @@
 packages:
-  - dashboard
+  - .
 
 # Initial installs never run dependency lifecycle scripts. esbuild ships its
 # platform binary as an optional dependency and works without its postinstall.

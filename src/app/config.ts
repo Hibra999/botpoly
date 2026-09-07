@@ -25,29 +25,16 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env) {
     ...file,
     capitalUsd: Number(env.CAPITAL_USD ?? file.capitalUsd ?? 1000),
   });
-  const port = Number(env.DASHBOARD_PORT ?? 3001),
-    interval = Number(env.POLL_INTERVAL_MS ?? 2000);
-  if (
-    !Number.isInteger(port) ||
-    port < 1 ||
-    port > 65535 ||
-    !Number.isFinite(interval) ||
-    interval < 500 ||
-    interval > 60000
-  )
-    throw new Error("Puerto o intervalo inválido");
-  if (!env.DASHBOARD_PASSWORD_HASH)
-    throw new Error("Configura acceso con pnpm auth:setup");
+  const interval = Number(env.POLL_INTERVAL_MS ?? 2000);
+  if (!Number.isFinite(interval) || interval < 500 || interval > 60000) throw new Error("Intervalo inválido");
+  if (!/^\d+:[A-Za-z0-9_-]+$/.test(env.TELEGRAM_BOT_TOKEN ?? "") || !/^[1-9]\d*$/.test(env.TELEGRAM_CHAT_ID ?? "") || !Number.isSafeInteger(Number(env.TELEGRAM_CHAT_ID))) throw new Error("Configura un bot y un chat privado válido de Telegram");
   const gasUnits = Number(env.PAPER_GAS_UNITS ?? 300000),
     gasMultiplier = Number(env.PAPER_GAS_MULTIPLIER ?? 1.5);
   if (mode === "paper") new PaperGas(gasUnits, gasMultiplier);
   return {
     mode: mode as Mode,
     risk,
-    port,
     interval,
-    passwordHash: env.DASHBOARD_PASSWORD_HASH,
-    origin: env.DASHBOARD_ORIGIN,
     database: resolve(env.BOT_DATABASE ?? `.runtime/${mode}.sqlite`),
     markets: env.MARKET_IDS?.split(",").filter(Boolean) ?? [],
     reports: resolve("reports"),

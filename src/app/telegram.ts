@@ -1,7 +1,7 @@
 import { existsSync, readFileSync, realpathSync } from "node:fs";
 import { resolve, sep, basename } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
-import { writePaperReport, writePaperChart } from "../research/paper-report.js";
+import { ReportWorker } from "../research/report-worker.js";
 import { validateConfig, type RiskConfig, type AuditEvent } from "../engine/model.js";
 import { Controller } from "./control.js";
 
@@ -37,7 +37,7 @@ export class Telegram {
     private request: typeof fetch = fetch,
     private now = Date.now,
     private reports = resolve("reports"),
-    private renderChart = writePaperChart,
+    private worker: Pick<ReportWorker,"generate"|"stop"> = new ReportWorker(controller.engine.ledger,reports),
   ) {
     if (!/^\d+:[A-Za-z0-9_-]+$/.test(token) || !/^\d+$/.test(chatId))
       throw new Error("Configura un bot y un chat privado de Telegram");
@@ -180,27 +180,17 @@ export class Telegram {
   }
   private async report(id: string, label: string, document: boolean): Promise<void> {
     const ledger = this.controller.engine.ledger;
-    if (ledger.mode !== "paper") {
-      this.enqueue(id, this.summary("/status"));
-      return;
-    }
     const safe = id.replace(/[^a-zA-Z0-9_-]/g, "-");
-    const directory = resolve(this.reports, `paper-${safe}`);
-    const html = writePaperReport(ledger, directory);
-    this.enqueue(id, `${label}\n${this.summary("/status")}`);
-    try {
-      const png = await this.renderChart(directory);
-      this.enqueue(`${id}:photo`, `${label} · PAPER · Resultados simulados`, png, true);
-    } catch {
-      this.enqueue(`${id}:chart-error`, "No se pudo generar la gráfica. El informe HTML conserva los datos y gráficos.");
-    }
-    if (document) this.enqueue(`${id}:document`, `${label} · incluye costes, procedencia y limitaciones`, html);
+    const directory = resolve(this.reports, `${ledger.mode}-${safe}`);
+    const result=await this.worker.generate(directory);
+    this.enqueue(id,`${label}\n${readFileSync(resolve(directory,"summary.md"),"utf8")}`);
+    if (result.png) this.enqueue(`${id}:photo`,`${label} · ${ledger.mode.toUpperCase()} · ${ledger.mode === "live" ? "Datos y costes reales confirmados" : "Resultados simulados"}`,result.png,true);
+    if (result.chartError) this.enqueue(`${id}:chart-error`,"No se pudo generar la gráfica. HTML/JSON/CSV conservan el snapshot coherente.");
+    if (document) for (const name of ["report.html","summary.md","result.json","trades.csv","manifest.json"]) this.enqueue(`${id}:document:${name}`,`${label} · ${name} · incluye costes, procedencia y limitaciones`,resolve(directory,name));
   }
+
   async scheduleReports(): Promise<void> {
     const hour = new Date(this.now()).toISOString().slice(0, 13);
-    for (const item of this.store.all<Outgoing>("outbox")) if (item.id.startsWith("hourly:") && !item.id.startsWith(`hourly:${hour}`)) {
-      this.store.delete("outbox",item.id); this.controller.engine.ledger.count("telegram:expired-hourly");
-    }
     const job=this.store.db.prepare("SELECT id,data FROM meta WHERE id LIKE 'telegram:report-request:%' LIMIT 1").get() as {id:string;data:string}|undefined;
     if (job) { await this.report(JSON.parse(job.data).id,"Informe solicitado",true); this.store.delete("meta",job.id); }
     if (this.store.get<string>("meta", "telegram:hour") !== hour) {
@@ -247,7 +237,7 @@ export class Telegram {
       form.set("caption", item.text.slice(0, 900));
       form.set(
         item.photo ? "photo" : "document",
-        new Blob([readFileSync(item.document)], { type: item.photo ? "image/png" : "text/html" }),
+        new Blob([readFileSync(item.document)], { type: item.photo ? "image/png" : "application/octet-stream" }),
         basename(item.document),
       );
       body = form;
@@ -276,6 +266,7 @@ export class Telegram {
         this.store.transaction(() => {
           this.store.delete("outbox", item.id);
           this.store.put("meta", `telegram:sent:${item.id}`, true);
+          if (item.document) this.controller.engine.ledger.event("report_sent",`Archivo enviado: ${basename(item.document)}`);
         });
         return;
       }
@@ -364,5 +355,6 @@ export class Telegram {
   stop(): void {
     this.stopped = true;
     this.abort.abort();
+    this.worker.stop();
   }
 }

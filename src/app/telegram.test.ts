@@ -9,6 +9,7 @@ import { PaperExecutor } from "../engine/paper.js";
 import { defaults } from "../engine/model.js";
 import { Controller } from "./control.js";
 import { Telegram } from "./telegram.js";
+import { writePaperReport } from "../research/paper-report.js";
 
 const stores: Store[] = [];
 afterEach(() => stores.splice(0).forEach((s) => s.close()));
@@ -25,7 +26,7 @@ it("envía texto y PNG cada hora sin repetir al reiniciar ni recuperar horas ant
     return new Response(JSON.stringify({ ok: true }));
   }) as typeof fetch;
   const render = async (dir: string) => { const file = join(dir, "chart.png"); writeFileSync(file, "image"); return file; };
-  const create = () => new Telegram(controller, "123456:test", "42", request, () => now, reports, render);
+  const create = () => new Telegram(controller, "123456:test", "42", request, () => now, reports, {generate:async dir=>({html:writePaperReport(ledger,dir),png:await render(dir),chartError:false}),stop:()=>{}});
   const bot = create();
   ledger.count("signals");
   await bot.scheduleReports(); await bot.scheduleReports();
@@ -48,7 +49,7 @@ it("atiende comandos mientras el informe está pendiente y rechaza archivos fuer
   const directory=mkdtempSync(join(tmpdir(),'botpoly-commands-'));const outside=join(tmpdir(),'botpoly-outside.txt');writeFileSync(outside,'not a report');
   let finish:()=>void=()=>{};
   const render=async(dir:string)=>{await new Promise<void>(r=>finish=r);const path=join(dir,'chart.png');writeFileSync(path,'png');return path;};
-  const bot=new Telegram(controller,'123456:test','42',fetch,()=>now,directory,render);
+  const bot=new Telegram(controller,'123456:test','42',fetch,()=>now,directory,{generate:async dir=>({html:writePaperReport(ledger,dir),png:await render(dir),chartError:false}),stop:()=>{}});
   const update=(id:number,text:string)=>({update_id:id,message:{date:now/1000,text,chat:{id:42,type:'private'},from:{id:42}}});
   await bot.process(update(1,'/report'));
   const pending=bot.scheduleReports();await bot.process(update(2,'/status'));

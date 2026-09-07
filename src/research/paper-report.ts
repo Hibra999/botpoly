@@ -14,12 +14,14 @@ export function writePaperReport(
   days = 5,
 ): string {
   if (
-    ledger.mode !== "paper" ||
+    !["paper","live"].includes(ledger.mode) ||
     !Number.isInteger(days) ||
     days < 1 ||
     days > 30
   )
     throw new Error("Informe paper: periodo entre 1 y 30 días");
+  const mode=ledger.mode, live=mode === "live";
+  const nature=live ? "LIVE · Fills y costes reales confirmados en Ledger; estimaciones de salida separadas." : "Resultados simulados sobre mercados observados. Gas modelado; no prueba rentabilidad real.";
   return ledger.store.transaction(() => {
   const to = ledger.now(),
     from =
@@ -28,7 +30,7 @@ export function writePaperReport(
   const s = ledger.snapshot(),
     statistics = s.statistics.filter((d) => d.lastAt >= from);
   const analysis: PaperAnalysis = {...accountAnalysis(ledger, to), entryQuality: entryQuality(ledger, to)};
-  ledger.store.put("meta", "paper:analysis", analysis);
+  if (!ledger.store.readOnly) ledger.store.put("meta", "paper:analysis", analysis);
   const totals: Record<string, number> = {};
   for (const day of statistics)
     for (const [key, n] of Object.entries(day.counts))
@@ -57,8 +59,8 @@ export function writePaperReport(
     .prepare("SELECT count(*) AS n FROM recorded_books WHERE timestamp >= ?")
     .get(from)!.n;
   const limits = [
-    "Evaluación prospectiva paper. Los fills son simulados sobre profundidad observada; no se enviaron órdenes reales.",
-    "Gas: unidades supuestas × precio fast de Polygon Gas Station × POL/USD × margen. No es eth_estimateGas ni una confirmación on-chain.",
+    nature,
+    live ? "Costes reales contabilizados: comisiones de fills y gas de recibos confirmados; la valoración y los escenarios de salida son estimaciones." : "Gas: unidades supuestas × precio fast de Polygon Gas Station × POL/USD × margen. No es eth_estimateGas ni una confirmación on-chain.",
     "Descubrimiento de hasta 5.000 mercados y observación de hasta 200, hasta 100 de fútbol; renovación cada cinco minutos. Las posiciones pendientes conservan cobertura adicional.",
     "Snapshots completos REST y cambios WebSocket con coalescencia. Se archivan muestras cada 10 segundos por mercado y snapshots usados para ejecución; no es un archivo completo de eventos ni una prueba de prioridad de cola.",
     "Fútbol: Poisson con datos gratuitos por lotes, 1/4 Kelly, ventaja neta mínima 5 pp, 1% por partido y 10% agregado. Salida al 10% neto ejecutable o resolución oficial CTF. No hay nuevas apuestas durante el juego ni probabilidades in-play.",
@@ -67,7 +69,7 @@ export function writePaperReport(
   ];
   const result = {
     schema: 1,
-    kind: "paper",
+    kind: mode,
     analysis,
     status: "exploratorio",
     from,
@@ -75,6 +77,8 @@ export function writePaperReport(
     startedAt: statistics[0]?.firstAt ?? null,
     account: s.account,
     config: s.config,
+    configVersion: ledger.store.get<number>("meta","config:version") ?? 0,
+    operations: s.operations,
     metrics: s.metrics,
     observation: s.observation,
     runtime: s.runtime,
@@ -95,7 +99,7 @@ export function writePaperReport(
     limitations: limits,
   };
   const usd = (n: number) => `US$${n.toFixed(4)}`;
-  const html = `<!doctype html><html lang="es"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'"><title>Botpoly · Seguimiento paper</title><style>body{background:#101018;color:#eee;font:16px/1.6 system-ui;margin:0}main{max-width:1050px;margin:auto;padding:24px}table{border-collapse:collapse;width:100%}td,th{padding:8px;border-bottom:1px solid #454552;text-align:left}h1,h2,strong{color:#b9a9ff}svg{width:100%;height:auto}figure{margin:20px 0}.notice{padding:16px;background:#252132}pre{white-space:pre-wrap;overflow-wrap:anywhere}</style><main><h1>Seguimiento paper · YES/NO y fútbol</h1><p class="notice">Resultados simulados sobre mercados observados. Gas modelado; no prueba rentabilidad real.</p><p>Informe generado: ${new Date(to).toISOString()}. Actividad desde ${new Date(from).toISOString()}.</p><p>Inicio de las observaciones incluidas: ${result.startedAt ? new Date(result.startedAt).toISOString() : "sin observaciones"}.</p><p><strong>PnL acumulado: ${usd(s.metrics.netPnl)}</strong> · Capital: ${usd(s.metrics.equity)} · Comisiones: ${usd(s.account.fees)} · Gas: ${usd(s.account.gas)}</p><p>Libros evaluados: ${totals.evaluated ?? 0} · Reservas autorizadas: ${totals.accepted ?? 0} · Fills del periodo: ${fills.length} · Libros archivados: ${recorded}</p><p>Estado: ${escapeHtml(s.account.stop ?? (s.account.connected ? "activo" : "sin conexión"))}</p>${chart(
+  const html = `<!doctype html><html lang="es"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'"><title>Botpoly · Seguimiento ${mode}</title><style>body{background:#101018;color:#eee;font:16px/1.6 system-ui;margin:0}main{max-width:1050px;margin:auto;padding:24px}table{border-collapse:collapse;width:100%}td,th{padding:8px;border-bottom:1px solid #454552;text-align:left}h1,h2,strong{color:#b9a9ff}svg{width:100%;height:auto}figure{margin:20px 0}.notice{padding:16px;background:#252132}pre{white-space:pre-wrap;overflow-wrap:anywhere}</style><main><h1>Seguimiento ${mode} · YES/NO y fútbol</h1><p class="notice">${nature}</p><p>Informe generado: ${new Date(to).toISOString()}. Actividad desde ${new Date(from).toISOString()}.</p><p>Inicio de las observaciones incluidas: ${result.startedAt ? new Date(result.startedAt).toISOString() : "sin observaciones"}.</p><p><strong>PnL acumulado: ${usd(s.metrics.netPnl)}</strong> · Capital: ${usd(s.metrics.equity)} · Comisiones: ${usd(s.account.fees)} · Gas: ${usd(s.account.gas)}</p><p>Libros evaluados: ${totals.evaluated ?? 0} · Reservas autorizadas: ${totals.accepted ?? 0} · Fills del periodo: ${fills.length} · Libros archivados: ${recorded}</p><p>Estado: ${escapeHtml(s.account.stop ?? (s.account.connected ? "activo" : "sin conexión"))}</p>${chart(
     curve.map((v) => v.equity),
     "Capital (USD)",
   )}${chart(
@@ -143,9 +147,11 @@ export function writePaperReport(
     ]
       .map((row) => row.map(csvCell).join(","))
       .join("\n") + "\n";
+  const markdown=`# Botpoly · ${mode.toUpperCase()}\n\n${nature}\n\nPeriodo: ${new Date(from).toISOString()} → ${new Date(to).toISOString()}\n\nEstado: ${s.account.stop ?? "activo"}\n\nPnL neto acumulado: ${usd(s.metrics.netPnl)} · realizado: ${usd(s.account.realized)} · abierto: ${usd(s.metrics.unrealized)}\n\nComisiones: ${usd(s.account.fees)} · gas: ${usd(s.account.gas)}\n\n${limits.map(x=>`- ${x}`).join("\n")}\n\nProcedencia y SHA-256: manifest.json. Configuración, órdenes, fills y liquidaciones: result.json.\n`;
   mkdirSync(directory, { recursive: true, mode: 0o700 });
   for (const [name, body] of [
     ["report.html", html],
+    ["summary.md", markdown],
     ["result.json", JSON.stringify(result, null, 2) + "\n"],
     ["trades.csv", csv],
   ]) {
@@ -153,21 +159,22 @@ export function writePaperReport(
     writeFileSync(path + ".tmp", body, { mode: 0o600 });
     renameSync(path + ".tmp", path);
   }
-  const files = ["report.html", "result.json", "trades.csv"];
+  const files = ["report.html", "summary.md", "result.json", "trades.csv"];
   writeFileSync(resolve(directory, "manifest.json"), JSON.stringify({
-    schema: 1, generatedAt: to, kind: "paper", from, to,
-    source: "SQLite persistente: libros observados, órdenes, fills simulados y contabilidad",
+    schema: 1, generatedAt: to, kind: mode, from, to,
+    source: `SQLite persistente: libros observados, órdenes, fills ${live ? "reales confirmados" : "simulados"} y contabilidad`,
+    configSha256: createHash("sha256").update(JSON.stringify(s.config)).digest("hex"),
     files: Object.fromEntries(files.map((name) => [name, createHash("sha256").update(readFileSync(resolve(directory, name))).digest("hex")])),
   }, null, 2), { mode: 0o600 });
   const id = basename(resolve(directory));
   if (
-    /^[a-zA-Z0-9_-]+$/.test(id) &&
+    !ledger.store.readOnly && /^[a-zA-Z0-9_-]+$/.test(id) &&
     resolve(directory, "..") === resolve("reports")
   )
     ledger.store.put("reports", id, {
       id,
       timestamp: to,
-      label: "Seguimiento paper",
+      label: `Seguimiento ${mode}`,
       status: "exploratorio",
       netPnl: s.metrics.netPnl,
     });
@@ -185,7 +192,7 @@ export async function writePaperChart(directory: string): Promise<string> {
     ["Drawdown · %", curve.map((p) => p.drawdown * 100), "#ffa884",curve.map(p=>p.timestamp)],
     ["Compras y ventas · por hora", (result.activity ?? []).map((p: DailyStatisticsForChart) => (p.counts.buys ?? 0) + (p.counts.sells ?? 0)), "#7fe0b1",(result.activity ?? []).map((p:DailyStatisticsForChart)=>Date.parse(p.day+":00:00.000Z"))],
   ];
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1000" viewBox="0 0 1200 1000"><rect width="1200" height="1000" fill="#101018"/><g font-family="sans-serif" fill="#eee"><text x="40" y="48" font-size="28">Botpoly · seguimiento PAPER</text><text x="40" y="80" font-size="16">${new Date(result.to).toISOString()} · Ejecuciones simuladas · Gas modelado</text>${panels.map(([title, values, color, times], i) => {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1000" viewBox="0 0 1200 1000"><rect width="1200" height="1000" fill="#101018"/><g font-family="sans-serif" fill="#eee"><text x="40" y="48" font-size="28">Botpoly · seguimiento ${String(result.kind).toUpperCase()}</text><text x="40" y="80" font-size="16">${new Date(result.to).toISOString()} · ${result.kind === "live" ? "Ejecuciones y costes reales confirmados" : "Ejecuciones simuladas · Gas modelado"}</text>${panels.map(([title, values, color, times], i) => {
     if (!values.length) { values = [0]; times=[result.to]; }
     const min = Math.min(...values), max = Math.max(...values), span = Math.max(max - min, 0.01);
     const from=curve[0].timestamp, to=result.to;

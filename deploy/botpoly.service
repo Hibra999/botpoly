@@ -1,5 +1,5 @@
 [Unit]
-Description=Botpoly - riesgo persistente y simulacion privada
+Description=Botpoly - Telegram y riesgo persistente
 After=network-online.target
 Wants=network-online.target
 StartLimitIntervalSec=120
@@ -10,9 +10,10 @@ Type=simple
 User=gabo
 Group=gabo
 WorkingDirectory=/home/gabo/portfolio/projects/38-hibraim/botpoly/Polymarket-bot
-ExecStart=/home/gabo/portfolio/projects/38-hibraim/botpoly/Polymarket-bot/.runtime/node24/bin/node --import tsx bot-with-dashboard.ts
+ExecStart=/home/gabo/portfolio/projects/38-hibraim/botpoly/Polymarket-bot/deploy/start.sh
 Restart=on-failure
 RestartSec=10
+RestartPreventExitStatus=75
 TimeoutStopSec=60
 UMask=0077
 NoNewPrivileges=true

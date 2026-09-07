@@ -25,7 +25,12 @@ export type Table = (typeof tables)[number];
  * also serialize independent connections reserving the same capital. */
 export class Store {
   readonly db: DatabaseSync;
-  constructor(path: string) {
+  constructor(readonly path: string, readonly readOnly = false) {
+    if (readOnly) {
+      this.db = new DatabaseSync(path, {readOnly:true});
+      this.db.exec("PRAGMA busy_timeout=5000; PRAGMA query_only=ON");
+      return;
+    }
     if (path !== ":memory:")
       mkdirSync(dirname(path), { recursive: true, mode: 0o700 });
     this.db = new DatabaseSync(path);
@@ -38,7 +43,7 @@ export class Store {
         `CREATE TABLE IF NOT EXISTS ${table} (id TEXT PRIMARY KEY, data TEXT NOT NULL CHECK(json_valid(data)))`,
       );
     this.db.exec(
-      "CREATE TABLE IF NOT EXISTS recorded_books (id TEXT PRIMARY KEY, timestamp INTEGER NOT NULL, market TEXT NOT NULL, data BLOB NOT NULL); CREATE INDEX IF NOT EXISTS recorded_books_time ON recorded_books(timestamp)",
+      "CREATE TABLE IF NOT EXISTS recorded_books (id TEXT PRIMARY KEY, timestamp INTEGER NOT NULL, market TEXT NOT NULL, data BLOB NOT NULL); CREATE INDEX IF NOT EXISTS recorded_books_time ON recorded_books(timestamp); CREATE INDEX IF NOT EXISTS recorded_books_market_time ON recorded_books(market,timestamp)",
     );
     this.db.exec(
       "CREATE INDEX IF NOT EXISTS equity_time ON equity(CAST(json_extract(data,'$.timestamp') AS INTEGER))",
@@ -101,7 +106,7 @@ export class Store {
       );
   }
   transaction<T>(fn: () => T): T {
-    this.db.exec("BEGIN IMMEDIATE");
+    this.db.exec(this.readOnly ? "BEGIN" : "BEGIN IMMEDIATE");
     try {
       const result = fn();
       this.db.exec("COMMIT");

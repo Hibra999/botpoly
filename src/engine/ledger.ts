@@ -34,6 +34,10 @@ export class Ledger {
     config: RiskConfig,
     readonly now: () => number = Date.now,
   ) {
+    if (store.readOnly) {
+      if (store.get<Mode>("meta","mode") !== mode || !store.get("meta","account")) throw new Error("Cuenta de informe incompatible");
+      return;
+    }
     store.transaction(() => {
       const storedMode = store.get<Mode>("meta", "mode");
       if (storedMode && storedMode !== mode)

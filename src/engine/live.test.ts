@@ -17,12 +17,12 @@ describe("frontera live", () => {
       authorizeLive({ POLYMARKET_PRIVATE_KEY: "test-key" }),
     ).toThrow();
     expect(() =>
-      loadConfig({ DRY_RUN: "false", DASHBOARD_PASSWORD_HASH: "test" }),
+      loadConfig({ DRY_RUN: "false", TELEGRAM_BOT_TOKEN: "123456:test", TELEGRAM_CHAT_ID: "42" }),
     ).toThrow();
     expect(
       loadConfig({
         POLYMARKET_PRIVATE_KEY: "ignored-in-paper",
-        DASHBOARD_PASSWORD_HASH: "test",
+        TELEGRAM_BOT_TOKEN: "123456:test", TELEGRAM_CHAT_ID: "42",
       }).mode,
     ).toBe("paper");
   });
