@@ -1,0 +1,97 @@
+{
+  "runs": [
+    {
+      "repeat": 1,
+      "variant": "baseline",
+      "inputSha256": "fc4314fd2f414f0461762aa21d49446f317c8bae0f6efda2156a20a28a2c7f46",
+      "peakTreeMiB": 428.94140625,
+      "medianWarmTreeMiB": 394.4140625,
+      "cpuSeconds": 43.85,
+      "p95LatencyMs": 10529.852423999997,
+      "maxLatencyMs": 10820.134657000002,
+      "reportMs": [
+        225.4134569999951,
+        151.16373700000986
+      ],
+      "warmSegmentMedianMiB": [
+        289.68359375,
+        402.7421875,
+        402.5078125
+      ],
+      "rssSlopeMiBPerMinute": 86.75445939621713,
+      "orders": 0,
+      "recorded": 2400
+    },
+    {
+      "repeat": 1,
+      "variant": "headless",
+      "inputSha256": "fc4314fd2f414f0461762aa21d49446f317c8bae0f6efda2156a20a28a2c7f46",
+      "peakTreeMiB": 452.01953125,
+      "medianWarmTreeMiB": 358.07421875,
+      "cpuSeconds": 44.46,
+      "p95LatencyMs": 2663.883958000006,
+      "maxLatencyMs": 3013.310249000002,
+      "reportMs": [
+        518.8035780000064,
+        471.5176019999926
+      ],
+      "warmSegmentMedianMiB": [
+        270.1796875,
+        357.857421875,
+        371.515625
+      ],
+      "rssSlopeMiBPerMinute": 74.70260963658322,
+      "orders": 0,
+      "recorded": 2400
+    },
+    {
+      "repeat": 2,
+      "variant": "headless",
+      "inputSha256": "fc4314fd2f414f0461762aa21d49446f317c8bae0f6efda2156a20a28a2c7f46",
+      "peakTreeMiB": 443.4921875,
+      "medianWarmTreeMiB": 337.5703125,
+      "cpuSeconds": 46.04,
+      "p95LatencyMs": 27211.541265000007,
+      "maxLatencyMs": 27832.040494999994,
+      "reportMs": [
+        409.9944530000066,
+        875.5504809999984
+      ],
+      "warmSegmentMedianMiB": [
+        262.4765625,
+        336.09375,
+        359.94140625
+      ],
+      "rssSlopeMiBPerMinute": 74.44730146487659,
+      "orders": 0,
+      "recorded": 2400
+    },
+    {
+      "repeat": 2,
+      "variant": "baseline",
+      "inputSha256": "fc4314fd2f414f0461762aa21d49446f317c8bae0f6efda2156a20a28a2c7f46",
+      "peakTreeMiB": 436.328125,
+      "medianWarmTreeMiB": 399.203125,
+      "cpuSeconds": 44.28,
+      "p95LatencyMs": 3204.1331560000035,
+      "maxLatencyMs": 3388.209923000002,
+      "reportMs": [
+        144.01158700000087,
+        194.34812100000272
+      ],
+      "warmSegmentMedianMiB": [
+        296.5234375,
+        408.271484375,
+        409.609375
+      ],
+      "rssSlopeMiBPerMinute": 78.92591858169307,
+      "orders": 0,
+      "recorded": 2400
+    }
+  ],
+  "seconds": 120,
+  "repeats": 2,
+  "protocolSha256": "2671d63c6c317653f103c2614b437d5e3a3e16df6a663f795086a8009d584d98",
+  "samplerSha256": "a66467d70fc2541235fd83217dce43b2b366aa59a4ff616e0ee58aa98f526d09",
+  "growthCriterion": "After 30s warmup: linear RSS slope <=5 MiB/min and final segment median <= previous segment +8 MiB; finite duration, no proof against every long-term leak."
+}
