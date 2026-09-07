@@ -1,0 +1,24 @@
+import {parseArgs} from 'node:util';
+import {createHash} from 'node:crypto';
+import {createReadStream,existsSync,mkdirSync,readFileSync,writeFileSync} from 'node:fs';
+import {resolve} from 'node:path';
+import {Store} from '../engine/store.js';
+import {reviewFootball} from './football-review.js';
+import {csvCell,escapeHtml} from './report.js';
+const {values}=parseArgs({options:{database:{type:'string'},out:{type:'string'}}});
+if(!values.database||!values.out||existsSync(values.out))throw new Error('Indica --database COPIA_CONSISTENTE --out DESTINO_NUEVO');
+const source=resolve(values.database),directory=resolve(values.out),hash=createHash('sha256');
+for await(const bytes of createReadStream(source))hash.update(bytes);
+const store=new Store(source,true);
+let result:ReturnType<typeof reviewFootball>;
+try{result=reviewFootball(store);}finally{store.close();}
+const enriched={...result,source:{database:source,sha256:hash.digest('hex')},codeSha256:createHash('sha256').update(readFileSync(resolve('src/research/football-review.ts'))).digest('hex')};
+const cell=(x:unknown)=>x===null||x===undefined?'Sin evidencia':String(x);
+const lines=result.rows.map(r=>[r.order.title,r.order.outcome,r.probability?.toFixed(6),r.price?.toFixed(6),r.entryFees.toFixed(5),r.actual.netPnl.toFixed(5),r.hold.netPnl?.toFixed(5),r.stop10?.netPnl.toFixed(5),r.coverage.samples,Math.round(r.coverage.maxGapMs/60000)]);
+const headers=['Partido / título conservado','Pata','Probabilidad','Precio','Comisión entrada','Actual neto / USD','Hold oficial / USD','Stop observado / USD','Muestras','Mayor hueco / min'];
+const markdown=`# Revisión de once entradas de fútbol\n\nPAPER · ${new Date(result.from).toISOString()} → ${new Date(result.to).toISOString()}\n\n${[headers,...lines].map((r,i)=>'| '+r.map(cell).join(' | ')+' |'+(i===0?'\n| '+r.map(()=>'---').join(' | ')+' |':'')).join('\n')}\n\n${result.limitations.map(x=>'- '+x).join('\n')}\n\nFuente SQLite SHA-256: ${enriched.source.sha256}. El JSON conserva fuentes, probabilidades, libros de señal, fills, costes y resoluciones con sus hashes.\n\n${result.rows.filter(r=>r.timing.discrepancy).map(r=>`${r.order.title}: inicio verificado guardado ${r.timing.verifiedStartUtc}, fecha textual ${r.timing.titleDate}. La discrepancia no justifica liquidar.`).join('\n')}`;
+const html=`<!doctype html><html lang="es"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Botpoly · Revisión de fútbol</title><style>body{background:#101018;color:#eee;font:16px/1.6 system-ui;margin:24px}h1{color:#b9a9ff}pre{white-space:pre-wrap;overflow-wrap:anywhere}</style><h1>Fútbol · revisión descriptiva paper</h1><pre>${escapeHtml(markdown)}</pre></html>`;
+mkdirSync(directory,{recursive:true,mode:0o700});
+for(const [name,body] of [['result.json',JSON.stringify(enriched,null,2)],['review.md',markdown],['report.html',html],['entries.csv',[headers,...lines].map(r=>r.map(csvCell).join(',')).join('\n')]])writeFileSync(resolve(directory,name),body,{flag:'wx',mode:0o600});
+writeFileSync(resolve(directory,'manifest.json'),JSON.stringify({source:enriched.source,from:result.from,to:result.to,codeSha256:enriched.codeSha256,files:Object.fromEntries(['result.json','review.md','report.html','entries.csv'].map(name=>[name,createHash('sha256').update(readFileSync(resolve(directory,name))).digest('hex')]))},null,2));
+console.log(JSON.stringify({directory,entries:result.rows.length,official:result.rows.filter(r=>r.hold.netPnl!==null).length,sampledStops:result.rows.filter(r=>r.stop10).length}));

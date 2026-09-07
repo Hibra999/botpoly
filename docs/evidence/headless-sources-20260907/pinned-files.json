@@ -1,0 +1,42 @@
+[
+  {
+    "repository": "cryptuon/polybot",
+    "commit": "e80974307924afe1d931fe2b8b565e19d9bdf20e",
+    "path": "README.md",
+    "url": "https://raw.githubusercontent.com/cryptuon/polybot/e80974307924afe1d931fe2b8b565e19d9bdf20e/README.md",
+    "sha256": "0fa57aafd3b31cd0f4c20bcce045dc26ba2e349551ad0c54914912b8e19be96a",
+    "bytes": 17465
+  },
+  {
+    "repository": "hummingbot/hummingbot",
+    "commit": "2bfaccc48dd49e71a5b6d9b3011808e127dd00cd",
+    "path": "hummingbot/connector/client_order_tracker.py",
+    "url": "https://raw.githubusercontent.com/hummingbot/hummingbot/2bfaccc48dd49e71a5b6d9b3011808e127dd00cd/hummingbot/connector/client_order_tracker.py",
+    "sha256": "555c82d35f965e930302fe711369d6327bad34588cb4f89313024eee1ef5c6d7",
+    "bytes": 19169
+  },
+  {
+    "repository": "martineastwood/penaltyblog",
+    "commit": "5ebd602d6b431aafe753add5264bbfc29a154c56",
+    "path": "penaltyblog/models/poisson.py",
+    "url": "https://raw.githubusercontent.com/martineastwood/penaltyblog/5ebd602d6b431aafe753add5264bbfc29a154c56/penaltyblog/models/poisson.py",
+    "sha256": "fe156903a328127604660570078564a283e3bb11615f13fdbfecae3292a13da0",
+    "bytes": 9758
+  },
+  {
+    "repository": "freqtrade/freqtrade",
+    "commit": "202c1c429cabfb949e26fb85979049c3f84ae165",
+    "path": "freqtrade/rpc/telegram.py",
+    "url": "https://raw.githubusercontent.com/freqtrade/freqtrade/202c1c429cabfb949e26fb85979049c3f84ae165/freqtrade/rpc/telegram.py",
+    "sha256": "953fec4a9f41d05ffcc82eb92daccbc581a8e85d882ba19d04efde0f3c96437e",
+    "bytes": 93030
+  },
+  {
+    "repository": "Polymarket/poly-market-maker",
+    "commit": "55b83499ffc81bbd6b7c15c40ff9179b5e3d323c",
+    "path": "README.md",
+    "url": "https://raw.githubusercontent.com/Polymarket/poly-market-maker/55b83499ffc81bbd6b7c15c40ff9179b5e3d323c/README.md",
+    "sha256": "f56076d80c54686dd081179cf43b2478b67f3fed7eb2be0bbe2d5a971a0a6bcc",
+    "bytes": 1562
+  }
+]

@@ -1,0 +1,14 @@
+{
+  "repository": "martineastwood/penaltyblog",
+  "url": "https://github.com/martineastwood/penaltyblog",
+  "archived": false,
+  "disabled": false,
+  "updatedAt": "2026-09-02T14:28:14Z",
+  "pushedAt": "2026-08-21T18:11:52Z",
+  "license": "MIT",
+  "defaultBranch": "master",
+  "commit": "5ebd602d6b431aafe753add5264bbfc29a154c56",
+  "commitAt": "2026-08-21T18:11:47Z",
+  "metadataSha256": "44995617a520acf40786eaf6f722ecdfd7b8ba02f0bd7e7b0db1fbe3a63f2fba",
+  "eligible": true
+}

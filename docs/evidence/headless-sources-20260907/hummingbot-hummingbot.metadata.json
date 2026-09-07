@@ -1,0 +1,14 @@
+{
+  "repository": "hummingbot/hummingbot",
+  "url": "https://github.com/hummingbot/hummingbot",
+  "archived": false,
+  "disabled": false,
+  "updatedAt": "2026-09-07T01:49:30Z",
+  "pushedAt": "2026-09-05T19:47:06Z",
+  "license": "Apache-2.0",
+  "defaultBranch": "master",
+  "commit": "2bfaccc48dd49e71a5b6d9b3011808e127dd00cd",
+  "commitAt": "2026-07-30T21:20:02Z",
+  "metadataSha256": "6cf84d169ffcf4a9bdbb28b0e1021cb71b7ab195f0810f53acbcf695ca76c2c0",
+  "eligible": true
+}

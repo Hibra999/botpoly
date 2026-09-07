@@ -32,7 +32,8 @@
     "football:compare": "node --import tsx src/research/football-comparison-cli.ts",
     "maker:collect": "node --import tsx src/research/maker-collect-cli.ts",
     "maker:analyze": "node --import tsx src/research/maker-analysis-cli.ts",
-    "check:headless": "node scripts/research/headless-check.mjs"
+    "check:headless": "node scripts/research/headless-check.mjs",
+    "football:review": "node dist/src/research/football-review-cli.js"
   },
   "keywords": [
     "polymarket",

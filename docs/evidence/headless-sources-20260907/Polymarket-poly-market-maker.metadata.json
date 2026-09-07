@@ -1,0 +1,15 @@
+{
+  "repository": "Polymarket/poly-market-maker",
+  "url": "https://github.com/Polymarket/poly-market-maker",
+  "archived": false,
+  "disabled": false,
+  "updatedAt": "2026-08-31T05:10:54Z",
+  "pushedAt": "2024-07-05T05:25:24Z",
+  "license": "MIT",
+  "defaultBranch": "main",
+  "commit": "55b83499ffc81bbd6b7c15c40ff9179b5e3d323c",
+  "commitAt": "2024-03-11T17:21:44Z",
+  "metadataSha256": "921473034523146d4384e3812779a9fa971e9987e992cca8e2eede388f0f72f1",
+  "eligible": false,
+  "role": "historical-only; last pinned commit 2024, not an integration candidate"
+}

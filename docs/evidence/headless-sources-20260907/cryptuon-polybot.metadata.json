@@ -1,0 +1,14 @@
+{
+  "repository": "cryptuon/polybot",
+  "url": "https://github.com/cryptuon/polybot",
+  "archived": false,
+  "disabled": false,
+  "updatedAt": "2026-08-31T02:47:55Z",
+  "pushedAt": "2026-07-16T19:32:32Z",
+  "license": "MIT",
+  "defaultBranch": "main",
+  "commit": "e80974307924afe1d931fe2b8b565e19d9bdf20e",
+  "commitAt": "2026-07-16T19:32:19Z",
+  "metadataSha256": "8377e511bb045a7ce4966dd48bee38e024aad386b17e0660ab4b2cdfb14aab9f",
+  "eligible": true
+}

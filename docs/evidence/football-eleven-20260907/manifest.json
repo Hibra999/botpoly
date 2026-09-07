@@ -1,0 +1,15 @@
+{
+  "source": {
+    "database": "/home/gabo/portfolio/projects/38-hibraim/botpoly/Polymarket-bot/.runtime/backups/pre-headless-20260907T020101Z.sqlite",
+    "sha256": "778e2f5ece1c147079bd2af7283afb5f9a142b8307e83c7bb1754cc35a2d3847"
+  },
+  "from": 1788664310415,
+  "to": 1788746461510,
+  "codeSha256": "408448153e8aaed4dad704d5bac1e183c94dc25bcbe8938353d0521a8067ca36",
+  "files": {
+    "result.json": "6e2a9f7b73482e2a1c06d4493a348f66a1a792c1f292e2fa6d69bd40e0f1ff82",
+    "review.md": "171061b5fb6e11e5fe405d5325b066136f7c0c9014e28a2050dee6a8efe4ede0",
+    "report.html": "7c44ccd9fa7578a2663a6ba2aac88467797be72be3bed8fd89b4f74137f7ba39",
+    "entries.csv": "7c46ab9bc8f28630668d09ecd6f61e19791a2ad415998ad42a11367acae37787"
+  }
+}

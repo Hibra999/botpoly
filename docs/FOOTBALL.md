@@ -8,7 +8,7 @@ Se admiten Premier League (`epl`), LaLiga (`lal`), Bundesliga (`bun`), Serie A (
 
 El alcance actual es **V1, moneyline binario Yes/No, primeros 90 minutos más descuento**: victoria local, empate o victoria visitante. No incluye prórroga, penaltis, clasificación, totales, córners ni marcador exacto. NegRisk solo admite la compra/venta direccional individual verificada; sigue excluido del arbitraje YES/NO estándar y no hay conversiones multiresultado.
 
-Cada cinco minutos se paginan hasta 5.000 mercados generales y los eventos de las seis ligas. Se seleccionan hasta 200 mercados, con hasta 100 plazas para fútbol; las libres se aprovechan para selección general diversificada por evento, liquidez y proximidad al cierre. Los mercados con posiciones o reservas se reconstruyen desde SQLite y se conservan fuera del cupo si hace falta. Estos límites no son una cobertura completa de Polymarket. El dashboard muestra por separado inspeccionados, seleccionados, fútbol, pronósticos y libros sincronizados.
+Cada cinco minutos se paginan hasta 5.000 mercados generales y los eventos de las seis ligas. Se seleccionan hasta 200 mercados, con hasta 100 plazas para fútbol; las libres se aprovechan para selección general diversificada por evento, liquidez y proximidad al cierre. Los mercados con posiciones o reservas se reconstruyen desde SQLite y se conservan fuera del cupo si hace falta. Estos límites no son una cobertura completa de Polymarket. El informe muestra por separado inspeccionados, seleccionados, fútbol, pronósticos y libros sincronizados.
 
 ## Modelo, fuentes y entrada
 
@@ -88,20 +88,24 @@ pnpm football:evaluate \
 
 El destino debe ser nuevo. Con `--manifest` no se descargan ni sustituyen datos: se verifican los hashes de los CSV y del historial reconstruido. Clonar solo Git no proporciona esos CSV. Hay que conservarlos junto con los manifiestos; volver a descargar una URL mutable no garantiza obtener los mismos bytes. `capturedAt` y los hashes de un nuevo JSON/HTML cambian al reproducir; el CSV determinista conserva el hash anterior. Los informes anteriores no se sobrescriben.
 
-Para una evaluación nueva con descarga de fuentes: `pnpm football:evaluate --out reports/NOMBRE-NUEVO`. La opción `--register .runtime/paper-observation.sqlite` registra un enlace de calidad predictiva para el dashboard; no introduce operaciones, PnL ni evidencia live.
+Para una evaluación nueva con descarga de fuentes: `pnpm football:evaluate --out reports/NOMBRE-NUEVO`. La opción `--register .runtime/paper-observation.sqlite` registra un enlace de calidad predictiva para los informes y Telegram; no introduce operaciones, PnL ni evidencia live.
 
 La atribución de ideas de Poisson, regularización y Kelly se conserva en el informe hacia [pypro_polymarket_agent, revisión e7ed2f35](https://github.com/memonkey01/pypro_polymarket_agent/tree/e7ed2f35bf4bf0a7fef5d3c497cd9aff62d3b0a5). Botpoly implementa su propio modelo/motor, sin copiar aquel proyecto ni sus dependencias. Esa referencia no constituye evidencia de ventaja de Botpoly.
 
 ## Seguimiento y barrera live
 
-El dashboard en español muestra cobertura, fuentes, última evaluación, uptime, motivos de rechazo y posiciones con partido, estrategia, política de salida y antigüedad de valoración. Telegram conserva señales, reservas, fills, liquidaciones, estado/PNG horario UTC, informe diario a las 00 UTC, `/report` encolado y seguimientos de 24/72 horas. El PNG oscuro incluye capital, PnL, drawdown, actividad y costes, identificado como PAPER. Los IDs y la cola son persistentes; no se simulan horas ni updates de usuario para acreditar recepción real.
+El informe en español muestra cobertura, fuentes, última evaluación, uptime, motivos de rechazo y posiciones con partido, estrategia, política de salida y antigüedad de valoración. Telegram conserva señales, reservas, fills, liquidaciones, estado/PNG horario UTC, informe diario a las 00 UTC, `/report` encolado y seguimientos de 24/72 horas. El PNG oscuro incluye capital, PnL, drawdown, actividad y costes, identificado como PAPER. Los IDs y la cola son persistentes; no se simulan horas ni updates de usuario para acreditar recepción real.
 
 `experimentStartedAt` deriva del primer registro válido de la cuenta y no del despliegue de los reportes: aquí es **2026-09-05T06:42:23.706Z**. Los seguimientos vencen el 2026-09-06 y el 2026-09-08, respectivamente, a esa hora. Su ejecución real requiere que el proceso esté funcionando; consultar confirmaciones fechadas en [VALIDATION.md](VALIDATION.md).
 
 Live exige activación explícita, revisión humana, checksum del informe y vínculos exactos `strategyBinding` de ambas estrategias/configuraciones. Se rechazan cobertura/fills ausentes, tipos incorrectos, números no finitos, conteos no enteros, intervalos incompletos/invertidos y fills inválidos o duplicados. Fútbol requiere evidencia propia `prospective-paper`, 100 fills confirmados como mínimo, liquidaciones oficiales y resultado/intervalo netos positivos. Ni esta evaluación retrospectiva ni un fixture sintético lo cumplen.
 
-El adaptador live solo tiene pruebas de frontera simuladas. Continúa pendiente su revisión operativa independiente de firmas, recibos, comisiones, heartbeat y gas; no se han realizado pruebas con fondos. Paper y backtest no importan el adaptador de firma. No existe activación live en dashboard o Telegram.
+El adaptador live solo tiene pruebas de frontera simuladas. Continúa pendiente su revisión operativa independiente de firmas, recibos, comisiones, heartbeat y gas; no se han realizado pruebas con fondos. Paper y backtest no importan el adaptador de firma. No existe activación live en Telegram.
 
 ## Comparación de modelos y calibración por liga
 
 La [comparación cronológica y su protocolo](IMPROVEMENTS.md) evalúan Poisson, recencia y corrección Dixon–Coles condicional, con calibración por liga y cobertura de cada variante. La mejora agregada observada es pequeña y sigue por detrás de las cuotas de cierre. El modelo de producción y sus límites paper permanecen en `poisson-clubs-v1`; la evidencia predictiva no aprueba un nuevo dimensionamiento ni live. Reproducción: `pnpm football:compare --manifest docs/evidence/football-20260906-manifest.json --out reports/NOMBRE-NUEVO`.
+
+## Revisión de entradas y fuentes
+
+[Protocolo reproducible de las once entradas, Pumas y referencias](HEADLESS-RESEARCH.md). La revisión no cambia la salida ni autoriza live.

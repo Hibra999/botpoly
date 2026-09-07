@@ -14,7 +14,7 @@ Prueba específica: `pnpm exec vitest run src/engine/operation-slots.test.ts`. L
 
 ## Trabajo en curso
 
-Faltan revisión de las once entradas, investigación, mediciones comparables y despliegue conservando la parada. Ninguna de estas fases se considera validada por las pruebas del cupo.
+Faltan mediciones comparables y despliegue conservando la parada. La [revisión de once entradas](evidence/football-eleven-20260907/review.md) y las [directrices de investigación](HEADLESS-RESEARCH.md) están publicadas con fuentes y limitaciones. Ninguna fase se considera validada por las pruebas de otra.
 
 ## Control confirmado por Telegram
 
