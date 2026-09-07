@@ -1,4 +1,4 @@
-import { DatabaseSync } from "node:sqlite";
+import { DatabaseSync, type StatementSync } from "node:sqlite";
 import { chmodSync, mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import { gzipSync } from "node:zlib";
@@ -25,6 +25,13 @@ export type Table = (typeof tables)[number];
  * also serialize independent connections reserving the same capital. */
 export class Store {
   readonly db: DatabaseSync;
+  // Fixed SQL shapes only: reuse native statements instead of accumulating them until V8 GC.
+  private statements=new Map<string,StatementSync>();
+  private prepare(sql:string):StatementSync {
+    let statement=this.statements.get(sql);
+    if (!statement) {statement=this.db.prepare(sql);this.statements.set(sql,statement);}
+    return statement;
+  }
   constructor(readonly path: string, readonly readOnly = false) {
     if (readOnly) {
       this.db = new DatabaseSync(path, {readOnly:true});
@@ -56,14 +63,14 @@ export class Store {
     this.put("meta", "schema", 1);
   }
   get<T>(table: Table, id: string): T | undefined {
-    const row = this.db
+    const row = this
       .prepare(`SELECT data FROM ${table} WHERE id=?`)
       .get(id) as { data: string } | undefined;
     return row ? (JSON.parse(row.data) as T) : undefined;
   }
   all<T>(table: Table): T[] {
     return (
-      this.db.prepare(`SELECT data FROM ${table} ORDER BY rowid`).all() as {
+      this.prepare(`SELECT data FROM ${table} ORDER BY rowid`).all() as {
         data: string;
       }[]
     ).map((r) => JSON.parse(r.data) as T);
@@ -72,13 +79,13 @@ export class Store {
     if (!Number.isSafeInteger(limit) || limit < 1 || limit > 10000)
       throw new Error("Límite de consulta inválido");
     return (
-      this.db
+      this
         .prepare(`SELECT data FROM ${table} ORDER BY rowid DESC LIMIT ?`)
         .all(limit) as { data: string }[]
     ).map((r) => JSON.parse(r.data) as T);
   }
   put(table: Table, id: string, data: unknown): void {
-    this.db
+    this
       .prepare(
         `INSERT INTO ${table}(id,data) VALUES (?,?) ON CONFLICT(id) DO UPDATE SET data=excluded.data`,
       )
@@ -86,16 +93,16 @@ export class Store {
   }
   insert(table: Table, id: string, data: unknown): boolean {
     return (
-      this.db
+      this
         .prepare(`INSERT OR IGNORE INTO ${table}(id,data) VALUES (?,?)`)
         .run(id, JSON.stringify(data)).changes === 1
     );
   }
   delete(table: Table, id: string): void {
-    this.db.prepare(`DELETE FROM ${table} WHERE id=?`).run(id);
+    this.prepare(`DELETE FROM ${table} WHERE id=?`).run(id);
   }
   recordBook(frame: Frame): void {
-    this.db
+    this
       .prepare(
         "INSERT OR IGNORE INTO recorded_books(id,timestamp,market,data) VALUES (?,?,?,?)",
       )
@@ -119,5 +126,6 @@ export class Store {
   }
   close(): void {
     this.db.close();
+    this.statements.clear();
   }
 }
