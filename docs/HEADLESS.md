@@ -14,7 +14,7 @@ Prueba específica: `pnpm exec vitest run src/engine/operation-slots.test.ts`. L
 
 ## Estado de verificación
 
-La implementación pasa 137 pruebas, typecheck, build, comprobación headless y prueba aislada de migración. La [revisión de once entradas](evidence/football-eleven-20260907/review.md), las [directrices de investigación](HEADLESS-RESEARCH.md) y el [protocolo de rendimiento](HEADLESS-PERFORMANCE.md) conservan fuentes y limitaciones. La instalación de la unidad nueva requiere autenticación root; el servicio anterior conserva su parada. El estado operativo vigente está fechado en [VALIDATION.md](VALIDATION.md). Ninguna fase se considera validada por las pruebas de otra.
+La implementación pasa 137 pruebas, typecheck, build, comprobación headless y prueba aislada de migración. La [revisión de once entradas](evidence/football-eleven-20260907/review.md), las [directrices de investigación](HEADLESS-RESEARCH.md) y el [protocolo de rendimiento](HEADLESS-PERFORMANCE.md) conservan fuentes y limitaciones. La unidad headless está desplegada desde el 2026-09-07 a las 03:59:54 UTC: copia íntegra, migraciones aditivas, parada diaria conservada, instancia única y ausencia de puertos de escucha. Telegram y los informes se verificaron en el servicio. El estado operativo vigente está fechado en [VALIDATION.md](VALIDATION.md), con [evidencia del despliegue](evidence/headless-deployment-20260907.json). Ninguna fase se considera validada por las pruebas de otra.
 
 ## Control confirmado por Telegram
 

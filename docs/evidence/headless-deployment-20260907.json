@@ -1,0 +1,414 @@
+{
+  "at": "2026-09-07T04:00:57.245Z",
+  "codeCommit": "6f78ee3029aa80db92e0fe40e5e08e8711ef93e3",
+  "mode": "paper",
+  "migration": {
+    "manifest": "/home/gabo/portfolio/projects/38-hibraim/botpoly/Polymarket-bot/.runtime/backups/headless-2026-09-07T03-48-27-674Z-552b337f.json",
+    "manifestSha256": "14710a8b1c3311c8052202c2ad1cdb8f31818aca31738ff36b8cfeb16534bbc9",
+    "at": "2026-09-07T03:59:38.619Z",
+    "database": "/home/gabo/portfolio/projects/38-hibraim/botpoly/Polymarket-bot/.runtime/paper-observation.sqlite",
+    "backup": "/home/gabo/portfolio/projects/38-hibraim/botpoly/Polymarket-bot/.runtime/backups/headless-2026-09-07T03-48-27-674Z-552b337f.sqlite",
+    "backupSha256": "0659351903d1d0b305328ddcb9f4ce506bab3b7a1f835ed9766490b82d379880",
+    "codeSha256": "ff94099922a2601d2650475d7bcac9901b3ddf707b95f17e49a8ba0ed9679686",
+    "integrity": "ok",
+    "before": {
+      "mode": "paper",
+      "account": {
+        "initialCapital": 1000,
+        "cash": 925.772741,
+        "realized": -24.671249,
+        "fees": 2.95904,
+        "gas": 0.058419,
+        "deposits": 1000,
+        "withdrawals": 0,
+        "peakPnl": 0,
+        "day": "2026-09-07",
+        "dayStartPnl": -34.108609,
+        "stop": "Límite de pérdida diaria",
+        "errors": 0,
+        "connected": true,
+        "lastDataAt": 1788752903760
+      },
+      "config": {
+        "capitalUsd": 1000,
+        "dailyLossPct": 0.02,
+        "maxDrawdownPct": 0.1,
+        "eventExposurePct": 0.1,
+        "totalExposurePct": 0.3,
+        "unhedgedLossPct": 0.01,
+        "minNetProfitUsd": 0.02,
+        "maxSlippageBps": 50,
+        "maxDataAgeMs": 5000,
+        "maxErrors": 3,
+        "maxCostUsd": 1
+      },
+      "tables": {
+        "orders": {
+          "rows": 13,
+          "sha256": "9beabdfb5aeb691c5645bb6dc1e11daedbe7768c49e277671ffcad767b23fbe1"
+        },
+        "fills": {
+          "rows": 13,
+          "sha256": "29512bbf7ff0f65df80025a289ed30d55f0d0bab758cfcf4b1fb74f712898c03"
+        },
+        "positions": {
+          "rows": 11,
+          "sha256": "26db72a4802d4bd302aa79f849da27a13024f8b508d39ec05236f17a495c7302"
+        },
+        "reservations": {
+          "rows": 6,
+          "sha256": "80811fd387de18089f3b58d8f6ab3a153a37470321f2aca0614c6438c413ef92"
+        },
+        "settlements": {
+          "rows": 3,
+          "sha256": "ec3e8d61dbdd0113aad226a4cb5dc0effd73b88c6510d692728c9dbedab0976c"
+        }
+      },
+      "recordedBooks": 1409462
+    },
+    "after": {
+      "mode": "paper",
+      "account": {
+        "initialCapital": 1000,
+        "cash": 925.772741,
+        "realized": -24.671249,
+        "fees": 2.95904,
+        "gas": 0.058419,
+        "deposits": 1000,
+        "withdrawals": 0,
+        "peakPnl": 0,
+        "day": "2026-09-07",
+        "dayStartPnl": -34.108609,
+        "stop": "Límite de pérdida diaria",
+        "errors": 0,
+        "connected": true,
+        "lastDataAt": 1788752903760
+      },
+      "config": {
+        "capitalUsd": 1000,
+        "dailyLossPct": 0.02,
+        "maxDrawdownPct": 0.1,
+        "eventExposurePct": 0.1,
+        "totalExposurePct": 0.3,
+        "unhedgedLossPct": 0.01,
+        "minNetProfitUsd": 0.02,
+        "maxSlippageBps": 50,
+        "maxDataAgeMs": 5000,
+        "maxErrors": 3,
+        "maxCostUsd": 1,
+        "max_oper_per_hour": 15
+      },
+      "tables": {
+        "orders": {
+          "rows": 13,
+          "sha256": "9beabdfb5aeb691c5645bb6dc1e11daedbe7768c49e277671ffcad767b23fbe1"
+        },
+        "fills": {
+          "rows": 13,
+          "sha256": "29512bbf7ff0f65df80025a289ed30d55f0d0bab758cfcf4b1fb74f712898c03"
+        },
+        "positions": {
+          "rows": 11,
+          "sha256": "26db72a4802d4bd302aa79f849da27a13024f8b508d39ec05236f17a495c7302"
+        },
+        "reservations": {
+          "rows": 6,
+          "sha256": "80811fd387de18089f3b58d8f6ab3a153a37470321f2aca0614c6438c413ef92"
+        },
+        "settlements": {
+          "rows": 3,
+          "sha256": "ec3e8d61dbdd0113aad226a4cb5dc0effd73b88c6510d692728c9dbedab0976c"
+        }
+      },
+      "recordedBooks": 1409462
+    },
+    "operations": {
+      "limit": 15,
+      "used": 0,
+      "pending": 0,
+      "available": 15,
+      "nextAt": null,
+      "clockAt": 1788753594214
+    },
+    "preserved": true
+  },
+  "service": {
+    "ActiveState": "active",
+    "SubState": "running",
+    "UnitFileState": "enabled",
+    "ActiveEnterTimestamp": "Mon 2026-09-07 03:59:54 UTC",
+    "RestartPreventExitStatus": "75",
+    "MainPID": "2612462",
+    "NRestarts": "0",
+    "ExecStart": "{ path=/home/gabo/portfolio/projects/38-hibraim/botpoly/Polymarket-bot/deploy/start.sh ; argv[]=/home/gabo/portfolio/projects/38-hibraim/botpoly/Polymarket-bot/deploy/start.sh ; ignore_errors=no ; start_time=[Mon 2026-09-07 03:59:54 UTC] ; stop_time=[n/a] ; pid=2612462 ; code=(null) ; status=0/0 }",
+    "PrivateTmp": "yes",
+    "ProtectKernelTunables": "yes",
+    "ProtectKernelModules": "yes",
+    "ProtectControlGroups": "yes",
+    "ProtectHome": "read-only",
+    "ProtectSystem": "strict",
+    "NoNewPrivileges": "yes",
+    "RestrictSUIDSGID": "yes"
+  },
+  "argv": [
+    "/home/gabo/portfolio/projects/38-hibraim/botpoly/Polymarket-bot/.runtime/node24/bin/node",
+    "dist/src/app/run.js"
+  ],
+  "duplicateExitStatus": 75,
+  "listeners": [],
+  "state": {
+    "account": {
+      "initialCapital": 1000,
+      "cash": 925.772741,
+      "realized": -24.671249,
+      "fees": 2.95904,
+      "gas": 0.058419,
+      "deposits": 1000,
+      "withdrawals": 0,
+      "peakPnl": 0,
+      "day": "2026-09-07",
+      "dayStartPnl": -34.108609,
+      "stop": "Límite de pérdida diaria",
+      "errors": 0,
+      "connected": true,
+      "lastDataAt": 1788753656885
+    },
+    "metrics": {
+      "equity": 969.884641,
+      "available": 925.666388,
+      "reserved": 0.106353,
+      "exposure": 49.662363,
+      "unrealized": -5.44411,
+      "netPnl": -30.115359,
+      "drawdown": 0.030115359,
+      "dailyPnl": 3.99325,
+      "operationalCapital": 969.884641,
+      "sizeFactor": 0.69884641
+    },
+    "config": {
+      "capitalUsd": 1000,
+      "dailyLossPct": 0.02,
+      "maxDrawdownPct": 0.1,
+      "eventExposurePct": 0.1,
+      "totalExposurePct": 0.3,
+      "unhedgedLossPct": 0.01,
+      "minNetProfitUsd": 0.02,
+      "maxSlippageBps": 50,
+      "maxDataAgeMs": 5000,
+      "maxErrors": 3,
+      "maxCostUsd": 1,
+      "max_oper_per_hour": 15
+    },
+    "configVersion": 1,
+    "operations": {
+      "limit": 15,
+      "used": 0,
+      "pending": 0,
+      "available": 15,
+      "nextAt": null,
+      "clockAt": 1788753657244
+    },
+    "historicalOperationSlots": 11,
+    "runtime": {
+      "startedAt": 1788753594962,
+      "experimentStartedAt": 1788590543706,
+      "lastEvaluationAt": 1788753657024,
+      "version": "botpoly-v5-headless"
+    },
+    "observation": {
+      "markets": 200,
+      "processing": {
+        "at": 1788753656894,
+        "prepareMs": 178.85064499999862,
+        "evaluateMs": 125.72565400000167,
+        "cycleMs": 317.6507199999978,
+        "changed": 12,
+        "evaluated": 29,
+        "skippedUnchanged": 171,
+        "framesRead": 29,
+        "sourceAgeMaxMs": 2436981,
+        "verificationAgeMaxMs": 9485,
+        "receiveLagMaxMs": 376,
+        "backlog": 0
+      },
+      "coverage": {
+        "inspected": 5000,
+        "selected": 200,
+        "football": 100,
+        "forecast": 69,
+        "retained": 0,
+        "discoveryErrors": 0,
+        "metadataFailures": 0,
+        "ready": 199,
+        "limit": 5000,
+        "activeLimit": 200,
+        "refreshMs": 300000
+      },
+      "feed": {
+        "connected": true,
+        "generation": 1,
+        "updates": 2576,
+        "coalesced": 1884,
+        "invalid": 121,
+        "reconnects": 1,
+        "snapshots": 2138,
+        "unchangedSnapshots": 1512
+      },
+      "refreshedAt": 1788753624441,
+      "recorded": 1409862,
+      "gasUnits": 300000,
+      "gasMultiplier": 1.5,
+      "gasUsd": 0.022689,
+      "gasAt": 1788753641376
+    },
+    "counts": {
+      "orders": 13,
+      "fills": 13,
+      "positions": 11,
+      "reservations": 6,
+      "settlements": 3,
+      "outbox": 0
+    },
+    "sizingObservations": [
+      {
+        "kind": "gamma",
+        "n": 200,
+        "firstAt": 1788753610517,
+        "lastAt": 1788753621961
+      },
+      {
+        "kind": "midpoint",
+        "n": 187,
+        "firstAt": 1788753600000,
+        "lastAt": 1788753600000
+      }
+    ],
+    "deploymentAlertSent": true
+  },
+  "telegramMenu": {
+    "at": "2026-09-07T04:00:12.318Z",
+    "method": "getMyCommands",
+    "scope": "configured private chat",
+    "commands": [
+      {
+        "command": "start",
+        "description": "Ayuda y estado"
+      },
+      {
+        "command": "status",
+        "description": "Estado del motor"
+      },
+      {
+        "command": "pnl",
+        "description": "Contabilidad y costes"
+      },
+      {
+        "command": "positions",
+        "description": "Posiciones y valoración"
+      },
+      {
+        "command": "risk",
+        "description": "Límites y cupos"
+      },
+      {
+        "command": "config",
+        "description": "Consultar o proponer parámetros"
+      },
+      {
+        "command": "setmaxops",
+        "description": "Proponer operaciones por hora"
+      },
+      {
+        "command": "setbudget",
+        "description": "Proponer presupuesto"
+      },
+      {
+        "command": "pause",
+        "description": "Bloquear entradas"
+      },
+      {
+        "command": "resume",
+        "description": "Solicitar reanudación"
+      },
+      {
+        "command": "cancel_orders",
+        "description": "Pausar y conciliar órdenes"
+      },
+      {
+        "command": "report",
+        "description": "Generar informe"
+      },
+      {
+        "command": "audit",
+        "description": "Últimos eventos"
+      }
+    ],
+    "verified": true
+  },
+  "report": {
+    "at": "2026-09-07T04:01:45.538Z",
+    "directory": "reports/paper-headless-service-verification-20260907",
+    "trigger": "Solicitud administrativa en cola persistente; no se simuló un comando recibido de un usuario",
+    "sent": {
+      "headless-service-verification-20260907": true,
+      "headless-service-verification-20260907:photo": true,
+      "headless-service-verification-20260907:document:report.html": true,
+      "headless-service-verification-20260907:document:summary.md": true,
+      "headless-service-verification-20260907:document:result.json": true,
+      "headless-service-verification-20260907:document:trades.csv": true,
+      "headless-service-verification-20260907:document:manifest.json": true
+    },
+    "queueConsumed": true,
+    "registeredByParent": true,
+    "manifest": {
+      "schema": 1,
+      "generatedAt": 1788753629474,
+      "kind": "paper",
+      "from": 1788393600000,
+      "to": 1788753629474,
+      "source": "SQLite persistente: libros observados, órdenes, fills simulados y contabilidad",
+      "configSha256": "9f9012798c7853ce3d71c47383b1fa1ecb8e784e885f9fa77425ed9e1e0f2582",
+      "files": {
+        "observations.jsonl": "45354a4a60189216638046f83bf45eb449526436d5a79eec2b00eb79b2322ffb",
+        "report.html": "0c5e35c36b96d986502e96356f1cda3e3bca324711358e69ff7f7c8c365ca57a",
+        "summary.md": "365f1afc7e00b6c879b3a04aa4c8982e63cd28c8fe7e51b142069554e6880a8a",
+        "result.json": "f361c6ae04db1260e219b29d629ae06004ffaf1bf92570de6d35864d446fc009",
+        "trades.csv": "c3f49736b71b03bc925145e9d32db2520da13eb0ae9e6fdbe29cbf2c32f056e4",
+        "chart.svg": "a4c6aa2136f5d8a160eb74aa2641da23850fc4328de8e3cbb94beb461a363f6a",
+        "chart.png": "f91dfceaee0b0460735683545727c0636dbfdf5f3c4fbb38f269f8cb56c99457"
+      }
+    },
+    "manifestSha256": "bf930a4e6489d6cda0fe23e110abfad23cc0aa5277d002d047b12584bf9c60b7",
+    "pngVisualInspection": "Español, fondo oscuro, paleta y gráficas legibles; resultados de la cuenta paper operativa",
+    "hourly": {
+      "id": "hourly:2026-09-07T04",
+      "textSent": true,
+      "pngSent": true
+    },
+    "workerExited": true
+  },
+  "finalCheck": {
+    "at": "2026-09-07T04:01:45.539Z",
+    "stop": "Límite de pérdida diaria",
+    "connected": true,
+    "runtime": {
+      "startedAt": 1788753594962,
+      "experimentStartedAt": 1788590543706,
+      "lastEvaluationAt": 1788753699834,
+      "version": "botpoly-v5-headless"
+    },
+    "outbox": 0
+  },
+  "processMemory": {
+    "VmHWM": "386284 kB",
+    "VmRSS": "386096 kB"
+  },
+  "limitations": [
+    "Cuenta y ejecuciones paper; no se activó live ni se enviaron órdenes reales.",
+    "La aceptación de Telegram confirma su API, no lectura humana.",
+    "El informe es un snapshot de cuenta; valoraciones abiertas pueden cambiar.",
+    "La cobertura de la política nueva empieza en estas capturas; todavía faltan 12 Gamma recientes y 60 variaciones válidas por mercado.",
+    "Comprobación del servicio durante minutos; no acredita un reinicio completo del servidor ni continuidad de varios días.",
+    "La revisión completa de integridad y creación de la copia duraron aproximadamente once minutos con el servicio detenido."
+  ]
+}
