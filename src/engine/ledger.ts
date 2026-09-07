@@ -16,6 +16,8 @@ import {
   freshBook,
   validateResolution,
   footballPolicy,
+  defaults,
+  validateConfig,
 } from "./model.js";
 import { Store } from "./store.js";
 export interface DailyStatistics {
@@ -55,7 +57,52 @@ export class Ledger {
           connected: false,
           lastDataAt: 0,
         } satisfies Account);
+      const stored = store.get<Partial<RiskConfig>>("meta", "config")!;
+      const missing = Object.fromEntries(Object.entries(defaults).filter(([key]) => !Object.prototype.hasOwnProperty.call(stored, key)));
+      if (Object.keys(missing).length) {
+        store.put("meta", "config", validateConfig({...missing, ...stored}));
+        store.put("meta", "config:version", (store.get<number>("meta", "config:version") ?? 0) + 1);
+        this.event("migration", `Campos de riesgo ausentes incorporados: ${JSON.stringify(missing)}`);
+      }
+      if (!store.get("meta", "operation-slots:migrated")) {
+        const at = this.operationTime();
+        const groups = new Map<string, Order[]>();
+        for (const o of store.all<Order>("orders").filter(o => o.side === "BUY")) groups.set(o.pairId, [...(groups.get(o.pairId) ?? []), o]);
+        const fills = store.all<Fill>("fills");
+        for (const [id, orders] of groups) {
+          const pending = orders.some(o => !["filled", "rejected", "cancelled"].includes(o.status));
+          const terminalAt = pending ? null : Math.max(...orders.map(o => o.terminalAt ?? (o.status === "filled" && fills.some(f => f.orderId === o.id) ? Math.max(...fills.filter(f => f.orderId === o.id).map(f => f.timestamp)) : at)));
+          store.db.prepare("INSERT OR IGNORE INTO operation_slots VALUES (?,?,?)").run(id, Math.min(...orders.map(o => o.timestamp)), terminalAt);
+        }
+        store.put("meta", "operation-slots:migrated", at);
+        this.event("migration", `Cupos horarios inicializados: ${groups.size} operaciones; final desconocido usa la fecha de migración`);
+      }
     });
+  }
+  /** Call in the reservation/order transaction. A backwards clock cannot free capacity. */
+  operationTime(): number {
+    const at = Math.max(this.now(), this.store.get<number>("meta", "operation-slots:clock") ?? 0);
+    this.store.put("meta", "operation-slots:clock", at);
+    return at;
+  }
+  operationUsage() {
+    const at = Math.max(this.now(), this.store.get<number>("meta", "operation-slots:clock") ?? 0);
+    const rows = this.store.db.prepare("SELECT terminal_at FROM operation_slots WHERE terminal_at IS NULL OR terminal_at > ? ORDER BY terminal_at").all(at - 3600000) as {terminal_at: number | null}[];
+    const pending = rows.filter(r => r.terminal_at === null).length, limit = this.config.max_oper_per_hour;
+    const final = rows.flatMap(r => r.terminal_at === null ? [] : [r.terminal_at + 3600000]);
+    return {limit, used: rows.length, pending, available: Math.max(0, limit - rows.length), nextAt: rows.length < limit ? null : final[rows.length - limit] ?? null, clockAt: at};
+  }
+  acquireOperation(id: string): void {
+    const at = this.operationTime();
+    if (!this.operationUsage().available) throw new Error("Cupo horario agotado");
+    this.store.db.prepare("INSERT INTO operation_slots VALUES (?,?,NULL)").run(id, at);
+  }
+  finishOperation(order: Order): void {
+    if (order.side !== "BUY" || !["filled", "rejected", "cancelled"].includes(order.status)) return;
+    order.terminalAt ??= this.operationTime();
+    this.store.put("orders", order.id, order);
+    const pending = this.store.db.prepare("SELECT 1 FROM orders WHERE json_extract(data,'$.pairId')=? AND json_extract(data,'$.side')='BUY' AND json_extract(data,'$.status') NOT IN ('filled','rejected','cancelled') LIMIT 1").get(order.pairId);
+    if (!pending) this.store.db.prepare("UPDATE operation_slots SET terminal_at=? WHERE id=? AND terminal_at IS NULL").run(this.operationTime(), order.pairId);
   }
   get config(): RiskConfig {
     return this.store.get<RiskConfig>("meta", "config")!;
@@ -193,7 +240,7 @@ export class Ledger {
   rollDay(): void {
     const a = this.account,
       day = new Date(this.now()).toISOString().slice(0, 10);
-    if (day !== a.day) {
+    if (day > a.day) {
       a.day = day;
       a.dayStartPnl = this.metrics().netPnl;
       this.save(a);
@@ -398,6 +445,7 @@ export class Ledger {
       football: this.store.get<{leagues: Record<string,string>; sources: {league:string;checksum:string;verifiedAt:number;sources:{url:string;sha256:string}[];matches:number}[]}>("meta", "football:status"),
       footballEvidence: this.store.get<{report:string}>("meta", "football:evidence"),
       config: this.config,
+      operations: this.operationUsage(),
       account: this.account,
       metrics: this.metrics(),
       positions: this.positions,

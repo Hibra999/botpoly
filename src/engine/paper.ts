@@ -41,9 +41,12 @@ export class PaperExecutor implements Executor {
     private at: (market: string, time: number) => Promise<Frame | undefined>,
     readonly now: () => number = Date.now,
     readonly config: SimulationConfig = simulationDefaults,
-    readonly maxDataAgeMs = 5000,
+    private initialMaxDataAgeMs = 5000,
     private store?: Store,
   ) {}
+  get maxDataAgeMs(): number {
+    return this.store?.get<import("./model.js").RiskConfig>("meta", "config")?.maxDataAgeMs ?? this.initialMaxDataAgeMs;
+  }
   private saved(id: string): Execution | undefined {
     return (
       this.store?.get<Execution>("meta", `paper:execution:${id}`) ??

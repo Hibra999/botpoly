@@ -88,6 +88,7 @@ export interface RiskConfig {
   maxDataAgeMs: number;
   maxErrors: number;
   maxCostUsd: number;
+  max_oper_per_hour: number;
 }
 export const defaults: RiskConfig = {
   capitalUsd: 1000,
@@ -101,6 +102,7 @@ export const defaults: RiskConfig = {
   maxDataAgeMs: 5000,
   maxErrors: 3,
   maxCostUsd: 1,
+  max_oper_per_hour: 15,
 };
 export function validateConfig(input: unknown): RiskConfig {
   if (!input || typeof input !== "object" || Array.isArray(input))
@@ -136,7 +138,8 @@ export function validateConfig(input: unknown): RiskConfig {
     cfg.maxSlippageBps > 1000 ||
     cfg.maxDataAgeMs < 100 ||
     cfg.maxDataAgeMs > 60000 ||
-    !Number.isInteger(cfg.maxErrors) ||
+    !Number.isSafeInteger(cfg.maxErrors) ||
+    !Number.isSafeInteger(cfg.max_oper_per_hour) || cfg.max_oper_per_hour < 1 ||
     cfg.maxErrors < 1 ||
     cfg.maxCostUsd <= 0
   )
@@ -316,6 +319,7 @@ export interface Order {
   takeProfit?: number;
   title?: string;
   externalId?: string;
+  terminalAt?: number;
 }
 export interface Fill {
   id: string;

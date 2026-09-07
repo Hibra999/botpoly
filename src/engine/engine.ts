@@ -63,6 +63,8 @@ export class Engine {
         m = l.metrics();
       const reject = (reason: string) => this.rejection(reason, frame);
       if (a.stop) return reject(a.stop);
+      l.operationTime();
+      if (!l.operationUsage().available) return reject("Cupo horario agotado");
       if (l.mode === "live" && !s.get<ReturnType<typeof strategyBinding>[]>("meta","live:strategies")?.some(b=>JSON.stringify(b) === JSON.stringify(strategyBinding(frame.football ? "football-value" : "yes-no",c)))) return reject("Estrategia live sin evidencia para esta configuración");
       if (!a.connected) return reject("Sin conexión de mercado");
       if (l.positions.some((p) => p.stale)) return reject("Valoración de posiciones obsoleta");
@@ -169,6 +171,7 @@ export class Engine {
         mode: l.mode,
         strategy: "yes-no",
       }));
+      l.acquireOperation(pairId);
       s.put("reservations", pairId, {
         id: pairId,
         eventId: frame.eventId,
@@ -293,6 +296,7 @@ export class Engine {
       strategy: "football-value", football: f, forecast: prediction, takeProfit: footballPolicy.takeProfit, title: frame.title,
     };
     const remaining = money(best.q.gross + best.q.fees + gas);
+    l.acquireOperation(pairId);
     s.put("reservations", pairId, {id: pairId, eventId: f.matchId, underlying: f.matchId, marketId: frame.marketId, strategy: "football-value", remaining, timestamp: l.now()} satisfies Reservation);
     s.put("orders", order.id, order);
     s.put("meta", `signal:${pairId}`, frame);
@@ -318,6 +322,7 @@ export class Engine {
       if (result.status === "confirmed" && result.fills.length === 0)
         current.status = "uncertain";
       l.store.put("orders", current.id, current);
+      l.finishOperation(current);
       if (current.status === "uncertain")
         l.stop("Orden incierta: conciliación obligatoria");
       if (current.status === "rejected")
@@ -423,7 +428,7 @@ export class Engine {
     if (first.status === "filled") await this.submit(orders[1]);
     else if (first.status === "rejected") {
       orders[1].status = "cancelled";
-      this.ledger.store.put("orders", orders[1].id, orders[1]);
+      this.ledger.store.transaction(() => this.ledger.finishOperation(orders[1]));
     }
     await this.finishPair(orders[0].pairId, frame);
     this.recordEquity();
@@ -574,7 +579,7 @@ export class Engine {
     for (const o of orders.filter((o) => !terminal(o))) {
       if (o.status === "reserved") {
         o.status = "cancelled";
-        l.store.put("orders", o.id, o);
+        l.store.transaction(() => { l.store.put("orders", o.id, o); l.finishOperation(o); });
         continue;
       }
       try {
@@ -598,7 +603,7 @@ export class Engine {
     for (const o of l.store.all<Order>("orders").filter((o) => !terminal(o))) {
       if (o.status === "reserved") {
         o.status = "cancelled";
-        l.store.put("orders", o.id, o);
+        l.store.transaction(() => { l.store.put("orders", o.id, o); l.finishOperation(o); });
       } else {
         try {
           this.apply(o, await this.executor.cancel(o));
@@ -618,6 +623,7 @@ export class Engine {
         m = l.metrics();
       if (
         !a.connected ||
+        a.lastDataAt > l.now() ||
         l.now() - a.lastDataAt > l.config.maxDataAgeMs ||
         a.errors ||
         m.drawdown >= l.config.maxDrawdownPct ||

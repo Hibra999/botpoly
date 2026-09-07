@@ -25,15 +25,16 @@ export function parseCommand(value: unknown): Command {
     throw new Error("Campo de comando desconocido");
   if (c.command !== "set_config" && c.payload !== undefined)
     throw new Error("Este comando no admite parámetros");
-  if (c.command === "set_config") validateConfig(c.payload);
+  if (c.command === "set_config" && (!c.payload || typeof c.payload !== "object" || Array.isArray(c.payload))) throw new Error("Configuración inválida");
   return c;
 }
-/** Single serial queue shared by HTTP, WebSocket and Telegram controls. */
+/** Serial control queue; entry blocking takes effect before any reconciliation wait. */
 export class Controller {
   private queue: Promise<unknown> = Promise.resolve();
   constructor(readonly engine: Engine) {}
   execute(value: unknown): Promise<CommandResult> {
     const c = parseCommand(value);
+    if (["pause", "cancel_orders"].includes(c.command) && !this.engine.ledger.store.get("commands", c.id)) this.engine.ledger.stop(c.command === "pause" ? "Pausa autorizada" : "Pausa para cancelar órdenes");
     const next = this.queue.then(() => this.apply(c));
     this.queue = next.catch(() => {});
     return next;
@@ -77,9 +78,10 @@ export class Controller {
         await this.engine.cancelOrders();
       }
       if (c.command === "set_config") {
-        const cfg = validateConfig(c.payload);
         s.transaction(() => {
+          const cfg = validateConfig({...l.config, ...c.payload as object});
           s.put("meta", "config", cfg);
+          s.put("meta", "config:version", (s.get<number>("meta", "config:version") ?? 0) + 1);
           l.event("config", JSON.stringify(cfg));
           l.mark();
           if (
