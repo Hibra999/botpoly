@@ -41,6 +41,7 @@ export class Controller {
   private pauseGeneration = 0;
   private queue: Promise<unknown> = Promise.resolve();
   constructor(readonly engine: Engine) {}
+  blockEntries(reason: string): void { this.pauseGeneration++; this.engine.ledger.stop(reason); }
   propose(id: string, chat: string, sender: string, command: "resume" | "set_config", patch?: Partial<RiskConfig>): Proposal {
     const l = this.engine.ledger, s = l.store;
     return s.transaction(() => {
@@ -75,7 +76,7 @@ export class Controller {
   }
   execute(value: unknown): Promise<CommandResult> {
     const c = parseCommand(value);
-    if (["pause", "cancel_orders"].includes(c.command) && !this.engine.ledger.store.get("commands", c.id)) { this.pauseGeneration++; this.engine.ledger.stop(c.command === "pause" ? "Pausa autorizada" : "Pausa para cancelar órdenes"); }
+    if (["pause", "cancel_orders"].includes(c.command) && !this.engine.ledger.store.get("commands", c.id)) this.blockEntries(c.command === "pause" ? "Pausa autorizada" : "Pausa para cancelar órdenes");
     const next = this.queue.then(() => this.apply(c));
     this.queue = next.catch(() => {});
     return next;

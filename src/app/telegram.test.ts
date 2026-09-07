@@ -107,3 +107,24 @@ it('menú minúsculo, paginación sin truncar y auditoría acotada; falla API si
   const update=(id:number,text:string)=>({update_id:id,message:{date:now/1000,text,chat:{id:42,type:'private'},from:{id:42}}});
   await bot.process(update(1,'/audit 101'));expect(s.get<{text:string}>('outbox','telegram:1')!.text).toContain('rechazada');
 });
+
+it('el consumidor sigue recibiendo una pausa mientras la confirmación de resume concilia',async()=>{
+ const s=new Store(':memory:');stores.push(s);const now=Date.UTC(2026,8,7),l=new Ledger(s,'paper',defaults,()=>now),e=new Engine(l,new PaperExecutor('paper',async()=>undefined)),c=new Controller(e);
+ l.save({...l.account,stop:null,connected:true,lastDataAt:now});c.propose('pending','42','42','resume');
+ let release!:()=>void,receivedPause=false,polls=0;const entered=new Promise<void>(resolve=>{e.reconcile=async()=>{resolve();await new Promise<void>(r=>release=r);};});
+ s.put('meta','telegram:hour',new Date(now).toISOString().slice(0,13));
+ const request=vi.fn(async(url)=>{
+  if(!String(url).endsWith('getUpdates'))return new Response(JSON.stringify({ok:true}));
+  polls++;
+  if(polls===1)return new Response(JSON.stringify({ok:true,result:[{update_id:1,callback_query:{id:'1',data:'confirm:pending',from:{id:42},message:{date:now/1000,chat:{id:42,type:'private'}}}}]}));
+  receivedPause=true;
+  return new Response(JSON.stringify({ok:true,result:[{update_id:2,message:{date:now/1000,text:'/pause',chat:{id:42,type:'private'},from:{id:42}}}]}));
+ }) as typeof fetch;
+ const bot=new Telegram(c,'123456:test','42',request,()=>now),running=bot.run();
+ try {
+  await entered;await vi.waitFor(()=>expect(receivedPause).toBe(true),{timeout:3000});
+  expect(l.account.stop).toBe('Pausa autorizada');release();
+  await vi.waitFor(()=>expect(s.get<{result:{ok:boolean}}>('commands','pending')?.result.ok).toBe(false));
+ }finally{release?.();bot.stop();await running;}
+ expect(l.account.stop).toBe('Pausa autorizada');
+});

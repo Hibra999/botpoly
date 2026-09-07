@@ -30,6 +30,7 @@ interface Outgoing {
 export class Telegram {
   private stopped = false;
   private abort = new AbortController();
+  private pendingControls=new Set<Promise<void>>();
   constructor(
     private controller: Controller,
     private token: string,
@@ -44,6 +45,15 @@ export class Telegram {
   }
   private get store() {
     return this.controller.engine.ledger.store;
+  }
+  private async controlReply(id:string,command:Promise<{message:string}>,wait:boolean):Promise<void> {
+    const reply=command.then(result=>{this.enqueue(id,result.message,undefined,false,navigation);})
+      .catch(()=>{this.enqueue(id,"Propuesta rechazada: comprueba identidad, caducidad y versión. Solicita otra si corresponde.",undefined,false,navigation);});
+    if (wait) await reply;
+    else {
+      this.pendingControls.add(reply);
+      void reply.then(()=>this.pendingControls.delete(reply),()=>this.pendingControls.delete(reply));
+    }
   }
   enqueue(id: string, text: string, document?: string, photo = false, keyboard?: Keyboard): void {
     if (document && (!existsSync(document) || !realpathSync(document).startsWith(realpathSync(this.reports) + sep))) throw new Error("Documento fuera de informes o no disponible");
@@ -90,7 +100,7 @@ export class Telegram {
     const detail = `\nTiempo ejecutándose: ${Math.floor(uptime / 3600000)} h ${Math.floor(uptime / 60000) % 60} min\nMercados: ${snapshot.observation?.markets ?? 0} · Fútbol: ${snapshot.observation?.coverage?.football ?? 0} · Con pronóstico: ${snapshot.observation?.coverage?.forecast ?? 0}\nÚltima evaluación: ${snapshot.runtime?.lastEvaluationAt ? new Date(snapshot.runtime.lastEvaluationAt).toISOString() : "pendiente"}\nÚltimos bloques horarios: ${counts.evaluated ?? 0} evaluaciones · ${counts.signals ?? 0} señales · ${counts.accepted ?? 0} reservas\nCompras: ${counts.buys ?? 0} · Ventas: ${counts.sells ?? 0} · Liquidaciones: ${counts.settled ?? 0}\nÚltimo dato: ${a.lastDataAt ? new Date(a.lastDataAt).toISOString() : "sin datos"}\n${reasons.map(([key, n]) => `${key.slice(9)}: ${n}`).join("\n")}`;
     return `Botpoly · ${l.mode}\n${quota}\nEstado: ${a.stop ?? (a.connected ? "activo" : "sin conexión")}\nCapital: US$${m.equity.toFixed(2)}\nPnL neto: US$${m.netPnl.toFixed(4)}\nRealizado: US$${a.realized.toFixed(4)}\nNo realizado: US$${m.unrealized.toFixed(4)}\nCostes: US$${(a.fees + a.gas).toFixed(4)}${detail}`;
   }
-  async process(update: Update): Promise<void> {
+  async process(update: Update, waitForControl=true): Promise<void> {
     if (!Number.isSafeInteger(update.update_id) || update.update_id < 0) return;
     const done = `telegram:update:${update.update_id}`;
     if (this.store.get("meta", done)) return;
@@ -101,14 +111,14 @@ export class Telegram {
       try {
         if (callback?.data?.startsWith("confirm:") || callback?.data?.startsWith("cancel:")) {
           const [action,...rest]=callback.data.split(":");
-          const result=await this.controller.confirm(rest.join(":"),this.chatId,String(m.from!.id),action==="confirm");
-          this.enqueue(id,result.message,undefined,false,navigation);
+          // Confirmation is durable before yielding; polling must keep receiving an urgent pause.
+          await this.controlReply(id,this.controller.confirm(rest.join(":"),this.chatId,String(m.from!.id),action==="confirm"),waitForControl);
         } else if (typeof m.text === "string") {
           const [raw,...args]=m.text.trim().split(/\s+/), command=raw.toLowerCase().split("@")[0];
           const mutating=["/pause","/resume","/cancel_orders","/setmaxops","/setbudget"].includes(command) || (command === "/config" && args.length > 0);
           if (mutating && (callback || !Number.isFinite(m.date) || this.now()-m.date*1000 >= 120000 || m.date*1000 > this.now()+5000)) throw new Error("expired");
           if (["/pause","/cancel_orders"].includes(command) && !args.length) {
-            this.enqueue(id,(await this.controller.execute({id,command:command.slice(1)})).message,undefined,false,navigation);
+            await this.controlReply(id,this.controller.execute({id,command:command.slice(1)}),waitForControl);
           } else if (command === "/resume" || command === "/setmaxops" || command === "/setbudget" || (command === "/config" && args.length)) {
             let patch: Partial<RiskConfig> | undefined;
             if (command !== "/resume") {
@@ -286,7 +296,8 @@ export class Telegram {
     this.store.put("outbox", item.id, item);
   }
   async run(): Promise<void> {
-    await Promise.all([this.receive(), this.send()]);
+    try {await Promise.all([this.receive(), this.send()]);}
+    finally {await Promise.allSettled([...this.pendingControls]);}
   }
   private async send(): Promise<void> {
     while (!this.stopped) {
@@ -342,7 +353,7 @@ export class Telegram {
         )
           retryMs = Math.min(86400000, Math.max(1000, retryAfter * 1000));
         if (response.ok && data.ok && Array.isArray(data.result))
-          for (const update of data.result) await this.process(update);
+          for (const update of data.result) await this.process(update,false);
       } catch {
         /* Never log Telegram URLs: they contain credentials. */
       }
@@ -353,6 +364,7 @@ export class Telegram {
     }
   }
   stop(): void {
+    this.controller.blockEntries("Proceso detenido; requiere reanudación autorizada");
     this.stopped = true;
     this.abort.abort();
     this.worker.stop();

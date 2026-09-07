@@ -96,3 +96,22 @@ it('resincroniza según el límite vigente sin volver a pedir libros todavía re
   data.stream.takeChanges();vi.setSystemTime(now+1502);await data.prepare([market('m')],1000);expect(data.stream.takeChanges()).toEqual(new Set(['m']));expect(data.coverage.ready).toBe(1);
  }finally{vi.useRealTimers();}
 });
+
+it('revalida identidad y horario antes de entrar, conserva la discrepancia textual y descarta una preparación que cruza reconexión',async()=>{
+ vi.spyOn(Date,'now').mockReturnValue(now);
+ try {
+  const event={id:'event',state:{active:true,closed:false},sports:{sport:{sport:'mex',series:'10290'},gameId:4,teams:[{name:'Atlas FC',league:'mex',ordering:'home'},{name:'Atlante FC',league:'mex',ordering:'away'}]},schedule:{startTime:new Date(now+864e5).toISOString()},series:[{id:'10290'}],tags:[]} as unknown as Event;
+  const m=market('m');m.sports={sportsMarketType:'moneyline',gameStartTime:event.schedule.startTime};m.groupItemTitle='Atlas FC';m.description='If Atlas FC wins, this market will resolve to "Yes". first 90 minutes of regular play plus stoppage time';
+  const watched={...m,football:footballMarket(event,m,new Map([['mex','10290']]))!};
+  const client={fetchMarket:async()=>m,fetchEvent:async()=>event} as unknown as PublicClient;
+  let reconnect=false;
+  const d=new MarketData(async()=>{if(reconnect)d.stream.status.generation++;return {mergeGasUsd:0,recoveryGasUsd:0,timestamp:now,verified:true,source:"synthetic test"};},client,new FootballData());
+  vi.spyOn(d as unknown as {marketInfo:()=>Promise<unknown>},'marketInfo').mockResolvedValue({negRisk:false,feeInfo:{rate:0,exponent:1}});
+  vi.spyOn(d.stream,'sync').mockResolvedValue();d.stream.status.connected=true;d.stream.status.generation=1;
+  d.stream.identities=new Map([['my','m'],['mn','m']]);d.stream.snapshot(raw('my'));d.stream.snapshot(raw('mn'));
+  m.question='Atlas FC win on 1999-01-01?';expect((await d.frame(watched)).title).toBe(m.question);
+  m.sports.gameStartTime=new Date(now+2*864e5).toISOString() as typeof m.sports.gameStartTime;await expect(d.frame(watched)).rejects.toThrow('reprogramado');m.sports.gameStartTime=event.schedule.startTime;
+  event.sports.gameId=5;await expect(d.frame(watched)).rejects.toThrow('Identidad');event.sports.gameId=4;
+  reconnect=true;await expect(d.frame(watched)).rejects.toThrow('Transporte');
+ }finally{vi.restoreAllMocks();}
+});
