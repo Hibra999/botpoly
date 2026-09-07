@@ -1,0 +1,106 @@
+{
+  "metadata": {
+    "revision": "9ca0529ead4da59669cb22488216bf59053cd574",
+    "baselineRevision": "80d61477f4b500e622b76acd4e39dd4f7e9cd043",
+    "lockSha256": "408dc388f2b25a26024968fd4787064f5b6778264a7b51471b826f6ddfce776a",
+    "host": "Linux-6.19.9-arch1-1-x86_64-with-glibc2.44",
+    "logicalCpus": 2,
+    "baselineSource": "/home/gabo/portfolio/projects/38-hibraim/botpoly/Polymarket-bot/.runtime/headless-baseline",
+    "capturedAtUtc": "2026-09-07T03:18:15Z"
+  },
+  "runs": [
+    {
+      "repeat": 1,
+      "variant": "baseline",
+      "inputSha256": "fc4314fd2f414f0461762aa21d49446f317c8bae0f6efda2156a20a28a2c7f46",
+      "peakTreeMiB": 436.97265625,
+      "medianWarmTreeMiB": 404.5,
+      "cpuSeconds": 44.76,
+      "p95LatencyMs": 8808.924069999994,
+      "maxLatencyMs": 9219.479248999996,
+      "reportMs": [
+        137.99200399999972,
+        178.5281249999971
+      ],
+      "warmSegmentMedianMiB": [
+        309.21875,
+        405.14453125,
+        411.07421875
+      ],
+      "rssSlopeMiBPerMinute": 68.78334560549588,
+      "orders": 0,
+      "recorded": 2400
+    },
+    {
+      "repeat": 1,
+      "variant": "headless",
+      "inputSha256": "fc4314fd2f414f0461762aa21d49446f317c8bae0f6efda2156a20a28a2c7f46",
+      "peakTreeMiB": 301.91015625,
+      "medianWarmTreeMiB": 240.05078125,
+      "cpuSeconds": 31.58,
+      "p95LatencyMs": 3121.714678000004,
+      "maxLatencyMs": 4045.3544690000053,
+      "reportMs": [
+        294.9354929999972,
+        417.5266249999986
+      ],
+      "warmSegmentMedianMiB": [
+        200.16015625,
+        240.42578125,
+        240.47265625
+      ],
+      "rssSlopeMiBPerMinute": 25.41800043041934,
+      "orders": 0,
+      "recorded": 2400
+    },
+    {
+      "repeat": 2,
+      "variant": "headless",
+      "inputSha256": "fc4314fd2f414f0461762aa21d49446f317c8bae0f6efda2156a20a28a2c7f46",
+      "peakTreeMiB": 335.0234375,
+      "medianWarmTreeMiB": 272.68359375,
+      "cpuSeconds": 30.42,
+      "p95LatencyMs": 2121.5374310000043,
+      "maxLatencyMs": 2910.967288,
+      "reportMs": [
+        396.53117999999813,
+        351.7886940000026
+      ],
+      "warmSegmentMedianMiB": [
+        223.3203125,
+        272.8125,
+        273.38671875
+      ],
+      "rssSlopeMiBPerMinute": 42.93102862540944,
+      "orders": 0,
+      "recorded": 2400
+    },
+    {
+      "repeat": 2,
+      "variant": "baseline",
+      "inputSha256": "fc4314fd2f414f0461762aa21d49446f317c8bae0f6efda2156a20a28a2c7f46",
+      "peakTreeMiB": 426.21484375,
+      "medianWarmTreeMiB": 393.0,
+      "cpuSeconds": 43.06,
+      "p95LatencyMs": 4630.970543000003,
+      "maxLatencyMs": 5522.243339000001,
+      "reportMs": [
+        106.50426800000423,
+        173.84159300000465
+      ],
+      "warmSegmentMedianMiB": [
+        293.8046875,
+        392.95703125,
+        409.8203125
+      ],
+      "rssSlopeMiBPerMinute": 82.5748324946483,
+      "orders": 0,
+      "recorded": 2400
+    }
+  ],
+  "seconds": 120,
+  "repeats": 2,
+  "protocolSha256": "81d0ddd3674d84a014c1d18f920626c902ddbf1102b027cb622a8b89fd1157e1",
+  "samplerSha256": "8371fc9a8317cd1ed1762f3bf8d9d2f0c5564f64b4a8685a82793f06d750c5ae",
+  "growthCriterion": "After 30s warmup: linear RSS slope <=5 MiB/min and final segment median <= previous segment +8 MiB; finite duration, no proof against every long-term leak."
+}

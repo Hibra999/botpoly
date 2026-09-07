@@ -12,9 +12,9 @@ La migración reconstruye las entradas desde las órdenes: conserva pendientes y
 
 Prueba específica: `pnpm exec vitest run src/engine/operation-slots.test.ts`. La suite general cubre también fills duplicados, incertidumbre, recuperación, contabilidad y las estrategias.
 
-## Trabajo en curso
+## Estado de verificación
 
-Faltan mediciones comparables y despliegue conservando la parada. La [revisión de once entradas](evidence/football-eleven-20260907/review.md) y las [directrices de investigación](HEADLESS-RESEARCH.md) están publicadas con fuentes y limitaciones. Ninguna fase se considera validada por las pruebas de otra.
+La implementación pasa 137 pruebas, typecheck, build, comprobación headless y prueba aislada de migración. La [revisión de once entradas](evidence/football-eleven-20260907/review.md), las [directrices de investigación](HEADLESS-RESEARCH.md) y el [protocolo de rendimiento](HEADLESS-PERFORMANCE.md) conservan fuentes y limitaciones. La instalación de la unidad nueva requiere autenticación root; el servicio anterior conserva su parada. El estado operativo vigente está fechado en [VALIDATION.md](VALIDATION.md). Ninguna fase se considera validada por las pruebas de otra.
 
 ## Control confirmado por Telegram
 

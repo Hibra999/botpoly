@@ -1,5 +1,23 @@
 # Validación
 
+## 2026-09-07: implementación headless verificada, instalación pendiente
+
+Se eliminó el dashboard y el servidor HTTP del código. Telegram incorpora propuestas SQLite de dos minutos, cambios parciales, cupo compartido de 15 entradas/hora y presupuesto sin crear saldo. El arranque compilado usa el mismo `flock` en pnpm y systemd. Paper/backtest conservan la frontera sin firmantes. No se activó live ni se enviaron órdenes reales en las pruebas.
+
+Pasaron **137 pruebas en 20 archivos**, `pnpm typecheck`, `pnpm build`, `pnpm check:headless`, las **dos pruebas Python** documentadas del importador, validación de la unidad con `systemd-analyze verify`, sintaxis de los lanzadores y `node deploy/migrate.mjs --self-test`. Esta última genera una copia consistente, ejecuta integridad completa y verifica que una migración aditiva conserva pérdida, capital reservado, entrada incierta y parada. La configuración operativa se validó sin crear motor ni firmante.
+
+La suite cubre ventanas exactas de 60 minutos, reloj hacia atrás, dos procesos SQLite disputando el último cupo, reinicios, confirmaciones tardías, límites reducidos y reservas inciertas. Telegram cubre autorización, alias, caducidad, versión, confirmación repetida, paginación y fallos de API/renderizado; el consumidor recibe una pausa durante una conciliación de resume y esta queda denegada. Se comprueban snapshots RO entre conexiones, prohibición de escritura por el trabajador, reconexión interna del SDK con generación y rechazo de frames preparados a través de esa reconexión. Fútbol revalida horario/identidad conservando discrepancias textuales; tamaño exige variaciones válidas, captura real y hashes de observaciones.
+
+[La revisión de once entradas](evidence/football-eleven-20260907/review.md) conserva −30,115359 US$ netos en el snapshot paper, incluidas valoraciones abiertas. Hay tres liquidaciones perdedoras, dos ventas ganadoras y seis posiciones abiertas. Se identificaron ocho cruces observados del stop hipotético; los huecos de hasta 37 minutos impiden tratarlos como fills o promover esa variante. Se mantienen +10% neto ejecutable o resolución. [Fuentes, Pumas y protocolo reproducible](HEADLESS-RESEARCH.md).
+
+[Protocolo y mediciones de rendimiento](HEADLESS-PERFORMANCE.md): se conservan todos los ensayos, incluidos los que incumplen el criterio. El PNG del replay se inspeccionó visualmente: español, fondo oscuro, paleta y cuenta vacía legibles. Es una prueba sintética de formato, no una captura de la cuenta operativa.
+
+**Estado de despliegue:** el servicio de sistema todavía ejecuta la versión anterior (`node --import tsx bot-with-dashboard.ts`, PID 2133963). La cuenta sigue en paper con `Límite de pérdida diaria`: 13 órdenes, 13 fills, 11 filas de posiciones, seis reservas y tres liquidaciones en la comprobación. La copia original previa a headless es íntegra y su hash figura en la revisión. No se aplicaron migraciones al SQLite operativo ni se reanudaron entradas.
+
+La unidad instalada pertenece a root. `sudo -n` exige autenticación y la sesión no puede reemplazarla ni gestionar `botpoly.service`. El paso operativo preparado es `sudo ./deploy/install.sh`, que instala la unidad nueva, detiene el proceso anterior, copia/verifica/migra como gabo y arranca compilado. Un fallo de conservación deja el servicio detenido para revisión. No reiniciar con la unidad anterior, cuya ruta de arranque ya se eliminó del código. Después de instalar hay que verificar el manifiesto `.runtime/backups/headless-*.json`, la parada conservada, instancia única y ausencia de escucha HTTP del nuevo proceso.
+
+No se ejecutó la suite heredada `test:integration` contra APIs públicas: no valida por sí sola los contratos actuales. No se ocultaron incompatibilidades externas mediante capturas silenciosas. El arranque completo del servidor y órdenes con fondos reales quedan fuera de esta validación.
+
 ## 2026-09-06 06:37 UTC: ocho mejoras verificadas
 
 La [lista de mejoras y resultados](IMPROVEMENTS.md) conserva todo el alcance solicitado. El análisis contable, dashboard, procesamiento por cambios y selección por partido están en el servicio paper. La comparación de cuatro modelos y la calibración por liga son retrospectivas: mejora pequeña y todavía peor que las cuotas de cierre. La investigación maker conserva el resultado insuficiente de sus escenarios; no se añade al arranque.
