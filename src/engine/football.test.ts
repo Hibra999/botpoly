@@ -1,3 +1,4 @@
+import {sizingFixture} from "./sizing-fixture.js";
 import { afterEach, describe, expect, it } from "vitest";
 import { Store } from "./store.js";
 import { Ledger } from "./ledger.js";
@@ -9,7 +10,7 @@ afterEach(()=>stores.splice(0).forEach(s=>s.close()));
 function setup(options: {partialEvery?: number} = {}) {
   const now=Date.UTC(2026,8,6), s=new Store(':memory:'); stores.push(s);
   const book=(tokenId:string,price:number)=>({tokenId,hash:tokenId+'hash',timestamp:now,bids:[{price:price-.01,size:1000}],asks:[{price,size:1000}],minSize:5,tickSize:.01});
-  const f: Frame={id:'f',timestamp:now,marketId:'m',eventId:'match',underlying:'match',title:'A gana',yes:book('yes',.4),no:book('no',.65),binary:true,negRisk:true,feeRate:.05,feeVerified:true,mergeGasUsd:.02,recoveryGasUsd:0,gasVerified:true,source:'synthetic test',depth:true,football:{matchId:'match',league:'mex',home:'A',away:'B',startAt:now+86400000,result:'home'},forecast:{probability:.7,version:footballPolicy.version,checksum:'a'.repeat(64),generatedAt:now,dataVerifiedAt:now,sampleSize:30}};
+  const f: Frame={id:'f',timestamp:now,sizing:sizingFixture(now),marketId:'m',eventId:'match',underlying:'match',title:'A gana',yes:book('yes',.4),no:book('no',.65),binary:true,negRisk:true,feeRate:.05,feeVerified:true,mergeGasUsd:.02,recoveryGasUsd:0,gasVerified:true,source:'synthetic test',depth:true,football:{matchId:'match',league:'mex',home:'A',away:'B',startAt:now+86400000,result:'home'},forecast:{probability:.7,version:footballPolicy.version,checksum:'a'.repeat(64),generatedAt:now,dataVerifiedAt:now,sampleSize:30}};
   const l=new Ledger(s,'paper',defaults,()=>f.timestamp);
   const paper=new PaperExecutor('paper',async()=>structuredClone(f),()=>f.timestamp,{...simulationDefaults,latencyMs:0,...options},5000,s);
   const e=new Engine(l,paper); e.health(true); l.save({...l.account,lastDataAt:now});

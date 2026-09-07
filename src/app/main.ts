@@ -1,3 +1,4 @@
+import {ObservedSizing,sizingPolicy} from "../engine/sizing.js";
 import { Store } from "../engine/store.js";
 import { Ledger } from "../engine/ledger.js";
 import { Engine } from "../engine/engine.js";
@@ -22,6 +23,8 @@ export async function main(): Promise<void> {
   // Validate live gates before creating any client capable of signing.
   const store = new Store(config.database),
     ledger = new Ledger(store, config.mode, config.risk);
+  const sizing=new ObservedSizing(store);
+  if (config.mode === "paper" && store.get("meta","sizing:policy") !== sizingPolicy.version) store.transaction(()=>{store.put("meta","sizing:policy",sizingPolicy.version);ledger.event("migration",`Política experimental paper ${sizingPolicy.version}; historia ausente bloquea entradas y no altera pérdidas/parada`);});
   const approval = config.mode === "live" ? authorizeLive(process.env, ledger.config) : undefined;
   if (approval) store.put("meta", "live:strategies", approval.strategies);
   const runtime = ledger.startRuntime("botpoly-v5-headless");
@@ -43,6 +46,7 @@ export async function main(): Promise<void> {
           setTimeout(resolve, Math.max(0, time - Date.now()) + Number(market.trading.secondsDelay ?? 0) * 1000),
         );
         const frame = await data.frame(market);
+        sizing.midpoint(frame);frame.sizing=sizing.evidence(frame.marketId,frame.timestamp);
         store.recordBook(frame);
         observation.recorded++;
         return frame;
@@ -135,6 +139,7 @@ export async function main(): Promise<void> {
         if (!markets.length || Date.now() - refreshedAt >= 5 * 60000) {
           const selected = await data.markets(config.markets);
           if (!selected.length) throw new Error("Sin mercados compatibles");
+          for (const m of selected) if (m.gammaCapturedAt && m.metrics.liquidity != null) sizing.gamma(m.conditionId!,Number(m.metrics.liquidity),m.gammaCapturedAt,`Polymarket Gamma · mercado ${m.id} · captura actual`);
           const reservations = store.all<Reservation>("reservations");
           const held = new Set([...ledger.positions.map(p=>p.marketId),...reservations.flatMap(r=>{
             const f=store.get<Frame>("meta",`signal:${r.id}`);return f ? [f.marketId] : [];
@@ -191,19 +196,18 @@ export async function main(): Promise<void> {
         if (force) { fullEvaluationAt = Date.now(); evaluatedState = state; }
         const evaluate = marketsToEvaluate(markets,changed,held,force), frames: Frame[] = [];
         let framesRead = 0;
-        for (const market of markets) {
-          if (stopping) break;
-          const record = config.mode === "paper" && Date.now() - (recordedAt.get(market.conditionId!) ?? 0) >= 10000;
-          if (!evaluate.has(market.conditionId!) && !record) continue;
-          let frame: Frame;
-          try { frame = await data.frame(market, false); }
-          catch { ledger.count("fetch_failed"); data.stream.changed.add(market.conditionId!); continue; }
-          framesRead++;
-          if (record) {
-            store.recordBook(frame); recordedAt.set(frame.marketId,Date.now()); observation.recorded++;
+        for (let offset=0;offset<markets.length && !stopping;offset+=8) {
+          const batch=markets.slice(offset,offset+8).filter(m=>evaluate.has(m.conditionId!) || (config.mode === "paper" && Date.now()-(recordedAt.get(m.conditionId!) ?? 0)>=10000));
+          const prepared=await Promise.allSettled(batch.map(m=>data.frame(m,false)));
+          for (const [index,item] of prepared.entries()) {
+            if (item.status === "rejected") {ledger.count("fetch_failed");data.stream.changed.add(batch[index].conditionId!);continue;}
+            const frame=item.value;framesRead++;
+            sizing.midpoint(frame);frame.sizing=sizing.evidence(frame.marketId,frame.timestamp);
+            const record=config.mode === "paper" && Date.now()-(recordedAt.get(frame.marketId) ?? 0)>=10000;
+            if (record) {store.recordBook(frame);recordedAt.set(frame.marketId,Date.now());observation.recorded++;}
+            if (frame.paperGas) {observation.gasUsd=frame.mergeGasUsd;observation.gasAt=frame.paperGas.timestamp;}
+            if (evaluate.has(frame.marketId)) frames.push(frame);
           }
-          if (frame.paperGas) { observation.gasUsd=frame.mergeGasUsd; observation.gasAt=frame.paperGas.timestamp; }
-          if (evaluate.has(frame.marketId)) frames.push(frame);
         }
         if (stopping) break;
         if (evaluate.size && !frames.length) throw new Error("Ninguna condición del lote pudo verificarse");
@@ -214,7 +218,7 @@ export async function main(): Promise<void> {
         const account = ledger.account;
         account.lastDataAt = Math.max(...verified.map(bookTime)); ledger.save(account);
         const evaluateAt = performance.now();
-        if (frames.length) { await engine.processBatch(frames,shutdown.signal); runtime.lastEvaluationAt=Date.now(); }
+        if (frames.length) { await engine.processBatch(frames.filter(f=>f.connectionGeneration === data.stream.status.generation),shutdown.signal); runtime.lastEvaluationAt=Date.now(); }
         const evaluateMs = performance.now() - evaluateAt;
         if (Date.now() - equityAt >= 60000) { engine.recordEquity(); equityAt=Date.now(); }
         observation.coverage=data.coverage; observation.feed=data.stream.status;

@@ -321,6 +321,7 @@ export async function runBacktest(
     cash: { capital: options.capital, netPnl: 0 },
     limitations: [
       ...manifest.limitations,
+      frames.some(f=>f.sizing) ? "Ajuste experimental aplicado solo a frames con observaciones capturadas; cobertura insuficiente bloquea entradas." : "Dataset anterior sin historia de liquidez/volatilidad: evaluación de tamaños heredados, no evalúa la política experimental y no inventa cobertura.",
       "Simulación de ejecución; nunca prueba fills reales.",
       "La comparación original aplica sus límites principales al mismo ejecutor; no reproduce el PnL ficticio, copy trading ni el incremento de riesgo por rachas del bot anterior.",
       "FOK por pata no hace atómico el par. Las ejecuciones parciales son un escenario anómalo explícito.",

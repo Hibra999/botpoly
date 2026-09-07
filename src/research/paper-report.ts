@@ -1,9 +1,10 @@
-import { mkdirSync, renameSync, writeFileSync, readFileSync } from "node:fs";
+import { mkdirSync, renameSync, writeFileSync, readFileSync, openSync, closeSync, writeSync } from "node:fs";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { createHash } from "node:crypto";
 import { basename, resolve } from "node:path";
 import type { Ledger } from "../engine/ledger.js";
+import {sizingPolicy} from "../engine/sizing.js";
 import type { Fill, Order } from "../engine/model.js";
 import { chart, csvCell, escapeHtml } from "./report.js";
 import { accountAnalysis, entryQuality, type PaperAnalysis } from "./account-analysis.js";
@@ -65,11 +66,26 @@ export function writePaperReport(
     "Snapshots completos REST y cambios WebSocket con coalescencia. Se archivan muestras cada 10 segundos por mercado y snapshots usados para ejecución; no es un archivo completo de eventos ni una prueba de prioridad de cola.",
     "Fútbol: Poisson con datos gratuitos por lotes, 1/4 Kelly, ventaja neta mínima 5 pp, 1% por partido y 10% agregado. Salida al 10% neto ejecutable o resolución oficial CTF. No hay nuevas apuestas durante el juego ni probabilidades in-play.",
     "El PnL y los costes mostrados son acumulados de esta cuenta. Las observaciones, fills y motivos de rechazo corresponden a los días UTC seleccionados.",
+    "Dimensionamiento experimental paper: min(presupuesto actual, 1% del p10 de liquidez capturada en 24h) × min(1, deslizamiento máximo / max(volatilidad por minuto de una hora, 1)). Exige 12 Gamma recientes y 60 variaciones válidas; no acredita rentabilidad. Las muestras por minuto conservan fecha real de captura y su intervalo UTC, sin atribuir conocimiento previo.",
     "Cero operaciones es un resultado posible; no se relajan los límites para fabricar actividad. No demuestra rentabilidad live.",
   ];
+  mkdirSync(directory,{recursive:true,mode:0o700});
+  const observationPath=resolve(directory,"observations.jsonl"), observationHash=createHash("sha256");
+  const fd=openSync(observationPath+".tmp","w",0o600);let observationCount=0;
+  try {
+    for (const row of ledger.store.db.prepare("SELECT market,kind,at,data FROM market_observations WHERE at>=? AND at<=? ORDER BY market,kind,at").iterate(to-86400000,to)) {
+      const line=JSON.stringify({...row,data:JSON.parse(String(row.data))})+"\n";
+      writeSync(fd,line);observationHash.update(line);observationCount++;
+    }
+  } finally {closeSync(fd);}
+  renameSync(observationPath+".tmp",observationPath);
+  const observationSha256=observationHash.digest("hex");
   const result = {
     schema: 1,
     kind: mode,
+    sizingPolicy,
+    observations:{file:"observations.jsonl",sha256:observationSha256,count:observationCount,from:to-86400000,to},
+    sizingDecisions:(ledger.store.db.prepare("SELECT data FROM meta WHERE id LIKE 'sizing:%' AND id <> 'sizing:policy' ORDER BY rowid DESC LIMIT 200").all() as {data:string}[]).map(r=>JSON.parse(r.data)),
     analysis,
     status: "exploratorio",
     from,
@@ -164,7 +180,7 @@ export function writePaperReport(
     schema: 1, generatedAt: to, kind: mode, from, to,
     source: `SQLite persistente: libros observados, órdenes, fills ${live ? "reales confirmados" : "simulados"} y contabilidad`,
     configSha256: createHash("sha256").update(JSON.stringify(s.config)).digest("hex"),
-    files: Object.fromEntries(files.map((name) => [name, createHash("sha256").update(readFileSync(resolve(directory, name))).digest("hex")])),
+    files: {"observations.jsonl":observationSha256,...Object.fromEntries(files.map((name) => [name, createHash("sha256").update(readFileSync(resolve(directory, name))).digest("hex")]))},
   }, null, 2), { mode: 0o600 });
   const id = basename(resolve(directory));
   if (

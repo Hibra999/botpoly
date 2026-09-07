@@ -18,6 +18,7 @@ export interface Manifest {
   };
   kind: "synthetic" | "snapshots" | "events" | "prices";
   limitations: string[];
+  observations?: {file:string;sha256:string;policy:string};
   sourceChecksum?: string;
   mappingChecksum?: string;
 }
@@ -27,7 +28,7 @@ export function writeDataset(
   path: string,
   frames: Frame[],
   info: Pick<Manifest, "source" | "license" | "kind" | "limitations"> &
-    Partial<Pick<Manifest, "sourceChecksum" | "mappingChecksum">>,
+    Partial<Pick<Manifest, "sourceChecksum" | "mappingChecksum" | "observations">>,
 ): Manifest {
   if (!frames.length) throw new Error("No hay libros válidos para guardar");
   frames.forEach(validateFrame);

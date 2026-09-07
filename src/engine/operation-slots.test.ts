@@ -1,3 +1,4 @@
+import {sizingFixture} from "./sizing-fixture.js";
 import {afterEach, expect, it} from 'vitest';
 import {mkdtempSync, rmSync} from 'node:fs';
 import {join} from 'node:path';
@@ -16,7 +17,7 @@ function setup(path=':memory:') {
   const l=new Ledger(s,'paper',{...defaults,max_oper_per_hour:2},()=>now);
   const ex=new PaperExecutor('paper',async()=>undefined,()=>now,undefined,5000,s), e=new Engine(l,ex);
   e.health(true);
-  const frame=(id:string):Frame=>({id,timestamp:now,marketId:id,eventId:id,underlying:id,title:id,binary:true,negRisk:false,feeRate:0,feeVerified:true,mergeGasUsd:.01,recoveryGasUsd:.01,gasVerified:true,source:'synthetic test',depth:true,...Object.fromEntries(['yes','no'].map(side=>[side,{tokenId:id+side,timestamp:now,minSize:5,tickSize:.01,bids:[{price:.4,size:100}],asks:[{price:.45,size:100}]}]))} as Frame);
+  const frame=(id:string):Frame=>({id,timestamp:now,sizing:sizingFixture(now),marketId:id,eventId:id,underlying:id,title:id,binary:true,negRisk:false,feeRate:0,feeVerified:true,mergeGasUsd:.01,recoveryGasUsd:.01,gasVerified:true,source:'synthetic test',depth:true,...Object.fromEntries(['yes','no'].map(side=>[side,{tokenId:id+side,timestamp:now,minSize:5,tickSize:.01,bids:[{price:.4,size:100}],asks:[{price:.45,size:100}]}]))} as Frame);
   const finish=(orders:Order[])=>s.transaction(()=>orders.forEach(o=>{o.status='rejected';l.finishOperation(o);}));
   return {s,l,e,ex,frame,finish,set:(t:number)=>now=t,time:()=>now};
 }
@@ -82,4 +83,29 @@ it('configuración parcial conserva parámetros, llega a paper y valida enteros 
   expect(x.ex.maxDataAgeMs).toBe(1000);expect(x.l.config.max_oper_per_hour).toBe(2);
   expect(x.l.account.cash).toBe(1000);expect(x.l.metrics().netPnl).toBe(0);
   for(const n of [0,-1,1.5,Infinity,NaN,Number.MAX_SAFE_INTEGER+1]) expect(()=>validateConfig({max_oper_per_hour:n})).toThrow();
+});
+it('dos procesos que compiten por el último cupo no exceden el límite',async()=>{
+  const {spawn}=await import('node:child_process'),{default:EventEmitter}=await import('node:events'),{pathToFileURL}=await import('node:url'),{resolve}=await import('node:path');
+  const once=EventEmitter.once;
+  const dir=mkdtempSync(join(tmpdir(),'botpoly-quota-race-'));dirs.push(dir);const x=setup(join(dir,'account.sqlite'));
+  x.s.put('meta','config',{...x.l.config,max_oper_per_hour:1});
+  const source=(name:string)=>JSON.stringify(pathToFileURL(resolve(`src/engine/${name}.ts`)).href);
+  const jobs=['one','two'].map(id=>{
+    const script=`import {Store} from ${source('store')};import {Ledger} from ${source('ledger')};import {Engine} from ${source('engine')};import {PaperExecutor} from ${source('paper')};import {defaults} from ${source('model')};const s=new Store(${JSON.stringify(x.s.path)});const l=new Ledger(s,'paper',defaults,()=>${x.time()});const e=new Engine(l,new PaperExecutor('paper',async()=>undefined));console.log('ready');await new Promise(r=>process.stdin.once('data',r));console.log(JSON.stringify({accepted:!!e.reserve(${JSON.stringify(x.frame(id))})}));s.close();process.stdin.destroy();`;
+    return spawn(process.execPath,['--import','tsx','--input-type=module','-e',script],{stdio:['pipe','pipe','pipe']});
+  });
+  try {
+    await Promise.all(jobs.map(p=>once(p.stdout,'data')));
+    const outputs=jobs.map(p=>{let output='';p.stdout.on('data',d=>output+=d);return once(p,'exit').then(([code])=>{expect(code).toBe(0);return JSON.parse(output).accepted;});});
+    jobs.forEach(p=>p.stdin.write('go\n'));
+    expect((await Promise.all(outputs)).filter(Boolean)).toHaveLength(1);expect(x.l.operationUsage().used).toBe(1);
+  }finally{jobs.forEach(p=>{if(p.exitCode===null)p.kill('SIGKILL');});}
+},15000);
+it('confirmación tardía mantiene reserva incierta y empieza la ventana al conciliar, no en el fill remoto',async()=>{
+  const x=setup();let final=false;
+  const executor={mode:'paper' as const,execute:async()=>({status:'uncertain' as const,fills:[]}),reconcile:async()=>({status:final ? 'rejected' as const : 'uncertain' as const,fills:[]}),cancel:async()=>({status:'uncertain' as const,fills:[]}),merge:async()=>({id:'none',status:'uncertain' as const,gas:0,timestamp:x.time()})};
+  const e=new Engine(x.l,executor);await e.process(x.frame('late'));const reserve=x.l.metrics().reserved;
+  x.set(x.time()+7200000);await e.reconcile();expect(x.l.metrics().reserved).toBe(reserve);expect(x.l.operationUsage().pending).toBe(1);
+  final=true;await e.reconcile();expect(x.l.metrics().reserved).toBe(0);expect(x.l.operationUsage()).toMatchObject({used:1,pending:0});
+  x.set(x.time()+3599999);expect(x.l.operationUsage().used).toBe(1);x.set(x.time()+1);expect(x.l.operationUsage().used).toBe(0);
 });

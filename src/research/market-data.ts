@@ -6,7 +6,7 @@ import { BookStream } from './book-stream.js';
 export interface GasQuote {
   mergeGasUsd: number; recoveryGasUsd: number; timestamp: number; verified: boolean; source: string; paperGas?: Frame['paperGas'];
 }
-export type WatchedMarket = Market & {football?: FootballMarket};
+export type WatchedMarket = Market & {football?: FootballMarket;gammaCapturedAt?:number};
 export interface ProcessingStats {at:number; prepareMs:number; evaluateMs:number; cycleMs:number; changed:number; evaluated:number; skippedUnchanged:number; framesRead:number; sourceAgeMaxMs:number; verificationAgeMaxMs:number; receiveLagMaxMs:number; backlog:number}
 export function marketsToEvaluate(markets: WatchedMarket[], changed: ReadonlySet<string>, held: ReadonlySet<string>, force: boolean): Set<string> {
   const matches = new Set(markets.filter(m => m.football && (changed.has(m.conditionId!) || held.has(m.conditionId!))).map(m => m.football!.matchId));
@@ -44,14 +44,14 @@ export class MarketData {
   }
   async markets(ids: string[]=[]): Promise<WatchedMarket[]> {
     await this.football.refresh();
-    const general: Market[]=[], sports:WatchedMarket[]=[];
+    const general: WatchedMarket[]=[], sports:WatchedMarket[]=[];
     this.coverage.inspected=0;
     if (ids.length) {
-      for (const id of ids.slice(0,200)) general.push(await this.client.fetchMarket({id}));
+      for (const id of ids.slice(0,200)) general.push({...await this.client.fetchMarket({id}),gammaCapturedAt:Date.now()});
       this.coverage.inspected=general.length;
     } else {
       for await (const page of this.client.listMarkets({closed:false,pageSize:100,order:'volume24hr',ascending:false})) {
-        general.push(...page.items.slice(0,5000-general.length));
+        general.push(...page.items.slice(0,5000-general.length).map(m=>({...m,gammaCapturedAt:Date.now()})));
         if (general.length >= 5000) break;
       }
       this.coverage.inspected=general.length;
@@ -65,7 +65,7 @@ export class MarketData {
         for await (const page of this.client.listEvents({seriesIds:[...series.values()].map(Number),closed:false,pageSize:100,startTimeMin:new Date().toISOString(),startTimeMax:new Date(Date.now()+7*86400000).toISOString(),order:'startTime',ascending:true})) {
           for (const event of page.items) for (const m of event.markets) {
             const football=footballMarket(event,m,series);
-            if (football && football.startAt-Date.now() >= 3600000) sports.push({...m,football});
+            if (football && football.startAt-Date.now() >= 3600000) sports.push({...m,football,gammaCapturedAt:Date.now()});
           }
           events+=page.items.length;
           if (events >= 1000) break;
@@ -119,18 +119,27 @@ export class MarketData {
     if (refresh) {
       const current=await this.client.fetchMarket({id:market.id});
       if (current.conditionId !== market.conditionId || !current.state.acceptingOrders || current.state.closed || (market.football && Date.parse(current.sports.gameStartTime ?? '') !== market.football.startAt)) throw new Error('Mercado cerrado o partido reprogramado');
+      if (market.football) {
+        const eventId=current.events[0]?.id;
+        if (!eventId) throw new Error('Identidad de partido ausente');
+        const event=await this.client.fetchEvent({id:eventId});
+        const verified=footballMarket(event,current,new Map([[market.football.league,String(event.sports.sport?.series ?? '')]]));
+        if (!verified || (["matchId","league","home","away","startAt","result"] as const).some(key=>verified[key] !== market.football![key])) throw new Error('Identidad u horario del partido cambió; revisar antes de entrar');
+      }
       market={...current,football:market.football};
     }
     const info=await this.marketInfo(market);
     const tokens=[market.outcomes.yes!.tokenId!,market.outcomes.no!.tokenId!];
     for (const token of tokens) this.stream.identities.set(token,market.conditionId!);
     if (refresh) await this.stream.sync(tokens);
+    const generation=this.stream.status.generation;
     const yes=this.stream.books.get(tokens[0]),no=this.stream.books.get(tokens[1]);
     if (!yes || !no) throw new Error('Snapshot completo pendiente');
     const gas=await this.gas(market), timestamp=Date.now();
+    if (generation && (!this.stream.status.connected || generation !== this.stream.status.generation)) throw new Error("Transporte cambió durante la preparación");
     const eventId=market.football?.matchId ?? market.events[0]?.id ?? market.conditionId;
     const underlying=market.football ? eventId : /\b(bitcoin|btc|ethereum|eth|solana|sol|xrp|dogecoin|doge)\b/i.test(market.question ?? '') ? 'CRYPTO' : eventId;
-    return validateFrame({id:`${market.conditionId}:${yes.hash}:${no.hash}:${timestamp}`,timestamp,marketId:market.conditionId,eventId,underlying,title:market.question ?? market.conditionId,yes:structuredClone(yes),no:structuredClone(no),binary:true,negRisk:info.negRisk,feeRate:info.feeInfo.rate,feeVerified:info.feeInfo.exponent === 1 || info.feeInfo.rate === 0,mergeGasUsd:gas?.mergeGasUsd ?? 0,recoveryGasUsd:gas?.recoveryGasUsd ?? 0,gasVerified:!!gas?.verified && timestamp-gas.timestamp < 60000 && timestamp >= gas.timestamp,paperGas:gas?.paperGas,source:'Polymarket SDK @polymarket/client 0.9.0 · full REST + coalesced WebSocket',depth:true,football:market.football,forecast:market.football ? this.football.forecast(market.football) : undefined,secondsDelay:Number(market.trading.secondsDelay ?? 0)});
+    return validateFrame({connectionGeneration:generation || undefined,id:`${market.conditionId}:${yes.hash}:${no.hash}:${timestamp}`,timestamp,marketId:market.conditionId,eventId,underlying,title:market.question ?? market.conditionId,yes:structuredClone(yes),no:structuredClone(no),binary:true,negRisk:info.negRisk,feeRate:info.feeInfo.rate,feeVerified:info.feeInfo.exponent === 1 || info.feeInfo.rate === 0,mergeGasUsd:gas?.mergeGasUsd ?? 0,recoveryGasUsd:gas?.recoveryGasUsd ?? 0,gasVerified:!!gas?.verified && timestamp-gas.timestamp < 60000 && timestamp >= gas.timestamp,paperGas:gas?.paperGas,source:'Polymarket SDK @polymarket/client 0.9.0 · full REST + coalesced WebSocket',depth:true,football:market.football,forecast:market.football ? this.football.forecast(market.football) : undefined,secondsDelay:Number(market.trading.secondsDelay ?? 0)});
   }
   async resolvedFrame(market: WatchedMarket, original: Frame): Promise<Frame | undefined> {
     const resolution=await this.resolution(market);

@@ -1,3 +1,4 @@
+import {sizingFixture} from "../engine/sizing-fixture.js";
 import { describe, it, expect, vi } from "vitest";
 import { mkdtempSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -87,7 +88,7 @@ describe("paper durante varios días", () => {
       const first = create(),
         engine = new Engine(ledger, first);
       engine.health(true);
-      const order = engine.reserve(f)![0];
+      const order = engine.reserve({...f,sizing:sizingFixture(f.timestamp)})![0];
       const result = await first.execute(order);
       expect(result.fills).toHaveLength(1);
       const restarted = create();
@@ -185,6 +186,7 @@ describe("paper durante varios días", () => {
           mergeGasUsd: q.mergeGasUsd,
           paperGas: q.paperGas,
         };
+        current.sizing=sizingFixture(now);
         current.yes.timestamp = current.no.timestamp = now;
         store.recordBook(current);
         store.recordBook(current);
@@ -271,7 +273,7 @@ describe("paper durante varios días", () => {
       );
       const engine = new Engine(ledger, executor);
       engine.health(true);
-      const orders = engine.reserve(sample)!;
+      const orders = engine.reserve({...sample,sizing:sizingFixture(sample.timestamp)})!;
       expect((await executor.execute(orders[0])).fills).toHaveLength(0);
     } finally {
       paperStore.close();

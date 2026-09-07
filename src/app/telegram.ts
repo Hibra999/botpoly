@@ -72,7 +72,7 @@ export class Telegram {
         ? l.positions
             .map(
               (p) =>
-                `${p.strategy ?? "yes-no"} · ${p.title ?? p.marketId} · ${p.outcome}: ${p.quantity} · coste US$${p.cost.toFixed(2)} · salida US$${p.mark.toFixed(2)} · valoración ${p.stale ? "obsoleta" : "verificada"} · ${p.strategy === "football-value" ? "+10% neto o resolución oficial" : "fusión o recuperación"}`,
+                `${p.strategy ?? "yes-no"} · ${p.title ?? p.marketId}${p.football ? ` · inicio verificado UTC ${new Date(p.football.startAt).toISOString()}${p.title?.match(/\d{4}-\d{2}-\d{2}/)?.[0] && p.title.match(/\d{4}-\d{2}-\d{2}/)![0] !== new Date(p.football.startAt).toISOString().slice(0,10) ? " · discrepancia con fecha textual (título conservado; no es motivo de salida)" : ""}` : ""} · ${p.outcome}: ${p.quantity} · coste US$${p.cost.toFixed(2)} · salida US$${p.mark.toFixed(2)} · valoración ${p.stale ? "obsoleta" : "verificada"} · ${p.strategy === "football-value" ? "+10% neto o resolución oficial" : "fusión o recuperación"}`,
             )
             .join("\n")
         : "Sin posiciones abiertas.";

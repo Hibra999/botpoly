@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { budgetAdjustment } from "./sizing.js";
 import { Ledger } from "./ledger.js";
 import {
   type Execution,
@@ -86,8 +87,12 @@ export class Engine {
         .slice(0, 32);
       if (s.get("meta", `signal:${pairId}`))
         return reject("Señal ya procesada");
-      const budget = this.availableBudget(frame);
-      if (frame.football) return this.reserveFootball(frame, budget);
+      const previousBudget = this.availableBudget(frame);
+      if (frame.football) return this.reserveFootball(frame, previousBudget);
+      const adjustment = this.adjustBudget(frame, previousBudget);
+      s.put("meta", `sizing:${frame.marketId}`, adjustment);
+      if (adjustment.reason) return reject(adjustment.reason);
+      const budget = adjustment.after;
       const legBudget = m.operationalCapital * c.unhedgedLossPct * m.sizeFactor;
       const minimum = Math.max(frame.yes.minSize, frame.no.minSize);
       const gasReserve = Math.max(frame.mergeGasUsd, frame.recoveryGasUsd);
@@ -171,6 +176,7 @@ export class Engine {
         mode: l.mode,
         strategy: "yes-no",
       }));
+      l.event("sizing", JSON.stringify(adjustment), frame.marketId);
       l.acquireOperation(pairId);
       s.put("reservations", pairId, {
         id: pairId,
@@ -252,10 +258,14 @@ export class Engine {
     if (l.positions.some((p) => p.marketId === frame.marketId) || s.all<Reservation>("reservations").some((r) => r.marketId === frame.marketId)) return "Condición ya expuesta";
     return null;
   }
+  private adjustBudget(frame:Frame,budget:number) {
+    return budgetAdjustment(frame,budget,this.ledger.config,this.ledger.now(),this.ledger.mode === "paper" || (this.ledger.mode === "backtest" && !!frame.sizing));
+  }
   private footballCandidate(frame: Frame, globalBudget: number) {
     const l = this.ledger, s = l.store, m = l.metrics(), prediction = frame.forecast!;
     const footballExposure = l.positions.filter((p) => p.strategy === "football-value").reduce((n,p) => n+p.cost,0) + s.all<Reservation>("reservations").filter((r) => r.strategy === "football-value").reduce((n,r) => n+r.remaining,0);
-    const budget = Math.max(0, Math.min(globalBudget, m.operationalCapital * footballPolicy.matchExposure * m.sizeFactor, (m.operationalCapital * footballPolicy.totalExposure - footballExposure) * m.sizeFactor));
+    const before = Math.max(0, Math.min(globalBudget, m.operationalCapital * footballPolicy.matchExposure * m.sizeFactor, (m.operationalCapital * footballPolicy.totalExposure - footballExposure) * m.sizeFactor));
+    const adjustment=this.adjustBudget(frame,before),budget=adjustment.after;
     const gas = Math.max(frame.mergeGasUsd, frame.recoveryGasUsd);
     let best: {outcome: "YES" | "NO"; q: Quote; edge: number} | undefined;
     for (const outcome of ["YES","NO"] as const) {
@@ -277,7 +287,7 @@ export class Engine {
       const possible = candidate(Math.floor(lo*100)/100);
       if (possible && (!best || possible.edge*possible.q.quantity > best.edge*best.q.quantity)) best = possible;
     }
-    return best;
+    return {best,adjustment};
   }
   /** Runs inside reserve's transaction and shares all global checks and capital. */
   private reserveFootball(frame: Frame, globalBudget: number): Order[] | null {
@@ -286,7 +296,9 @@ export class Engine {
     const reason = this.footballRejection(frame);
     if (reason) return reject(reason);
     const matchKey = `football:bet:${f.matchId}`;
-    const best = this.footballCandidate(frame, globalBudget);
+    const {best,adjustment} = this.footballCandidate(frame, globalBudget);
+    s.put("meta",`sizing:${frame.marketId}`,adjustment);
+    if (adjustment.reason) return reject(adjustment.reason);
     const gas = Math.max(frame.mergeGasUsd, frame.recoveryGasUsd);
     if (!best) return reject("Fútbol: ventaja neta <5 pp, mínimo, profundidad, Kelly o límites");
     const pairId = createHash("sha256").update(`${l.mode}:${matchKey}`).digest("hex").slice(0,32);
@@ -296,6 +308,7 @@ export class Engine {
       strategy: "football-value", football: f, forecast: prediction, takeProfit: footballPolicy.takeProfit, title: frame.title,
     };
     const remaining = money(best.q.gross + best.q.fees + gas);
+    l.event("sizing",JSON.stringify(adjustment),frame.marketId,"football-value");
     l.acquireOperation(pairId);
     s.put("reservations", pairId, {id: pairId, eventId: f.matchId, underlying: f.matchId, marketId: frame.marketId, strategy: "football-value", remaining, timestamp: l.now()} satisfies Reservation);
     s.put("orders", order.id, order);
@@ -385,7 +398,7 @@ export class Engine {
         if (signal?.aborted) return;
         const ranked = group.map(frame => {
           const candidate = frame.football && !this.inputRejection(frame) && !this.footballRejection(frame)
-            ? this.footballCandidate(frame, this.availableBudget(frame)) : undefined;
+            ? this.footballCandidate(frame, this.availableBudget(frame)).best : undefined;
           return {frame, candidate, score: candidate ? candidate.edge * candidate.q.quantity : -1};
         }).sort((a,b) => b.score - a.score || a.frame.marketId.localeCompare(b.frame.marketId));
         if (group[0].football && group.length > 1 && ranked.some(r => r.candidate)) {

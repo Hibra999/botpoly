@@ -5,6 +5,7 @@ import type { GasQuote } from "./market-data.js";
 /** Public prices only. Gas UNITS are a simulation assumption, never an on-chain estimate. */
 export class PaperGas {
   private cached?: GasQuote;
+  private pending?: Promise<GasQuote|undefined>;
   private retryAt = 0;
   constructor(
     readonly units = 300000,
@@ -22,7 +23,10 @@ export class PaperGas {
     )
       throw new Error("Modelo de gas paper inválido");
   }
-  async quote(): Promise<GasQuote | undefined> {
+  quote(): Promise<GasQuote | undefined> {
+    return this.pending ??= this.fetchQuote().finally(()=>{this.pending=undefined;});
+  }
+  private async fetchQuote(): Promise<GasQuote | undefined> {
     if (this.cached && this.now() - this.cached.timestamp < 30000)
       return this.cached;
     if (this.now() < this.retryAt) return undefined;

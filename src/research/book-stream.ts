@@ -14,7 +14,7 @@ export class BookStream {
   books = new Map<string, Book>();
   identities = new Map<string,string>();
   changed = new Set<string>();
-  status = {connected:false, updates:0, coalesced:0, invalid:0, reconnects:0, snapshots:0, unchangedSnapshots:0};
+  status = {connected:false, generation:0, updates:0, coalesced:0, invalid:0, reconnects:0, snapshots:0, unchangedSnapshots:0};
   readonly restVerifiedAt = new Map<string, number>();
   maxDataAgeMs = 5000;
   private handle?: SubscriptionHandle<MarketEvent>;
@@ -124,7 +124,7 @@ export class BookStream {
         for (const id of new Set(this.identities.values())) this.changedMarket(id);
       }
       if (state.connected && changed) this.status.reconnects++;
-      transport=state.generation;this.status.connected=state.connected;
+      transport=state.generation;this.status.generation=state.generation;this.status.connected=state.connected;
       this.onConnectionChange?.(state.connected);
     });
     this.reading=(async()=>{

@@ -14,7 +14,7 @@ Prueba específica: `pnpm exec vitest run src/engine/operation-slots.test.ts`. L
 
 ## Trabajo en curso
 
-Faltan captura y dimensionamiento experimental, revisión de las once entradas, investigación, mediciones comparables y despliegue conservando la parada. Ninguna de estas fases se considera validada por las pruebas del cupo.
+Faltan revisión de las once entradas, investigación, mediciones comparables y despliegue conservando la parada. Ninguna de estas fases se considera validada por las pruebas del cupo.
 
 ## Control confirmado por Telegram
 
@@ -33,3 +33,15 @@ Los informes corren en un proceso bajo demanda sin secretos en su entorno, con c
 `patches/@polymarket__client@0.9.0.patch` añade estado/generación y notificación síncrona al handle CLOB individual. Conserva heartbeat y reconexión del SDK. Los eventos llevan su generación para descartar colas anteriores; una respuesta REST que cruza una reconexión tampoco se acepta. BookStream invalida inmediatamente y exige libro completo antes de deltas/entradas. Los cambios despiertan el motor agrupados durante 100 ms, manteniendo el temporizador de frescura/mantenimiento.
 
 La fuente oficial revisada es [market.ts en 8898914](https://github.com/Polymarket/ts-sdk/blob/8898914b31f9c06301a365f436aa558d3d725241/packages/client/src/websockets/clob/market.ts). `scripts/research/patch-sdk-connection.py` reproduce las sustituciones exactas sobre el paquete 0.9.0 extraído por `pnpm patch`. El diff generado es grande porque el paquete publica dos bundles minificados; las sustituciones semánticas son acotadas y verifican coincidencias únicas. Los sourcemaps originales siguen correspondiendo a upstream. Prueba: `src/research/sdk-connection.test.ts`, usando el SDK real sobre transporte simulado, sin órdenes.
+
+## Dimensionamiento experimental y captura
+
+Política `observed-liquidity-volatility-v1`, aplicada en paper. Presupuesto final = `min(presupuesto vigente, 0.01 × p10_liquidez_24h) × min(1, maxSlippageBps / max(volatilidad_bps, 1))`. El percentil usa interpolación lineal; volatilidad es desviación poblacional de 60 variaciones relativas por minuto, tomando la mayor de YES y NO. El presupuesto final nunca supera el previo. Se vuelven a comprobar mínimos, profundidad, costes, ventaja y límites/Kelly existentes.
+
+Se exigen 12 capturas Gamma de la última hora y 60 variaciones válidas consecutivas. El historial de liquidez abarca solo las 24 horas observadas. Cada precio medio ocupa un intervalo UTC de un minuto y conserva la fecha real de captura; se rechazan libros cruzados/vacíos/caducados y huecos. La falta de cobertura omite nuevas entradas sin impedir salidas o resolución. Las fechas de captura no prueban conocimiento anterior. Esta fórmula es una política conservadora experimental, sin rentabilidad demostrada.
+
+`market_observations` conserva entradas únicas por mercado/tipo/intervalo. Los frames guardan estadísticas compactas y hashes de los inputs; el informe añade `observations.jsonl` con los datos fuente de las últimas 24 horas y SHA-256, sin cargarlos todos en memoria. El coletor guarda además una SQLite de observaciones con checksum en el manifiesto. Los datasets antiguos siguen legibles, con evaluación de tamaño heredado explícita; no son evidencia de esta política. Los nuevos frames sin cobertura suficiente se rechazan también al reproducirlos.
+
+La preparación usa como máximo ocho condiciones simultáneas; la reserva/ejecución siguen serializadas. Los precios de gas comparten una consulta en curso. Cada frame conserva su generación de conexión y se descarta si la preparación cruza una reconexión. La identidad y horario del fútbol se vuelven a verificar con el evento antes de ejecutar; una discrepancia del título no crea una venta. `/positions` muestra el inicio UTC y conserva el título.
+
+Pruebas: `sizing.test.ts`, suites de estrategias, observación, cupos y reconexión. Los fixtures de cobertura son sintéticos y solo se importan desde pruebas. La competencia por un cupo se comprueba también con dos procesos SQLite reales.

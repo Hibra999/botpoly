@@ -49,6 +49,7 @@ export class Store {
       "CREATE INDEX IF NOT EXISTS equity_time ON equity(CAST(json_extract(data,'$.timestamp') AS INTEGER))",
     );
     this.db.exec("CREATE TABLE IF NOT EXISTS operation_slots (id TEXT PRIMARY KEY, started_at INTEGER NOT NULL, terminal_at INTEGER); CREATE INDEX IF NOT EXISTS operation_slots_terminal ON operation_slots(terminal_at)");
+    this.db.exec("CREATE TABLE IF NOT EXISTS market_observations (market TEXT NOT NULL,kind TEXT NOT NULL,bucket INTEGER NOT NULL,at INTEGER NOT NULL,data TEXT NOT NULL CHECK(json_valid(data)),PRIMARY KEY(market,kind,bucket)); CREATE INDEX IF NOT EXISTS market_observations_time ON market_observations(market,kind,at)");
     const version = this.get<number>("meta", "schema");
     if (version !== undefined && version !== 1)
       throw new Error("Versión de base de datos incompatible");

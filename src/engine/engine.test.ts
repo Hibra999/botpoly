@@ -1,3 +1,4 @@
+import {sizingFixture} from "./sizing-fixture.js";
 import { afterEach, describe, expect, it } from "vitest";
 import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -22,6 +23,7 @@ afterEach(() => {
 export function frame(timestamp = Date.UTC(2026, 0, 1)): Frame {
   return {
     id: `test:${timestamp}`,
+    sizing:sizingFixture(timestamp),
     timestamp,
     marketId: "test",
     eventId: "event",

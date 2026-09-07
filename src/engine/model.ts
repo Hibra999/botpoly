@@ -1,4 +1,5 @@
 import {createHash} from "node:crypto";
+import {sizingPolicy, type SizingEvidence} from "./sizing.js";
 export type Mode = "paper" | "backtest" | "live";
 export type Outcome = "YES" | "NO";
 export type Strategy = "yes-no" | "football-value";
@@ -65,6 +66,8 @@ export interface Frame {
   forecast?: Forecast;
   resolution?: Resolution;
   secondsDelay?: number;
+  sizing?: SizingEvidence;
+  connectionGeneration?: number;
 }
 export interface Resolution {
   payouts: [number, number];
@@ -288,6 +291,11 @@ export function validateFrame(input: unknown): Frame {
   }
   if (f.resolution) validateResolution(f.resolution, f.timestamp);
   if (f.secondsDelay !== undefined && (!Number.isFinite(f.secondsDelay) || f.secondsDelay < 0 || f.secondsDelay > 120)) throw new Error("Latencia deportiva inválida");
+  if (f.connectionGeneration !== undefined && (!Number.isSafeInteger(f.connectionGeneration) || f.connectionGeneration < 1)) throw new Error("Generación de libro inválida");
+  if (f.sizing) {
+    const e=f.sizing;
+    if (e.version !== sizingPolicy.version || !e.source || ![e.liquiditySha256,e.midpointsSha256].every(h=>typeof h === "string" && /^[a-f0-9]{64}$/.test(h)) || ![e.computedAt,e.gammaFrom,e.gammaTo,e.midpointFrom,e.midpointTo,e.gammaCount,e.recentGamma,e.returns].every(n=>Number.isSafeInteger(n)&&n>=0) || ![e.liquidityP10,e.volatilityYesBps,e.volatilityNoBps].every(n=>Number.isFinite(n)&&n>=0) || e.recentGamma>e.gammaCount || e.returns>60 || e.gammaFrom>e.gammaTo || e.midpointFrom>e.midpointTo || e.computedAt>f.timestamp) throw new Error("Evidencia de dimensionamiento inválida");
+  }
   if (f.yes.tokenId === f.no.tokenId)
     throw new Error("Tokens complementarios inválidos");
   return f;
@@ -420,5 +428,5 @@ export interface Metrics {
 }
 
 export function strategyBinding(strategy: Strategy, config: RiskConfig) {
-  return {id:strategy,version:strategy === "football-value" ? footballPolicy.version : "yes-no-depth-v2",configSha256:createHash("sha256").update(JSON.stringify({risk:validateConfig(config),...(strategy === "football-value" ? {footballPolicy} : {})})).digest("hex")};
+  return {id:strategy,version:strategy === "football-value" ? footballPolicy.version : "yes-no-depth-v2",configSha256:createHash("sha256").update(JSON.stringify({risk:validateConfig(config),sizingPolicy,...(strategy === "football-value" ? {footballPolicy} : {})})).digest("hex")};
 }
