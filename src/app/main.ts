@@ -55,6 +55,7 @@ export async function main(): Promise<void> {
   }
   const engine = new Engine(ledger, executor),
     controller = new Controller(engine);
+  data.stream.onConnectionChange=connected=>{if (!connected) engine.health(false);};
   let markets: Awaited<ReturnType<MarketData["markets"]>> = [],
     stopping = false;
   // Persisted positions from a lost market feed must not be treated as healthy.
@@ -229,7 +230,7 @@ export async function main(): Promise<void> {
         );
       }
       if (!stopping)
-        await new Promise((resolve) => setTimeout(resolve, config.interval));
+        await data.stream.waitForChanges(Math.min(config.interval,ledger.config.maxDataAgeMs/2),shutdown.signal);
     }
   } finally {
     stop();

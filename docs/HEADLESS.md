@@ -14,7 +14,7 @@ Prueba específica: `pnpm exec vitest run src/engine/operation-slots.test.ts`. L
 
 ## Trabajo en curso
 
-Faltan parche de continuidad del SDK, captura y dimensionamiento experimental, revisión de las once entradas, investigación, mediciones comparables y despliegue conservando la parada. Ninguna de estas fases se considera validada por las pruebas del cupo.
+Faltan captura y dimensionamiento experimental, revisión de las once entradas, investigación, mediciones comparables y despliegue conservando la parada. Ninguna de estas fases se considera validada por las pruebas del cupo.
 
 ## Control confirmado por Telegram
 
@@ -27,3 +27,9 @@ El menú registra comandos en minúsculas según [BotCommand](https://core.teleg
 El frontend y servidor web se eliminaron. `pnpm start` y systemd comparten el lanzador compilado con `flock`; la segunda instancia sale 75. `pnpm check:headless` ejecuta paper sin red, con guardias de firmantes y listeners, y comprueba dos lanzadores aislados. No se usa la cuenta operativa en esa prueba.
 
 Los informes corren en un proceso bajo demanda sin secretos en su entorno, con conexión SQLite de solo lectura y transacción coherente. Solo el padre registra resultados/envíos. Se añade resumen Markdown y se conserva PNG/HTML/JSON/CSV, manifiesto y etiquetado explícito de costes live. La prueba del trabajador cubre concurrencia, snapshot entre conexiones, rechazo de escrituras, error de proceso/render y cuenta conservada. No se trata de evidencia de rentabilidad.
+
+## Continuidad del libro
+
+`patches/@polymarket__client@0.9.0.patch` añade estado/generación y notificación síncrona al handle CLOB individual. Conserva heartbeat y reconexión del SDK. Los eventos llevan su generación para descartar colas anteriores; una respuesta REST que cruza una reconexión tampoco se acepta. BookStream invalida inmediatamente y exige libro completo antes de deltas/entradas. Los cambios despiertan el motor agrupados durante 100 ms, manteniendo el temporizador de frescura/mantenimiento.
+
+La fuente oficial revisada es [market.ts en 8898914](https://github.com/Polymarket/ts-sdk/blob/8898914b31f9c06301a365f436aa558d3d725241/packages/client/src/websockets/clob/market.ts). `scripts/research/patch-sdk-connection.py` reproduce las sustituciones exactas sobre el paquete 0.9.0 extraído por `pnpm patch`. El diff generado es grande porque el paquete publica dos bundles minificados; las sustituciones semánticas son acotadas y verifican coincidencias únicas. Los sourcemaps originales siguen correspondiendo a upstream. Prueba: `src/research/sdk-connection.test.ts`, usando el SDK real sobre transporte simulado, sin órdenes.

@@ -50,7 +50,7 @@ describe('libros completos y flujo acotado',()=>{
   });
   it('la desconexión elimina snapshots; reconectar exige nuevos snapshots completos',async()=>{
     let finish:()=>void=()=>{};
-    const client={subscribe:async()=>({close:async()=>finish(),async *[Symbol.asyncIterator](){await new Promise<void>(r=>finish=r);throw new Error('disconnect')}})} as unknown as PublicClient;
+    const client={subscribe:async()=>({connection:{connected:true,generation:1},onConnectionChange:(fn:(state:{connected:boolean;generation:number})=>void)=>{fn({connected:true,generation:1});return()=>{};},close:async()=>finish(),async *[Symbol.asyncIterator](){await new Promise<void>(r=>finish=r);throw new Error('disconnect')}})} as unknown as PublicClient;
     const b=new BookStream(client,()=>now);await b.connect(new Map([['y','m']]));b.snapshot(raw());finish();await new Promise(r=>setTimeout(r,0));expect(b.books.size).toBe(0);expect(b.status.connected).toBe(false);
     await b.connect(new Map([['y','m']]));expect(b.books.size).toBe(0);b.snapshot(raw());expect(b.books.size).toBe(1);await b.close();expect(b.books.size).toBe(0);
   });

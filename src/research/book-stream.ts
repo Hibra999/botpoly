@@ -18,6 +18,9 @@ export class BookStream {
   readonly restVerifiedAt = new Map<string, number>();
   maxDataAgeMs = 5000;
   private handle?: SubscriptionHandle<MarketEvent>;
+  private unwatch?: () => void;
+  private wake?: () => void;
+  onConnectionChange?: (connected:boolean) => void;
   private reading?: Promise<void>;
   private generation = 0;
   private metadata=new Map<string,Pick<Book,"minSize"|"tickSize"|"timestamp">>();
@@ -25,15 +28,28 @@ export class BookStream {
   private invalid(condition: string): void {
     for (const [token,id] of this.identities) if (id === condition) this.books.delete(token);
     this.status.invalid++;
+    this.changedMarket(condition);
   }
   private changedMarket(id: string): void {
     if (this.changed.has(id)) this.status.coalesced++;
     this.changed.add(id); this.status.updates++;
+    this.wake?.();
   }
   takeChanges(): Set<string> {
     const result = new Set(this.changed);
     this.changed.clear();
     return result;
+  }
+  async waitForChanges(timeout: number, signal?: AbortSignal): Promise<void> {
+    if (signal?.aborted) return;
+    await new Promise<void>(resolve=>{
+      let group:ReturnType<typeof setTimeout>|undefined;
+      const done=()=>{clearTimeout(maintenance);clearTimeout(group);this.wake=undefined;signal?.removeEventListener('abort',done);resolve();};
+      const maintenance=setTimeout(done,timeout);
+      this.wake=()=>{group ??= setTimeout(done,100);};
+      signal?.addEventListener('abort',done,{once:true});
+      if (this.changed.size) this.wake();
+    });
   }
   snapshot(b: OrderBook, receivedAt=this.now()): void {
     const id=this.identities.get(b.assetId), timestamp=Number(b.timestamp);
@@ -50,7 +66,8 @@ export class BookStream {
     this.books.set(b.assetId,next); this.restVerifiedAt.set(b.assetId,receivedAt); this.status.snapshots++;
     if (unchanged) this.status.unchangedSnapshots++; else this.changedMarket(id);
   }
-  ingest(event: MarketEvent): void {
+  ingest(event: MarketEvent & {connectionGeneration?:number}): void {
+    if (this.handle && (!this.handle.connection?.connected || event.connectionGeneration !== this.handle.connection.generation)) return;
     if (event.type === 'new_market') return;
     const p=event.payload, id=p.conditionId;
     if (![...this.identities.values()].includes(id)) return;
@@ -92,23 +109,38 @@ export class BookStream {
     } catch { this.invalid(id); }
   }
   async connect(identities: Map<string,string>): Promise<void> {
-    if (this.status.connected && JSON.stringify([...identities]) === JSON.stringify([...this.identities])) return;
+    if (this.handle && JSON.stringify([...identities]) === JSON.stringify([...this.identities])) return;
     await this.close(); this.identities=identities;
     if (!identities.size) return;
     const generation=++this.generation;
     this.handle=await this.client.subscribe([{topic:'market',assetIds:[...identities.keys()],customFeatureEnabled:true}]);
-    const handle=this.handle; this.status.connected=true; this.status.reconnects++;
+    const handle=this.handle;
+    if (!handle.connection || !handle.onConnectionChange) { await this.close();throw new Error('Falta parche de continuidad del SDK'); }
+    let transport=-1;
+    this.unwatch=handle.onConnectionChange(state=>{
+      const changed=transport !== state.generation;
+      if (!state.connected || changed) {
+        this.books.clear();this.restVerifiedAt.clear();
+        for (const id of new Set(this.identities.values())) this.changedMarket(id);
+      }
+      if (state.connected && changed) this.status.reconnects++;
+      transport=state.generation;this.status.connected=state.connected;
+      this.onConnectionChange?.(state.connected);
+    });
     this.reading=(async()=>{
       try { for await (const event of handle) { if (generation !== this.generation) break; this.ingest(event); } }
       catch { this.status.invalid++; }
-      finally { if (generation === this.generation) { this.status.connected=false; this.books.clear(); } }
+      finally { if (generation === this.generation) { this.status.connected=false; this.books.clear(); this.unwatch?.(); this.unwatch=undefined; this.handle=undefined; this.onConnectionChange?.(false); } }
     })();
   }
   async sync(assetIds=[...this.identities.keys()]): Promise<void> {
     for (let i=0;i<assetIds.length;i+=100) {
       const batch=assetIds.slice(i,i+100);
       try {
+        const transport=this.handle?.connection?.generation;
+        if (this.handle && !this.handle.connection?.connected) return;
         const snapshots=await this.client.fetchOrderBooks(batch.map(assetId=>({assetId})));
+        if (this.handle && (!this.handle.connection?.connected || transport !== this.handle.connection.generation)) continue;
         if (new Set(snapshots.map(b=>b.assetId)).size !== snapshots.length || snapshots.some(b=>!batch.includes(b.assetId))) throw new Error();
         // The API omits assets with no book. Keep valid neighbours and invalidate only missing conditions.
         for (const token of batch) if (!snapshots.some(b=>b.assetId === token)) this.invalid(this.identities.get(token)!);
@@ -120,6 +152,7 @@ export class BookStream {
   }
   async close(): Promise<void> {
     this.generation++; this.status.connected=false;
+    this.unwatch?.();this.unwatch=undefined;this.onConnectionChange?.(false);
     await this.handle?.close(); await this.reading;
     this.handle=undefined; this.reading=undefined; this.books.clear(); this.changed.clear(); this.metadata.clear(); this.restVerifiedAt.clear();
   }
