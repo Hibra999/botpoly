@@ -1,0 +1,62 @@
+{
+  "metadata": {
+    "revision": "9ca0529ead4da59669cb22488216bf59053cd574",
+    "baselineRevision": "80d61477f4b500e622b76acd4e39dd4f7e9cd043",
+    "lockSha256": "408dc388f2b25a26024968fd4787064f5b6778264a7b51471b826f6ddfce776a",
+    "host": "Linux-6.19.9-arch1-1-x86_64-with-glibc2.44",
+    "logicalCpus": 2,
+    "baselineSource": "/home/gabo/portfolio/projects/38-hibraim/botpoly/Polymarket-bot/.runtime/headless-baseline",
+    "capturedAtUtc": "2026-09-07T03:27:06Z"
+  },
+  "runs": [
+    {
+      "repeat": 1,
+      "variant": "baseline",
+      "inputSha256": "17f9faf3213a5366812fe79c00081d15ebd187c920f29adbd649c6e4517d5845",
+      "peakTreeMiB": 435.40234375,
+      "medianWarmTreeMiB": 415.02734375,
+      "cpuSeconds": 124.59,
+      "p95LatencyMs": 9586.475012999988,
+      "maxLatencyMs": 10247.790899999993,
+      "reportMs": [
+        100.24125500000082,
+        138.8609020000149
+      ],
+      "warmSegmentMedianMiB": [
+        412.9296875,
+        414.76953125,
+        416.38671875
+      ],
+      "rssSlopeMiBPerMinute": 4.862955896832033,
+      "orders": 0,
+      "recorded": 7200
+    },
+    {
+      "repeat": 1,
+      "variant": "headless",
+      "inputSha256": "17f9faf3213a5366812fe79c00081d15ebd187c920f29adbd649c6e4517d5845",
+      "peakTreeMiB": 317.8203125,
+      "medianWarmTreeMiB": 229.90625,
+      "cpuSeconds": 91.03,
+      "p95LatencyMs": 4506.7727479999885,
+      "maxLatencyMs": 5505.419854999986,
+      "reportMs": [
+        498.3055239999958,
+        430.33687499997905
+      ],
+      "warmSegmentMedianMiB": [
+        229.3671875,
+        230.33984375,
+        230.2890625
+      ],
+      "rssSlopeMiBPerMinute": 2.515090803643437,
+      "orders": 0,
+      "recorded": 7200
+    }
+  ],
+  "seconds": 360,
+  "repeats": 1,
+  "protocolSha256": "81d0ddd3674d84a014c1d18f920626c902ddbf1102b027cb622a8b89fd1157e1",
+  "samplerSha256": "8371fc9a8317cd1ed1762f3bf8d9d2f0c5564f64b4a8685a82793f06d750c5ae",
+  "growthCriterion": "After 30s warmup: linear RSS slope <=5 MiB/min and final segment median <= previous segment +8 MiB; finite duration, no proof against every long-term leak."
+}

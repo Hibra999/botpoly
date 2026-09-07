@@ -1,0 +1,24 @@
+{
+  "capturedAtUtc": "2026-09-07T03:27:06Z",
+  "completedAtUtc": "2026-09-07T03:40:52.985851+00:00",
+  "metadata": {
+    "revision": "9ca0529ead4da59669cb22488216bf59053cd574",
+    "baselineRevision": "80d61477f4b500e622b76acd4e39dd4f7e9cd043",
+    "lockSha256": "408dc388f2b25a26024968fd4787064f5b6778264a7b51471b826f6ddfce776a",
+    "host": "Linux-6.19.9-arch1-1-x86_64-with-glibc2.44",
+    "logicalCpus": 2,
+    "baselineSource": "/home/gabo/portfolio/projects/38-hibraim/botpoly/Polymarket-bot/.runtime/headless-baseline",
+    "capturedAtUtc": "2026-09-07T03:27:06Z"
+  },
+  "protocolSha256": "81d0ddd3674d84a014c1d18f920626c902ddbf1102b027cb622a8b89fd1157e1",
+  "samplerSha256": "8371fc9a8317cd1ed1762f3bf8d9d2f0c5564f64b4a8685a82793f06d750c5ae",
+  "inputSha256": "17f9faf3213a5366812fe79c00081d15ebd187c920f29adbd649c6e4517d5845",
+  "files": {
+    "1-baseline/result.json": "bdcc7ed61f40e86208f5af414e17a495f78efa60062ac676ad33f82ce84617be",
+    "1-baseline/samples.csv": "7dbac0113f6c7b2687ce0da10a174c23c5e4c2a7245d9eb919d6331e5055c6ba",
+    "1-headless/result.json": "23cbf2483260b16f74c5fbab64961835b46fcdc9a25ec5720f83a2236f500a14",
+    "1-headless/samples.csv": "c9fd2310fa3e6d622de8b1eaf654535d4ba70d7d70c48c7a53448721d59102c0",
+    "acceptance.json": "49aa21ad8eeb466e6ed26ab91ec3923e58cff73cbd6c9237f1bddc03456b9721",
+    "measurements.json": "f01ff5dfde8d1d716c2ae31f2da732e53dab6ddf2ac646af9d90d07a4aa0bb0b"
+  }
+}

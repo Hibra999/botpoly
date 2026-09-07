@@ -1,0 +1,9 @@
+{
+  "passed": true,
+  "rssLowerIncludingReports": true,
+  "growthCriterionMet": true,
+  "medianReductionPct": 44.60455354033526,
+  "peakReductionPct": 27.00537398060343,
+  "cpuReductionPct": 26.9363512320411,
+  "limitation": "Finite six-minute replay on a shared host. Stable final segment medians, not a proof against every long-term leak or a live execution benchmark."
+}
